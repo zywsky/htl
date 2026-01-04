@@ -1,0 +1,103 @@
+<!--
+  HTL 与 AEM 功能集成: 体验片段 (Experience Fragments)
+  
+  学习如何在体验片段中使用 HTL
+-->
+
+<!--
+  体验片段组件:
+  用于在页面中嵌入体验片段
+-->
+
+<!--
+  基础体验片段嵌入:
+  使用体验片段组件
+-->
+<div class="experience-fragment-component ${component.cssClassNames}"
+     data-sly-attribute.id="${component.id}">
+    <!--
+      体验片段通过组件对话框配置
+      组件会自动渲染体验片段内容
+    -->
+    <div data-sly-resource="${resource @ resourceType='core/wcm/components/experiencefragment/v1/experiencefragment'}"></div>
+</div>
+
+<!--
+  使用 Sling Model 处理体验片段:
+  获取体验片段数据
+-->
+<sly data-sly-use.fragment="${'com.adobe.cq.wcm.core.components.models.ExperienceFragment'}"></sly>
+
+<div class="experience-fragment"
+     data-sly-attribute="${{
+         'data-fragment-path': fragment.fragmentPath,
+         'data-fragment-variation': fragment.variationName
+     }}">
+    <!--
+      体验片段内容会自动渲染
+    -->
+    <div data-sly-resource="${fragment.fragmentPath @ resourceType='wcm/core/components/experiencefragment/v1/experiencefragment'}"></div>
+</div>
+
+<!--
+  条件渲染体验片段:
+  根据条件显示不同的体验片段
+-->
+<sly data-sly-use.fragment="${'com.adobe.cq.wcm.core.components.models.ExperienceFragment'}"></sly>
+
+<div data-sly-test="${fragment.fragmentPath}">
+    <div data-sly-resource="${fragment.fragmentPath @ resourceType='wcm/core/components/experiencefragment/v1/experiencefragment'}"></div>
+</div>
+<div data-sly-test="${!fragment.fragmentPath}">
+    <p>请配置体验片段</p>
+</div>
+
+<!--
+  体验片段变体:
+  支持不同的变体
+-->
+<sly data-sly-use.fragment="${'com.adobe.cq.wcm.core.components.models.ExperienceFragment' @ 
+    variationName=properties.variation}"></sly>
+
+<div class="experience-fragment variation-${fragment.variationName}">
+    <div data-sly-resource="${fragment.fragmentPath @ resourceType='wcm/core/components/experiencefragment/v1/experiencefragment'}"></div>
+</div>
+
+<!--
+  实际应用: 响应式体验片段
+-->
+<sly data-sly-use.fragment="${'com.adobe.cq.wcm.core.components.models.ExperienceFragment'}"></sly>
+
+<div class="experience-fragment-responsive">
+    <!-- 桌面版 -->
+    <div class="desktop-only"
+         data-sly-resource="${fragment.fragmentPath + '/desktop' @ resourceType='wcm/core/components/experiencefragment/v1/experiencefragment'}">
+    </div>
+    
+    <!-- 移动版 -->
+    <div class="mobile-only"
+         data-sly-resource="${fragment.fragmentPath + '/mobile' @ resourceType='wcm/core/components/experiencefragment/v1/experiencefragment'}">
+    </div>
+</div>
+
+<!--
+  体验片段与组件结合:
+  在体验片段中使用自定义组件
+-->
+<div class="fragment-container">
+    <!--
+      体验片段内部可以使用任何组件
+      包括自定义 HTL 组件
+    -->
+    <div data-sly-resource="${'par' @ resourceType='wcm/core/components/parsys/v1/parsys'}"></div>
+</div>
+
+<!--
+  最佳实践:
+  1. 使用体验片段组件嵌入片段
+  2. 支持不同变体
+  3. 处理空状态
+  4. 使用语义化 HTML
+  5. 考虑响应式设计
+-->
+

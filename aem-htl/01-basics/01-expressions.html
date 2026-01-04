@@ -1,0 +1,94 @@
+<!--
+  HTL 基础: 表达式和变量
+  
+  这是 HTL 学习的第一课，我们将学习：
+  1. HTL 表达式语法
+  2. 变量引用
+  3. 属性访问
+  4. 表达式上下文
+-->
+
+<!--
+  HTL 表达式使用 ${} 语法
+  表达式会在服务器端执行，结果会安全地插入到 HTML 中
+-->
+<h1>${properties.title}</h1>
+
+<!--
+  表达式上下文：
+  - properties: 当前资源的属性 (JCR 属性)
+  - currentPage: 当前页面对象
+  - resource: 当前资源对象
+  - pageProperties: 页面属性
+  - component: 当前组件对象
+-->
+
+<!-- 访问嵌套属性 -->
+<div>作者: ${properties.author.name}</div>
+
+<!--
+  使用表达式运算符：
+  - 算术运算符: +, -, *, /, %
+  - 比较运算符: ==, !=, <, >, <=, >=
+  - 逻辑运算符: &&, ||, !
+  - 三元运算符: ? :
+-->
+
+<!-- 条件表达式 - 如果 title 存在则显示，否则显示默认值 -->
+<h1>${properties.title || '默认标题'}</h1>
+
+<!-- 算术运算 -->
+<div>价格: $${properties.price * 1.1}</div>
+
+<!--
+  字符串操作：
+  - string.length: 字符串长度
+  - string.toUpperCase: 转大写
+  - string.toLowerCase: 转小写
+  - string.trim: 去除空格
+-->
+
+<!-- 字符串方法 -->
+<div class="${properties.cssClass || 'default-class'}">
+    标题: ${properties.title ? properties.title.toUpperCase() : '无标题'}
+</div>
+
+<!--
+  数组和集合操作：
+  - list.size: 集合大小
+  - list.isEmpty: 是否为空
+  - array.length: 数组长度
+-->
+
+<!--
+  安全访问（可选链）：
+  使用 ?. 可以安全地访问可能为 null 的属性
+-->
+<div>${properties.author?.name || '匿名'}</div>
+
+<!--
+  转义：
+  HTL 会自动转义 HTML 特殊字符，防止 XSS 攻击
+  如果需要显示 HTML，需要使用 context='html' (不推荐，除非确定内容安全)
+-->
+
+<!-- 自动转义 HTML -->
+<div>${properties.content}</div>
+<!-- 如果 properties.content 包含 <script>，会被转义为 &lt;script&gt; -->
+
+<!--
+  表达式中的方法调用：
+  HTL 表达式可以调用对象的方法
+-->
+<div>更新时间: ${properties.lastModified ? properties.lastModified.toString() : '未知'}</div>
+
+<!--
+  复杂表达式示例：
+  组合多个操作
+-->
+<div class="${properties.isActive ? 'active' : 'inactive'} ${properties.isFeatured ? 'featured' : ''}">
+    标题: ${properties.title || '默认标题'}
+    作者: ${properties.author?.name || '匿名'}
+    发布时间: ${properties.publishDate ? properties.publishDate.toString() : '未发布'}
+</div>
+

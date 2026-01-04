@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS动画、过渡和变换</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>CSS动画、过渡和变换</h1>
+        <p>让网页动起来</p>
+    </header>
+
+    <main>
+        <!-- 过渡示例 -->
+        <section class="section">
+            <h2>1. 过渡（Transition）</h2>
+            <div class="transition-demo">
+                <div class="transition-box color-transition">颜色过渡</div>
+                <div class="transition-box size-transition">尺寸过渡</div>
+                <div class="transition-box all-transition">所有属性过渡</div>
+            </div>
+            <p class="code-note">鼠标悬停查看过渡效果</p>
+        </section>
+
+        <!-- 变换示例 -->
+        <section class="section">
+            <h2>2. 变换（Transform）</h2>
+            <div class="transform-demo">
+                <div class="transform-box translate-demo">移动 (translate)</div>
+                <div class="transform-box scale-demo">缩放 (scale)</div>
+                <div class="transform-box rotate-demo">旋转 (rotate)</div>
+                <div class="transform-box skew-demo">倾斜 (skew)</div>
+            </div>
+            <p class="code-note">鼠标悬停查看变换效果</p>
+        </section>
+
+        <!-- 组合变换 -->
+        <section class="section">
+            <h2>3. 组合变换</h2>
+            <div class="transform-demo">
+                <div class="transform-box combined-transform">移动 + 旋转 + 缩放</div>
+            </div>
+        </section>
+
+        <!-- 基础动画 -->
+        <section class="section">
+            <h2>4. 基础动画（Animation）</h2>
+            <div class="animation-demo">
+                <div class="animated-box slide">滑动动画</div>
+                <div class="animated-box fade">淡入动画</div>
+                <div class="animated-box rotate">旋转动画</div>
+            </div>
+        </section>
+
+        <!-- 弹跳动画 -->
+        <section class="section">
+            <h2>5. 弹跳动画</h2>
+            <div class="bounce-container">
+                <div class="bounce-ball">弹跳</div>
+            </div>
+        </section>
+
+        <!-- 脉冲动画 -->
+        <section class="section">
+            <h2>6. 脉冲动画</h2>
+            <div class="pulse-container">
+                <div class="pulse-circle"></div>
+            </div>
+        </section>
+
+        <!-- 加载动画 -->
+        <section class="section">
+            <h2>7. 加载动画</h2>
+            <div class="loader-container">
+                <div class="loader"></div>
+                <div class="loader-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 卡片悬停效果 -->
+        <section class="section">
+            <h2>8. 实际应用：卡片悬停效果</h2>
+            <div class="card-grid">
+                <div class="hover-card">
+                    <h3>卡片 1</h3>
+                    <p>悬停查看效果</p>
+                </div>
+                <div class="hover-card">
+                    <h3>卡片 2</h3>
+                    <p>悬停查看效果</p>
+                </div>
+                <div class="hover-card">
+                    <h3>卡片 3</h3>
+                    <p>悬停查看效果</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 按钮动画 -->
+        <section class="section">
+            <h2>9. 实际应用：按钮动画</h2>
+            <div class="button-demo">
+                <button class="animated-button">点击我</button>
+                <button class="ripple-button">波纹效果</button>
+                <button class="shimmer-button">闪烁效果</button>
+            </div>
+        </section>
+
+        <!-- 进度条动画 -->
+        <section class="section">
+            <h2>10. 实际应用：进度条动画</h2>
+            <div class="progress-demo">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 60%"></div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 80%"></div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100%"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>下一章：CSS高级特性</p>
+    </footer>
+</body>
+</html>
+

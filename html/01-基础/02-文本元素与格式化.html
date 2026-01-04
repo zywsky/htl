@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>02-文本元素与格式化</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .comment { color: #5c6370; }
+        .tag { color: #e06c75; }
+        .attribute { color: #d19a66; }
+        .keyword { color: #61afef; }
+        .demo-box {
+            border: 2px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            background: #ecf0f1;
+            border-radius: 5px;
+        }
+        .tip {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .demo-text {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 HTML 文本元素与格式化</h1>
+
+        <h2>一、标题标签（Headings）</h2>
+        <p>HTML提供了6个级别的标题标签，从h1到h6，重要性递减：</p>
+
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- h1是最高级别的标题，通常一个页面只有一个 --&gt;</span><br>
+<span class="tag">&lt;h1&gt;</span>一级标题（最重要）<span class="tag">&lt;/h1&gt;</span><br>
+<span class="tag">&lt;h2&gt;</span>二级标题<span class="tag">&lt;/h2&gt;</span><br>
+<span class="tag">&lt;h3&gt;</span>三级标题<span class="tag">&lt;/h3&gt;</span><br>
+<span class="tag">&lt;h4&gt;</span>四级标题<span class="tag">&lt;/h4&gt;</span><br>
+<span class="tag">&lt;h5&gt;</span>五级标题<span class="tag">&lt;/h5&gt;</span><br>
+<span class="tag">&lt;h6&gt;</span>六级标题（最低级别）<span class="tag">&lt;/h6&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <div class="demo-text">
+                <h1>一级标题（最重要）</h1>
+                <h2>二级标题</h2>
+                <h3>三级标题</h3>
+                <h4>四级标题</h4>
+                <h5>五级标题</h5>
+                <h6>六级标题（最低级别）</h6>
+            </div>
+        </div>
+
+        <div class="tip">
+            <strong>💡 重要提示：</strong>
+            <ul>
+                <li>h1标签在SEO中非常重要，应该反映页面的主要内容</li>
+                <li>不要为了样式而跳过标题级别（如h1后面直接h3）</li>
+                <li>每个页面最好只有一个h1标签</li>
+                <li>标题标签有语义意义，不要用它们来改变文字大小（应该用CSS）</li>
+            </ul>
+        </div>
+
+        <h2>二、段落标签（Paragraphs）</h2>
+        <p>p标签用于定义段落，浏览器会自动在段落前后添加空白：</p>
+
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;p&gt;</span>这是第一个段落。段落会自动换行并与其他内容保持间距。<span class="tag">&lt;/p&gt;</span><br>
+<br>
+<span class="tag">&lt;p&gt;</span>这是第二个段落。每个段落都是独立的块级元素。<span class="tag">&lt;/p&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <div class="demo-text">
+                <p>这是第一个段落。段落会自动换行并与其他内容保持间距。</p>
+                <p>这是第二个段落。每个段落都是独立的块级元素。</p>
+            </div>
+        </div>
+
+        <h2>三、文本格式化标签</h2>
+        <p>HTML提供了多种文本格式化标签，用于强调或改变文本的显示方式：</p>
+
+        <h3>1. 强调和重要性</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- strong：表示重要文本，浏览器显示为粗体 --&gt;</span><br>
+<span class="tag">&lt;strong&gt;</span>这是重要文本<span class="tag">&lt;/strong&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- em：表示强调文本，浏览器显示为斜体 --&gt;</span><br>
+<span class="tag">&lt;em&gt;</span>这是强调文本<span class="tag">&lt;/em&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- mark：标记/高亮文本，通常显示为黄色背景 --&gt;</span><br>
+<span class="tag">&lt;mark&gt;</span>这是标记文本<span class="tag">&lt;/mark&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- small：小号文本，通常用于免责声明等 --&gt;</span><br>
+<span class="tag">&lt;small&gt;</span>这是小号文本<span class="tag">&lt;/small&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <div class="demo-text">
+                <strong>这是重要文本（strong）</strong><br>
+                <em>这是强调文本（em）</em><br>
+                <mark>这是标记文本（mark）</mark><br>
+                <small>这是小号文本（small）</small>
+            </div>
+        </div>
+
+        <h3>2. 文本样式标签</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- b：粗体文本（纯视觉，无语义） --&gt;</span><br>
+<span class="tag">&lt;b&gt;</span>粗体文本<span class="tag">&lt;/b&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- i：斜体文本（纯视觉，无语义） --&gt;</span><br>
+<span class="tag">&lt;i&gt;</span>斜体文本<span class="tag">&lt;/i&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- u：下划线文本（不推荐使用） --&gt;</span><br>
+<span class="tag">&lt;u&gt;</span>下划线文本<span class="tag">&lt;/u&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- s或strike：删除线文本（表示已删除的内容） --&gt;</span><br>
+<span class="tag">&lt;s&gt;</span>删除线文本<span class="tag">&lt;/s&gt;</span><br>
+<span class="comment">&lt;!-- del：表示删除的内容（语义化标签） --&gt;</span><br>
+<span class="tag">&lt;del&gt;</span>已删除的内容<span class="tag">&lt;/del&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- ins：表示插入的内容 --&gt;</span><br>
+<span class="tag">&lt;ins&gt;</span>新插入的内容<span class="tag">&lt;/ins&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <div class="demo-text">
+                <b>粗体文本（b）</b><br>
+                <i>斜体文本（i）</i><br>
+                <u>下划线文本（u）</u><br>
+                <s>删除线文本（s）</s><br>
+                <del>已删除的内容（del）</del><br>
+                <ins>新插入的内容（ins）</ins>
+            </div>
+        </div>
+
+        <div class="tip">
+            <strong>💡 最佳实践：</strong>
+            <ul>
+                <li><strong>优先使用语义化标签</strong>：使用strong而不是b，使用em而不是i</li>
+                <li><strong>strong vs b</strong>：strong有语义（重要），b只是样式（粗体）</li>
+                <li><strong>em vs i</strong>：em有语义（强调），i只是样式（斜体）</li>
+                <li><strong>避免使用u标签</strong>：下划线通常用于链接，容易造成混淆</li>
+            </ul>
+        </div>
+
+        <h3>3. 代码和预格式化文本</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- code：表示内联代码 --&gt;</span><br>
+<p>使用 <span class="tag">&lt;code&gt;</span>console.log()<span class="tag">&lt;/code&gt;</span> 来输出信息。</p><br>
+<br>
+<span class="comment">&lt;!-- pre：保留空白字符和换行，通常用于代码块 --&gt;</span><br>
+<span class="tag">&lt;pre&gt;</span><br>
+function hello() {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;console.log("Hello, World!");<br>
+}<span class="tag">&lt;/pre&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- kbd：表示键盘按键 --&gt;</span><br>
+按 <span class="tag">&lt;kbd&gt;</span>Ctrl<span class="tag">&lt;/kbd&gt;</span> + <span class="tag">&lt;kbd&gt;</span>C<span class="tag">&lt;/kbd&gt;</span> 复制<br>
+<br>
+<span class="comment">&lt;!-- samp：表示程序输出示例 --&gt;</span><br>
+程序输出：<span class="tag">&lt;samp&gt;</span>Hello, World!<span class="tag">&lt;/samp&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <div class="demo-text">
+                <p>使用 <code>console.log()</code> 来输出信息。</p>
+                <pre>function hello() {
+    console.log("Hello, World!");
+}</pre>
+                <p>按 <kbd>Ctrl</kbd> + <kbd>C</kbd> 复制</p>
+                <p>程序输出：<samp>Hello, World!</samp></p>
+            </div>
+        </div>
+
+        <h3>4. 引用和引用来源</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- blockquote：块级引用 --&gt;</span><br>
+<span class="tag">&lt;blockquote</span> <span class="attribute">cite</span>=<span class="keyword">"https://example.com"</span><span class="tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;这是一段引用文字。通常会自动缩进并显示为引用样式。<br>
+<span class="tag">&lt;/blockquote&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- q：内联引用（短引用） --&gt;</span><br>
+<p>孔子说过：<span class="tag">&lt;q&gt;</span>学而时习之，不亦说乎？<span class="tag">&lt;/q&gt;</span></p><br>
+<br>
+<span class="comment">&lt;!-- cite：表示引用的来源（书名、文章名等） --&gt;</span><br>
+<p>出自 <span class="tag">&lt;cite&gt;</span>论语<span class="tag">&lt;/cite&gt;</span></p>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <div class="demo-text">
+                <blockquote cite="https://example.com">
+                    这是一段引用文字。通常会自动缩进并显示为引用样式。
+                </blockquote>
+                <p>孔子说过：<q>学而时习之，不亦说乎？</q></p>
+                <p>出自 <cite>论语</cite></p>
+            </div>
+        </div>
+
+        <h3>5. 上标和下标</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- sub：下标 --&gt;</span><br>
+H<span class="tag">&lt;sub&gt;</span>2<span class="tag">&lt;/sub&gt;</span>O 是水的化学式<br>
+<br>
+<span class="comment">&lt;!-- sup：上标 --&gt;</span><br>
+E = mc<span class="tag">&lt;sup&gt;</span>2<span class="tag">&lt;/sup&gt;</span> 是质能方程<br>
+<br>
+<span class="comment">&lt;!-- 日期示例 --&gt;</span><br>
+今天是2024<span class="tag">&lt;sup&gt;</span>th<span class="tag">&lt;/sup&gt;</span>年
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <div class="demo-text">
+                <p>H<sub>2</sub>O 是水的化学式</p>
+                <p>E = mc<sup>2</sup> 是质能方程</p>
+                <p>今天是2024<sup>th</sup>年</p>
+            </div>
+        </div>
+
+        <h3>6. 换行和水平线</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- br：换行（自闭合标签） --&gt;</span><br>
+第一行<span class="tag">&lt;br&gt;</span><br>
+第二行<span class="tag">&lt;br&gt;</span><br>
+第三行<br>
+<br>
+<span class="comment">&lt;!-- hr：水平分隔线（自闭合标签） --&gt;</span><br>
+<span class="tag">&lt;hr&gt;</span><br>
+<span class="comment">&lt;!-- hr用于分隔内容区域 --&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <div class="demo-text">
+                第一行<br>
+                第二行<br>
+                第三行
+                <hr>
+                水平线下方的内容
+            </div>
+        </div>
+
+        <div class="tip">
+            <strong>💡 关于换行的提示：</strong>
+            <ul>
+                <li>在HTML中，多个连续的空格会被合并成一个</li>
+                <li>使用&lt;br&gt;进行换行，但不要过度使用（应该用CSS控制布局）</li>
+                <li>在段落之间使用&lt;p&gt;标签而不是&lt;br&gt;</li>
+            </ul>
+        </div>
+
+        <h3>7. 文本方向</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- bdi：双向隔离，用于混合方向的文本 --&gt;</span><br>
+<span class="tag">&lt;bdi&gt;</span>مرحبا<span class="tag">&lt;/bdi&gt;</span> Hello<br>
+<br>
+<span class="comment">&lt;!-- bdo：覆盖文本方向 --&gt;</span><br>
+<span class="tag">&lt;bdo</span> <span class="attribute">dir</span>=<span class="keyword">"rtl"</span><span class="tag">&gt;</span>这段文字从右到左显示<span class="tag">&lt;/bdo&gt;</span>
+            </code>
+        </div>
+
+        <h2>四、综合示例</h2>
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;article&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;h1&gt;</span>HTML文本格式化指南<span class="tag">&lt;/h1&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;p&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;HTML提供了丰富的文本格式化标签。<span class="tag">&lt;strong&gt;</span>重要内容<span class="tag">&lt;/strong&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;可以使用<span class="tag">&lt;em&gt;</span>强调文本<span class="tag">&lt;/em&gt;</span>，或者使用<span class="tag">&lt;mark&gt;</span>标记关键信息<span class="tag">&lt;/mark&gt;</span>。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/p&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;blockquote&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;好的HTML代码应该<span class="tag">&lt;strong&gt;</span>语义化<span class="tag">&lt;/strong&gt;</span>，而不仅仅是改变样式。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/blockquote&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;p&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;更多信息请参考 <span class="tag">&lt;cite&gt;</span>HTML5规范<span class="tag">&lt;/cite&gt;</span>。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/p&gt;</span><br>
+<span class="tag">&lt;/article&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <div class="demo-text">
+                <article>
+                    <h1>HTML文本格式化指南</h1>
+                    <p>
+                        HTML提供了丰富的文本格式化标签。<strong>重要内容</strong>
+                        可以使用<em>强调文本</em>，或者使用<mark>标记关键信息</mark>。
+                    </p>
+                    <blockquote>
+                        好的HTML代码应该<strong>语义化</strong>，而不仅仅是改变样式。
+                    </blockquote>
+                    <p>
+                        更多信息请参考 <cite>HTML5规范</cite>。
+                    </p>
+                </article>
+            </div>
+        </div>
+
+        <h2>✅ 本节总结</h2>
+        <p>你已经学会了：</p>
+        <ul>
+            <li>6个级别的标题标签（h1-h6）及其语义重要性</li>
+            <li>段落标签（p）的使用</li>
+            <li>文本格式化标签：strong, em, mark, small, b, i, s, del, ins</li>
+            <li>代码相关标签：code, pre, kbd, samp</li>
+            <li>引用标签：blockquote, q, cite</li>
+            <li>上标（sup）和下标（sub）</li>
+            <li>换行（br）和水平线（hr）</li>
+            <li>语义化标签的重要性（strong vs b, em vs i）</li>
+        </ul>
+
+        <p style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #ecf0f1;">
+            <strong>下一步：</strong>学习 <a href="03-链接与导航.html">03-链接与导航.html</a>
+        </p>
+    </div>
+</body>
+</html>
+
+

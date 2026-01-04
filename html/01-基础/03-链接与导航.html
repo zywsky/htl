@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>03-链接与导航</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .comment { color: #5c6370; }
+        .tag { color: #e06c75; }
+        .attribute { color: #d19a66; }
+        .keyword { color: #61afef; }
+        .demo-box {
+            border: 2px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            background: #ecf0f1;
+            border-radius: 5px;
+        }
+        .tip {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .demo-text {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            margin: 10px 0;
+        }
+        .demo-text a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .demo-text a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 HTML 链接与导航</h1>
+
+        <h2>一、链接基础（&lt;a&gt; 标签）</h2>
+        <p>a标签（anchor，锚点）用于创建超链接，是HTML最重要的元素之一。</p>
+
+        <h3>1. 基本语法</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- href属性指定链接的目标地址 --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"https://www.example.com"</span><span class="tag">&gt;</span>访问示例网站<span class="tag">&lt;/a&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 链接到同一网站的其他页面（相对路径） --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"about.html"</span><span class="tag">&gt;</span>关于我们<span class="tag">&lt;/a&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 链接到同一页面的不同部分（锚点） --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"#section1"</span><span class="tag">&gt;</span>跳转到第一节<span class="tag">&lt;/a&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <div class="demo-text">
+                <a href="https://www.example.com">访问示例网站</a><br><br>
+                <a href="about.html">关于我们（相对路径）</a><br><br>
+                <a href="#section1">跳转到第一节（锚点）</a>
+            </div>
+        </div>
+
+        <h2>二、链接的类型</h2>
+
+        <h3>1. 外部链接（绝对URL）</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- 绝对URL：包含完整协议和域名 --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"https://www.google.com"</span><span class="tag">&gt;</span>Google<span class="tag">&lt;/a&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"http://example.org"</span><span class="tag">&gt;</span>Example.org<span class="tag">&lt;/a&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 推荐使用https协议（更安全） --&gt;</span>
+            </code>
+        </div>
+
+        <h3>2. 内部链接（相对URL）</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- 同一目录下的文件 --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"page.html"</span><span class="tag">&gt;</span>页面<span class="tag">&lt;/a&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 子目录中的文件 --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"images/photo.jpg"</span><span class="tag">&gt;</span>图片<span class="tag">&lt;/a&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 上级目录的文件 --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"../index.html"</span><span class="tag">&gt;</span>首页<span class="tag">&lt;/a&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 网站根目录的文件（从根目录开始的绝对路径） --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"/about.html"</span><span class="tag">&gt;</span>关于<span class="tag">&lt;/a&gt;</span>
+            </code>
+        </div>
+
+        <h3>3. 锚点链接（页面内跳转）</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- 第一步：为目标元素添加id属性 --&gt;</span><br>
+<span class="tag">&lt;section</span> <span class="attribute">id</span>=<span class="keyword">"introduction"</span><span class="tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;h2&gt;</span>介绍<span class="tag">&lt;/h2&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;p&gt;</span>这是介绍内容...<span class="tag">&lt;/p&gt;</span><br>
+<span class="tag">&lt;/section&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 第二步：创建指向该id的链接（使用#号） --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"#introduction"</span><span class="tag">&gt;</span>跳转到介绍<span class="tag">&lt;/a&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 链接到其他页面的锚点 --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"about.html#team"</span><span class="tag">&gt;</span>关于页面的团队部分<span class="tag">&lt;/a&gt;</span>
+            </code>
+        </div>
+
+        <h3>4. 其他类型的链接</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- 邮件链接 --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"mailto:example@email.com"</span><span class="tag">&gt;</span>发送邮件<span class="tag">&lt;/a&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"mailto:example@email.com?subject=主题&body=邮件内容"</span><span class="tag">&gt;</span>发送预填邮件<span class="tag">&lt;/a&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 电话链接（移动设备上可以拨打电话） --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"tel:+8613800138000"</span><span class="tag">&gt;</span>拨打客服电话<span class="tag">&lt;/a&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 下载链接 --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"document.pdf"</span> <span class="attribute">download</span><span class="tag">&gt;</span>下载PDF文档<span class="tag">&lt;/a&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"document.pdf"</span> <span class="attribute">download</span>=<span class="keyword">"新文件名.pdf"</span><span class="tag">&gt;</span>下载并重命名<span class="tag">&lt;/a&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <div class="demo-text">
+                <a href="mailto:example@email.com">发送邮件</a><br><br>
+                <a href="tel:+8613800138000">拨打客服电话</a>
+            </div>
+        </div>
+
+        <h2>三、链接的重要属性</h2>
+
+        <h3>1. target 属性（打开方式）</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- _self：在当前窗口/标签页打开（默认值） --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"page.html"</span> <span class="attribute">target</span>=<span class="keyword">"_self"</span><span class="tag">&gt;</span>当前窗口打开<span class="tag">&lt;/a&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- _blank：在新窗口/标签页打开（常用于外部链接） --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"https://example.com"</span> <span class="attribute">target</span>=<span class="keyword">"_blank"</span><span class="tag">&gt;</span>新窗口打开<span class="tag">&lt;/a&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- _parent：在父框架中打开 --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"page.html"</span> <span class="attribute">target</span>=<span class="keyword">"_parent"</span><span class="tag">&gt;</span>父框架<span class="tag">&lt;/a&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- _top：在整个窗口中打开（打破所有框架） --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"page.html"</span> <span class="attribute">target</span>=<span class="keyword">"_top"</span><span class="tag">&gt;</span>顶层窗口<span class="tag">&lt;/a&gt;</span>
+            </code>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ 安全提示：</strong>
+            使用target="_blank"时，建议同时添加rel="noopener noreferrer"以防止安全漏洞：
+            <div class="code-block">
+                <code>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"https://example.com"</span> <span class="attribute">target</span>=<span class="keyword">"_blank"</span> <span class="attribute">rel</span>=<span class="keyword">"noopener noreferrer"</span><span class="tag">&gt;</span>安全的外部链接<span class="tag">&lt;/a&gt;</span>
+                </code>
+            </div>
+        </div>
+
+        <h3>2. rel 属性（关系说明）</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- noopener：防止新页面访问原页面的window对象 --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"https://example.com"</span> <span class="attribute">target</span>=<span class="keyword">"_blank"</span> <span class="attribute">rel</span>=<span class="keyword">"noopener"</span><span class="tag">&gt;</span>安全链接<span class="tag">&lt;/a&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- noreferrer：不发送referrer信息，同时也有noopener的效果 --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"https://example.com"</span> <span class="attribute">rel</span>=<span class="keyword">"noreferrer"</span><span class="tag">&gt;</span>隐私链接<span class="tag">&lt;/a&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- nofollow：告诉搜索引擎不要跟踪此链接（SEO相关） --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"https://example.com"</span> <span class="attribute">rel</span>=<span class="keyword">"nofollow"</span><span class="tag">&gt;</span>不追踪链接<span class="tag">&lt;/a&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- external：表示外部链接（语义化，主要用于CSS样式） --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"https://example.com"</span> <span class="attribute">rel</span>=<span class="keyword">"external"</span><span class="tag">&gt;</span>外部链接<span class="tag">&lt;/a&gt;</span>
+            </code>
+        </div>
+
+        <h3>3. title 属性（提示文本）</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- title：鼠标悬停时显示的提示文本 --&gt;</span><br>
+<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"https://example.com"</span> <span class="attribute">title</span>=<span class="keyword">"这是一个示例网站"</span><span class="tag">&gt;</span>示例链接<span class="tag">&lt;/a&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示（鼠标悬停查看title）：</h3>
+            <div class="demo-text">
+                <a href="https://example.com" title="这是一个示例网站">示例链接（鼠标悬停）</a>
+            </div>
+        </div>
+
+        <h2>四、导航结构（&lt;nav&gt; 标签）</h2>
+        <p>nav标签用于定义导航链接的集合，是HTML5的语义化标签。</p>
+
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- 基本导航结构 --&gt;</span><br>
+<span class="tag">&lt;nav&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"/"</span><span class="tag">&gt;</span>首页<span class="tag">&lt;/a&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"/about.html"</span><span class="tag">&gt;</span>关于<span class="tag">&lt;/a&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"/services.html"</span><span class="tag">&gt;</span>服务<span class="tag">&lt;/a&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"/contact.html"</span><span class="tag">&gt;</span>联系<span class="tag">&lt;/a&gt;</span><br>
+<span class="tag">&lt;/nav&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 带列表的导航（更常见的结构） --&gt;</span><br>
+<span class="tag">&lt;nav&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;ul&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;li&gt;&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"/"</span><span class="tag">&gt;</span>首页<span class="tag">&lt;/a&gt;&lt;/li&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;li&gt;&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"/about.html"</span><span class="tag">&gt;</span>关于<span class="tag">&lt;/a&gt;&lt;/li&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;li&gt;&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"/services.html"</span><span class="tag">&gt;</span>服务<span class="tag">&lt;/a&gt;&lt;/li&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;li&gt;&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"/contact.html"</span><span class="tag">&gt;</span>联系<span class="tag">&lt;/a&gt;&lt;/li&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/ul&gt;</span><br>
+<span class="tag">&lt;/nav&gt;</span>
+            </code>
+        </div>
+
+        <h2>五、面包屑导航（Breadcrumbs）</h2>
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;nav</span> <span class="attribute">aria-label</span>=<span class="keyword">"面包屑导航"</span><span class="tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;ol&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;li&gt;&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"/"</span><span class="tag">&gt;</span>首页<span class="tag">&lt;/a&gt;&lt;/li&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;li&gt;&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"/products.html"</span><span class="tag">&gt;</span>产品<span class="tag">&lt;/a&gt;&lt;/li&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;li</span> <span class="attribute">aria-current</span>=<span class="keyword">"page"</span><span class="tag">&gt;</span>产品详情<span class="tag">&lt;/li&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/ol&gt;</span><br>
+<span class="tag">&lt;/nav&gt;</span>
+            </code>
+        </div>
+
+        <h2>六、综合示例：完整导航菜单</h2>
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;header&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;nav&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;ul&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;li&gt;&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"/"</span><span class="tag">&gt;</span>首页<span class="tag">&lt;/a&gt;&lt;/li&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;li&gt;&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"/about.html"</span><span class="tag">&gt;</span>关于我们<span class="tag">&lt;/a&gt;&lt;/li&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;li&gt;&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"/products.html"</span><span class="tag">&gt;</span>产品<span class="tag">&lt;/a&gt;&lt;/li&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;li&gt;&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"/contact.html"</span><span class="tag">&gt;</span>联系我们<span class="tag">&lt;/a&gt;&lt;/li&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;li&gt;&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"https://blog.example.com"</span> <span class="attribute">target</span>=<span class="keyword">"_blank"</span> <span class="attribute">rel</span>=<span class="keyword">"noopener noreferrer"</span><span class="tag">&gt;</span>博客<span class="tag">&lt;/a&gt;&lt;/li&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/ul&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/nav&gt;</span><br>
+<span class="tag">&lt;/header&gt;</span>
+            </code>
+        </div>
+
+        <div class="tip">
+            <strong>💡 最佳实践：</strong>
+            <ul>
+                <li><strong>外部链接</strong>：使用target="_blank"和rel="noopener noreferrer"</li>
+                <li><strong>内部链接</strong>：使用相对路径，更灵活</li>
+                <li><strong>锚点链接</strong>：为页面添加id属性，方便跳转</li>
+                <li><strong>链接文本</strong>：使用有意义的文字，避免"点击这里"</li>
+                <li><strong>导航结构</strong>：使用nav标签包裹导航链接</li>
+                <li><strong>可访问性</strong>：为导航添加aria-label属性</li>
+            </ul>
+        </div>
+
+        <h2>✅ 本节总结</h2>
+        <p>你已经学会了：</p>
+        <ul>
+            <li>a标签的基本语法和href属性</li>
+            <li>绝对URL和相对URL的区别</li>
+            <li>锚点链接的创建和使用</li>
+            <li>特殊链接类型：mailto、tel、download</li>
+            <li>target属性的各种值（_self, _blank, _parent, _top）</li>
+            <li>rel属性的安全设置（noopener, noreferrer, nofollow）</li>
+            <li>title属性的使用</li>
+            <li>nav标签和导航结构的创建</li>
+            <li>面包屑导航的实现</li>
+        </ul>
+
+        <p style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #ecf0f1;">
+            <strong>下一步：</strong>学习 <a href="04-图像与媒体基础.html">04-图像与媒体基础.html</a>
+        </p>
+    </div>
+</body>
+</html>
+
+

@@ -1,0 +1,252 @@
+<!--
+  HTL SEO 优化指南
+  
+  学习如何在 HTL 组件中实现 SEO 优化
+-->
+
+<!--
+  SEO 基础:
+  确保组件对搜索引擎友好
+-->
+
+<!--
+  1. 语义化 HTML
+  使用正确的 HTML5 语义元素
+-->
+<article class="article-component" 
+         itemscope 
+         itemtype="http://schema.org/Article">
+    <header>
+        <h1 itemprop="headline">${properties.title}</h1>
+        <time itemprop="datePublished" 
+              datetime="${properties.publishDateISO}">
+            ${properties.publishDate}
+        </time>
+    </header>
+    <div itemprop="articleBody">
+        ${properties.content}
+    </div>
+    <footer>
+        <span itemprop="author" itemscope itemtype="http://schema.org/Person">
+            <span itemprop="name">${properties.author}</span>
+        </span>
+    </footer>
+</article>
+
+<!--
+  2. Meta 标签
+  在页面级别设置 meta 标签
+-->
+<head>
+    <title>${currentPage.title || '页面标题'}</title>
+    <meta name="description" content="${pageProperties['jcr:description'] || '页面描述'}">
+    <meta name="keywords" content="${pageProperties.keywords || ''}">
+    <meta property="og:title" content="${currentPage.title}">
+    <meta property="og:description" content="${pageProperties['jcr:description']}">
+    <meta property="og:image" content="${pageProperties['og:image']}">
+    <meta property="og:url" content="${currentPage.path}.html">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+
+<!--
+  3. 标题层次结构
+  使用正确的标题层次 (h1-h6)
+-->
+<article class="content-component">
+    <h1>${properties.mainTitle}</h1>
+    <h2>${properties.sectionTitle}</h2>
+    <h3>${properties.subsectionTitle}</h3>
+</article>
+
+<!--
+  4. 图片 SEO
+  使用有意义的 alt 文本和文件名
+-->
+<img src="${properties.imagePath}"
+     alt="${properties.altText || properties.title}"
+     data-sly-attribute="${{
+         'title': properties.imageTitle,
+         'loading': properties.lazyLoad ? 'lazy' : 'eager'
+     }}">
+
+<!--
+  5. 链接 SEO
+  使用描述性的链接文本
+-->
+<a href="${properties.linkUrl}"
+   data-sly-attribute.title="${properties.linkTitle || properties.linkText}">
+    ${properties.linkText}
+</a>
+
+<!-- 避免使用 "点击这里" 等无意义的链接文本 -->
+
+<!--
+  6. 结构化数据 (Schema.org)
+  使用结构化数据标记
+-->
+<div itemscope itemtype="http://schema.org/Product">
+    <h1 itemprop="name">${properties.productName}</h1>
+    <img itemprop="image" 
+         src="${properties.productImage}" 
+         alt="${properties.productName}">
+    <div itemprop="description">${properties.productDescription}</div>
+    <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+        <span itemprop="price">${properties.price}</span>
+        <span itemprop="priceCurrency">${properties.currency}</span>
+    </div>
+</div>
+
+<!--
+  7. 面包屑导航
+  使用结构化面包屑
+-->
+<nav aria-label="面包屑导航">
+    <ol itemscope itemtype="http://schema.org/BreadcrumbList">
+        <li data-sly-list="${breadcrumb.items}"
+            itemprop="itemListElement" 
+            itemscope 
+            itemtype="http://schema.org/ListItem">
+            <a itemprop="item" href="${item.url}">
+                <span itemprop="name">${item.title}</span>
+            </a>
+            <meta itemprop="position" content="${itemList.count}">
+        </li>
+    </ol>
+</nav>
+
+<!--
+  8. URL 结构
+  使用友好的 URL
+-->
+<!-- 在页面级别，确保 URL 是语义化的 -->
+<!-- /content/my-site/en/products/product-name.html -->
+
+<!--
+  9. 内容质量
+  确保内容质量高、相关性强
+-->
+<article class="article">
+    <h1>${properties.title}</h1>
+    <!-- 确保内容长度足够（至少 300 字） -->
+    <div class="content">
+        ${properties.content}
+    </div>
+    <!-- 使用相关关键词，但不要过度优化 -->
+</article>
+
+<!--
+  10. 移动友好
+  确保响应式设计
+-->
+<div class="component responsive"
+     data-sly-attribute="${{
+         'data-mobile-optimized': 'true',
+         'class': 'component responsive'
+     }}">
+    <!-- 确保在移动设备上可访问 -->
+</div>
+
+<!--
+  11. 页面速度
+  优化页面加载速度
+-->
+<!-- 使用懒加载图片 -->
+<img src="${properties.imagePath}"
+     loading="lazy"
+     alt="${properties.altText}">
+
+<!-- 使用异步加载脚本 -->
+<sly data-sly-call="${clientlib.js @ categories='myapp.components', async=true}"></sly>
+
+<!--
+  12. 实际应用: SEO 优化的文章组件
+-->
+<article class="article-component"
+         itemscope 
+         itemtype="http://schema.org/Article">
+    <header>
+        <h1 itemprop="headline">${properties.title}</h1>
+        <div class="meta">
+            <time itemprop="datePublished" 
+                  datetime="${properties.publishDateISO}">
+                ${properties.publishDate}
+            </time>
+            <span itemprop="author" itemscope itemtype="http://schema.org/Person">
+                <span itemprop="name">${properties.author}</span>
+            </span>
+        </div>
+    </header>
+    
+    <div itemprop="image" itemscope itemtype="http://schema.org/ImageObject">
+        <img src="${properties.imagePath}"
+             alt="${properties.altText || properties.title}"
+             itemprop="url">
+        <meta itemprop="width" content="${properties.imageWidth}">
+        <meta itemprop="height" content="${properties.imageHeight}">
+    </div>
+    
+    <div itemprop="articleBody">
+        ${properties.content}
+    </div>
+    
+    <footer>
+        <div itemprop="keywords">${properties.keywords}</div>
+        <div itemprop="articleSection">${properties.category}</div>
+    </footer>
+</article>
+
+<!--
+  13. 实际应用: SEO 优化的产品组件
+-->
+<div class="product-component"
+     itemscope 
+     itemtype="http://schema.org/Product">
+    <h1 itemprop="name">${properties.productName}</h1>
+    
+    <img itemprop="image"
+         src="${properties.productImage}"
+         alt="${properties.productName}">
+    
+    <div itemprop="description">${properties.productDescription}</div>
+    
+    <div itemprop="brand" itemscope itemtype="http://schema.org/Brand">
+        <span itemprop="name">${properties.brandName}</span>
+    </div>
+    
+    <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+        <span itemprop="price">${properties.price}</span>
+        <span itemprop="priceCurrency">${properties.currency}</span>
+        <link itemprop="availability" href="http://schema.org/InStock">
+    </div>
+    
+    <div itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating">
+        <span itemprop="ratingValue">${properties.rating}</span>
+        <span itemprop="reviewCount">${properties.reviewCount}</span>
+    </div>
+</div>
+
+<!--
+  SEO 检查清单:
+  1. 使用语义化 HTML
+  2. 设置正确的 meta 标签
+  3. 使用正确的标题层次
+  4. 提供有意义的 alt 文本
+  5. 使用描述性的链接文本
+  6. 实现结构化数据
+  7. 优化 URL 结构
+  8. 确保内容质量
+  9. 移动友好
+  10. 优化页面速度
+  11. 使用面包屑导航
+  12. 确保内部链接结构良好
+-->
+
+<!--
+  SEO 工具:
+  - Google Search Console
+  - Google Analytics
+  - Schema.org Validator
+  - PageSpeed Insights
+  - Lighthouse
+-->
+

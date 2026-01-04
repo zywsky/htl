@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    日志配置文件示例
+    
+    这个文件展示了如何配置日志记录。
+    根据你的项目需求调整日志级别和输出格式。
+    
+    使用说明：
+    1. 如果使用 Log4j2，将文件放在 src/main/resources/ 目录
+    2. 如果使用 SLF4J + Logback，创建 logback.xml
+    3. 如果使用 SLF4J + Simple，不需要配置文件
+-->
+<Configuration status="WARN">
+    <Appenders>
+        <!-- 控制台输出 -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"/>
+        </Console>
+        
+        <!-- 文件输出 -->
+        <File name="FileAppender" fileName="logs/component-info.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"/>
+        </File>
+        
+        <!-- 滚动文件输出 -->
+        <RollingFile name="RollingFile" 
+                     fileName="logs/component-info.log"
+                     filePattern="logs/component-info-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+    </Appenders>
+    
+    <Loggers>
+        <!-- 组件信息提取器的日志级别 -->
+        <Logger name="com.aem.component.info" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+        </Logger>
+        
+        <!-- JCR 相关日志 -->
+        <Logger name="javax.jcr" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        
+        <!-- Sling 相关日志 -->
+        <Logger name="org.apache.sling" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        
+        <!-- 根日志器 -->
+        <Root level="INFO">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+        </Root>
+    </Loggers>
+</Configuration>
+

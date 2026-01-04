@@ -1,0 +1,3016 @@
+<!--
+  AEM 组件编辑配置: _cq_editConfig.xml 文件详解
+  
+  本文档详细分析 AEM 组件中的 _cq_editConfig.xml 文件，
+  包括其结构、属性、配置选项和使用场景，从基础到高级应用
+-->
+
+<!--
+  _cq_editConfig.xml 文件概述
+  ==========================
+  
+  _cq_editConfig.xml 是 AEM 组件的编辑配置文件，定义了组件在编辑模式下的行为。
+  它控制组件的工具栏、拖放行为、内联编辑、监听器等编辑相关功能。
+  
+  文件位置: /apps/{project}/components/{component-name}/_cq_editConfig.xml
+  节点类型: cq:EditConfig
+-->
+
+<!--
+  0. 为什么需要编辑配置？编辑配置的核心作用
+  ======================================
+  
+  在理解编辑配置的具体语法之前，首先要明白一个核心问题：
+  
+  为什么 AEM 组件需要 _cq_editConfig.xml？
+  
+  ===== 核心答案 =====
+  
+  编辑配置文件定义了"组件在编辑器中如何表现"，它连接了组件定义和编辑体验。
+  
+  ===== 详细解释 =====
+  
+  1. 问题的本质
+  
+  在 AEM 中，一个组件有两面：
+  
+  a) 运行时的表现（发布环境）
+     - 组件如何显示给最终用户
+     - 由 HTL 模板文件（.html）定义
+     - 存储位置: /apps/myapp/components/hero/hero.html
+  
+  b) 编辑时的表现（编辑环境）
+     - 组件在编辑器中如何表现
+     - 如何配置、如何交互
+     - 由编辑配置文件定义
+     - 存储位置: /apps/myapp/components/hero/_cq_editConfig.xml
+  
+  2. 如果没有编辑配置会怎样？
+  
+  假设只有组件定义和模板文件，没有 _cq_editConfig.xml:
+  
+  ❌ 无法拖放内容到组件上
+  ❌ 无法配置拖放目标（如拖放图片到图片组件）
+  ❌ 无法控制编辑后的刷新行为
+  ❌ 无法启用内联编辑功能
+  ❌ 无法自定义工具栏按钮
+  ❌ 无法控制对话框打开方式（浮动/内联）
+  ❌ 组件在编辑器中功能受限
+  
+  结果:
+  - 内容作者体验差
+  - 编辑功能不完整
+  - 无法充分利用 AEM 的编辑功能
+  
+  3. 编辑配置的五个核心作用
+  
+  a) 控制拖放行为（Drag & Drop）
+     ──────────────────────────
+     
+     问题: 用户想从 DAM 拖放图片到图片组件
+     
+     没有编辑配置:
+     - 无法识别拖放操作
+     - 不知道拖放的内容应该保存到哪里
+     - 拖放功能无法工作
+     
+     有编辑配置:
+     <cq:dropTargets>
+         <image accept="[image/.*]" propertyName="./fileReference"/>
+     </cq:dropTargets>
+     
+     效果:
+     - 用户可以拖放图片
+     - 系统知道接受图片类型
+     - 知道保存到 fileReference 属性
+     - 拖放功能正常工作
+  
+  b) 控制编辑后行为（Refresh Behavior）
+     ───────────────────────────────
+     
+     问题: 用户编辑组件后，页面应该刷新吗？
+     
+     没有编辑配置:
+     - 使用默认行为（可能刷新整个页面）
+     - 性能较差
+     - 用户体验不佳
+     
+     有编辑配置:
+     <cq:listeners afteredit="REFRESH_SELF"/>
+     
+     效果:
+     - 只刷新组件本身（性能更好）
+     - 或刷新整个页面（如果需要）
+     - 或什么都不做（性能优化）
+     - 可控制的刷新策略
+  
+  c) 启用内联编辑（Inplace Editing）
+     ─────────────────────────────
+     
+     问题: 用户想直接在页面上编辑文本，而不打开对话框
+     
+     没有编辑配置:
+     - 只能通过对话框编辑
+     - 无法内联编辑
+     - 编辑流程较慢
+     
+     有编辑配置:
+     <cq:inplaceEditing active="{Boolean}true" editorType="plaintext"/>
+     
+     效果:
+     - 用户可以直接在页面上编辑文本
+     - 无需打开对话框
+     - 编辑体验更流畅
+     - 类似现代 CMS 的体验
+  
+  d) 控制对话框行为（Dialog Behavior）
+     ───────────────────────────────
+     
+     问题: 编辑对话框应该以什么方式打开？
+     
+     没有编辑配置:
+     - 使用默认方式（可能是浮动对话框）
+     - 无法根据组件特性调整
+     
+     有编辑配置:
+     <jcr:root cq:dialogMode="inline"/>
+     或
+     <jcr:root cq:dialogMode="floating"/>
+     
+     效果:
+     - 浮动对话框：在页面中央显示（适合复杂配置）
+     - 内联对话框：在组件位置显示（适合简单配置）
+     - 自动选择：根据屏幕尺寸自动选择（响应式）
+     - 提供更好的用户体验
+  
+  e) 自定义工具栏操作（Custom Actions）
+     ────────────────────────────────
+     
+     问题: 除了标准的编辑、删除按钮，需要自定义操作吗？
+     
+     没有编辑配置:
+     - 只有标准操作（编辑、删除等）
+     - 无法添加自定义功能
+     
+     有编辑配置:
+     <cq:actions>
+         <action0 text="Edit" handler="function() { ... }"/>
+         <action1 text="Custom Action" handler="function() { ... }"/>
+     </cq:actions>
+     
+     效果:
+     - 可以添加自定义工具栏按钮
+     - 可以调用自定义 JavaScript 函数
+     - 可以集成第三方功能
+     - 提供更灵活的编辑体验
+  
+  4. 编辑配置在整个组件系统中的地位
+  
+  AEM 组件生态系统:
+  
+  .content.xml          → 组件定义（组件是什么，有什么属性）
+  component.html        → 渲染脚本（组件如何显示给用户）← 运行时
+  _cq_dialog/           → 编辑对话框（用户如何配置组件）
+  _cq_editConfig.xml    → 编辑配置（组件在编辑器中如何表现）← 编辑时
+  _cq_htmlTag/          → HTML 包装（组件的外层标签）
+  _cq_template/         → 初始内容（首次创建时的默认值）
+  
+  编辑配置（_cq_editConfig.xml）是连接"组件定义"和"编辑体验"的桥梁。
+  
+  5. 完整的工作流程示例
+  
+  场景: 内容作者编辑图片组件
+  
+  步骤 1: 用户在编辑器中选择图片组件
+  ───────────────────────────────
+  组件渲染:
+  - 使用 hero.html 模板渲染组件
+  - 显示图片给用户
+  
+  步骤 2: 用户点击编辑按钮
+  ──────────────────────
+  AEM 检查编辑配置:
+  - 读取 _cq_editConfig.xml
+  - 查看 cq:dialogMode="floating"
+  - 决定以浮动方式打开对话框
+  
+  步骤 3: 对话框打开
+  ───────────────
+  对话框显示:
+  - 使用 _cq_dialog/.content.xml 配置
+  - 显示在页面中央（浮动模式）
+  - 用户可以配置图片属性
+  
+  步骤 4: 用户保存配置
+  ──────────────────
+  AEM 执行保存:
+  - 保存属性到 JCR
+  - 检查编辑配置中的监听器
+  - 查看 afteredit="REFRESH_SELF"
+  - 决定只刷新组件本身
+  
+  步骤 5: 组件刷新
+  ──────────────
+  组件重新渲染:
+  - 使用更新后的属性
+  - 只刷新组件区域（不刷新整个页面）
+  - 用户看到更新后的内容
+  
+  步骤 6: 用户拖放新图片
+  ────────────────────
+  AEM 处理拖放:
+  - 检查编辑配置中的拖放目标
+  - 查看 accept="[image/.*]"
+  - 匹配拖放的图片类型
+  - 保存到 propertyName="./fileReference"
+  - 触发 afteredit 监听器
+  - 刷新组件显示新图片
+  
+  6. 编辑配置的重要性总结
+  
+  ✅ 没有编辑配置，组件在编辑器中的功能受限
+  ✅ 编辑配置定义了组件的编辑体验
+  ✅ 编辑配置连接了组件定义和编辑功能
+  ✅ 编辑配置是组件系统中不可或缺的部分
+  ✅ 所有编辑相关功能都依赖于编辑配置
+  
+  类比总结:
+  
+  如果把组件比作一辆汽车:
+  - .content.xml = 汽车的"规格说明书"（定义这是什么车，有什么参数）
+  - component.html = 汽车的"外观和性能"（运行时如何表现）
+  - _cq_dialog = 汽车的"控制面板"（如何操作）
+  - _cq_editConfig.xml = 汽车的"操作手册"（在车间里如何维护和调试）
+  
+  没有编辑配置，就像汽车没有操作手册，即使有完美的车身和控制面板，
+  在维护和调试时也会遇到困难。
+  
+  7. 实际应用场景对比
+  
+  场景 1: 图片组件（需要拖放功能）
+  ─────────────────────────────
+  
+  没有编辑配置:
+  ❌ 用户无法拖放图片
+  ❌ 只能通过对话框上传
+  ❌ 编辑体验差
+  
+  有编辑配置:
+  ✅ 用户可以直接拖放图片
+  ✅ 拖放后自动保存
+  ✅ 编辑体验流畅
+  
+  场景 2: 文本组件（需要内联编辑）
+  ───────────────────────────
+  
+  没有编辑配置:
+  ❌ 只能通过对话框编辑
+  ❌ 需要打开对话框才能修改文字
+  ❌ 编辑流程繁琐
+  
+  有编辑配置:
+  ✅ 可以直接在页面上编辑文字
+  ✅ 无需打开对话框
+  ✅ 编辑流程简洁
+  
+  场景 3: 容器组件（需要控制刷新）
+  ───────────────────────────
+  
+  没有编辑配置:
+  ❌ 子组件操作后刷新整个页面
+  ❌ 性能较差
+  ❌ 用户体验不佳
+  
+  有编辑配置:
+  ✅ 子组件操作后只刷新容器
+  ✅ 性能更好
+  ✅ 用户体验更好
+  
+  8. 编辑配置的价值
+  
+  a) 提升内容作者体验
+     - 更直观的编辑方式
+     - 更快速的编辑流程
+     - 更强大的编辑功能
+  
+  b) 优化性能
+     - 精确控制刷新范围
+     - 减少不必要的页面刷新
+     - 提高编辑响应速度
+  
+  c) 增强功能
+     - 拖放支持
+     - 内联编辑
+     - 自定义操作
+     - 灵活配置
+  
+  d) 保持一致
+     - 统一的编辑体验
+     - 标准化的编辑行为
+     - 可预测的编辑结果
+-->
+
+<!--
+  1. 基本文件结构
+  ==============
+-->
+
+<!--
+  1.1 XML 声明和命名空间
+  --------------------
+-->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+          xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          xmlns:granite="http://www.adobe.com/jcr/granite/1.0"
+          jcr:primaryType="cq:EditConfig"
+          <!-- 其他属性 -->
+/>
+
+<!--
+  命名空间说明:
+  - jcr: Java Content Repository 命名空间
+  - nt: JCR Node Type 命名空间
+  - cq: Adobe CQ/AEM 特定命名空间
+  - granite: Adobe Granite UI 命名空间（用于某些高级配置）
+  
+  jcr:primaryType="cq:EditConfig" 表示这是一个编辑配置节点
+-->
+
+<!--
+  1.2 最小配置示例
+  ---------------
+-->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          jcr:primaryType="cq:EditConfig"/>
+
+<!--
+  最小配置说明:
+  - 只有 jcr:primaryType="cq:EditConfig"
+  - 使用默认的编辑行为
+  - 组件会有基本的工具栏和拖放功能
+-->
+
+<!--
+  2. 核心属性详解
+  ==============
+-->
+
+<!--
+  2.1 工具栏配置
+  ------------
+-->
+
+<!-- cq:dialogMode: 对话框模式 -->
+<jcr:root jcr:primaryType="cq:EditConfig"
+          cq:dialogMode="floating"/>
+
+<!--
+  cq:dialogMode
+  - 类型: String
+  - 必需: 否
+  - 默认值: "floating"
+  - 说明: 定义组件对话框的打开方式
+  - 可选值:
+    * "floating": 浮动对话框（默认），在页面中央显示
+    * "inline": 内联对话框，在组件位置内显示
+    * "auto": 自动选择（根据屏幕尺寸）
+  - 使用场景:
+    * floating: 大多数组件使用，提供更好的编辑体验
+    * inline: 适合简单的编辑，避免遮挡页面内容
+    * auto: 响应式场景，根据设备自动选择
+-->
+
+<!-- 示例: 内联对话框 -->
+<jcr:root jcr:primaryType="cq:EditConfig"
+          cq:dialogMode="inline"/>
+
+<!--
+  2.2 布局配置
+  ----------
+-->
+
+<!-- cq:layout: 布局模式 -->
+<jcr:root jcr:primaryType="cq:EditConfig"
+          cq:layout="auto"/>
+
+<!--
+  cq:layout
+  - 类型: String
+  - 必需: 否
+  - 默认值: "auto"
+  - 说明: 定义组件在编辑模式下的布局行为
+  - 可选值:
+    * "auto": 自动布局（默认）
+    * "editbar": 编辑栏布局
+    * "rollover": 悬停时显示编辑栏
+  - 使用场景:
+    * auto: 大多数场景使用
+    * editbar: 需要固定编辑栏的场景
+    * rollover: 需要节省空间的场景
+-->
+
+<!--
+  2.3 删除配置
+  ----------
+-->
+
+<!-- cq:inherit: 是否继承父组件配置 -->
+<jcr:root jcr:primaryType="cq:EditConfig"
+          cq:inherit="{Boolean}true"/>
+
+<!--
+  cq:inherit
+  - 类型: Boolean
+  - 必需: 否
+  - 默认值: false
+  - 说明: 是否继承父组件的编辑配置
+  - true: 继承父组件（sling:resourceSuperType）的编辑配置
+  - false: 不继承，使用当前配置（默认）
+  - 使用场景: 需要继承父组件编辑行为的组件
+-->
+
+<!--
+  2.4 拖放配置
+  ----------
+-->
+
+<!-- cq:dropTargets: 拖放目标配置（子节点） -->
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:dropTargets jcr:primaryType="nt:unstructured">
+        <!-- 拖放目标配置 -->
+    </cq:dropTargets>
+</jcr:root>
+
+<!--
+  cq:dropTargets
+  - 类型: Node (nt:unstructured)
+  - 必需: 否
+  - 说明: 定义组件的拖放目标配置
+  - 包含多个拖放目标定义
+  - 详见"拖放配置"章节
+-->
+
+<!--
+  2.5 监听器配置
+  ------------
+-->
+
+<!-- cq:listeners: 事件监听器配置（子节点） -->
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:listeners jcr:primaryType="nt:unstructured"
+                  afteredit="REFRESH_PAGE"
+                  afterinsert="REFRESH_PAGE"/>
+</jcr:root>
+
+<!--
+  cq:listeners
+  - 类型: Node (nt:unstructured)
+  - 必需: 否
+  - 说明: 定义组件编辑事件的处理方式
+  - 常用属性:
+    * afteredit: 编辑后触发
+    * afterinsert: 插入后触发
+    * afterdelete: 删除后触发
+    * aftermove: 移动后触发
+  - 详见"监听器配置"章节
+-->
+
+<!--
+  2.6 内联编辑配置
+  --------------
+-->
+
+<!-- cq:inplaceEditing: 内联编辑配置（子节点） -->
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:inplaceEditing jcr:primaryType="cq:InplaceEditingConfig"
+                       active="{Boolean}true"
+                       editorType="plaintext"/>
+</jcr:root>
+
+<!--
+  cq:inplaceEditing
+  - 类型: Node (cq:InplaceEditingConfig)
+  - 必需: 否
+  - 说明: 定义组件的内联编辑功能
+  - 详见"内联编辑配置"章节
+-->
+
+<!--
+  2.7 操作配置
+  ----------
+-->
+
+<!-- cq:actions: 工具栏操作按钮（子节点） -->
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:actions jcr:primaryType="nt:unstructured">
+        <!-- 操作按钮配置 -->
+    </cq:actions>
+</jcr:root>
+
+<!--
+  cq:actions
+  - 类型: Node (nt:unstructured)
+  - 必需: 否
+  - 说明: 定义组件工具栏中的操作按钮
+  - 详见"操作配置"章节
+-->
+
+<!--
+  3. 拖放配置（详细）
+  ==================
+-->
+
+<!--
+  3.1 基本拖放配置
+  --------------
+-->
+
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:dropTargets jcr:primaryType="nt:unstructured">
+        <image jcr:primaryType="cq:DropTargetConfig"
+               accept="[image/.*]"
+               groups="[media]"
+               propertyName="./image/fileReference"/>
+    </cq:dropTargets>
+</jcr:root>
+
+<!--
+  拖放目标配置说明:
+  
+  image: 拖放目标名称（自定义，可以有多个）
+  jcr:primaryType="cq:DropTargetConfig": 拖放目标配置类型
+  
+  核心属性:
+  - accept: 接受的文件类型（MIME 类型或文件扩展名）
+  - groups: 接受的内容类型组（如 media, foundation）
+  - propertyName: 保存拖放内容的属性路径
+-->
+
+<!--
+  3.2 accept 属性详解
+  -----------------
+  
+  accept 属性定义拖放目标接受的内容类型。
+  
+  格式:
+  - 字符串数组格式: "[type1,type2]"
+  - MIME 类型: "image/.*", "video/.*"
+  - 文件扩展名: ".jpg", ".png"
+  - 正则表达式: "image/.*" (匹配所有图片类型)
+  
+  常见值:
+  - "[image/.*]": 接受所有图片类型
+  - "[image/jpeg,image/png,image/gif]": 接受特定图片类型
+  - "[.jpg,.png,.gif]": 使用文件扩展名
+  - "[media]": 接受媒体库中的内容
+  - "[page]": 接受页面
+  - "[asset]": 接受资源
+-->
+
+<!--
+  3.3 groups 属性详解
+  -----------------
+  
+  groups 属性定义接受的内容类型组。
+  
+  常见组:
+  - "media": 媒体内容（图片、视频等）
+  - "foundation": 基础组件
+  - "page": 页面
+  - "asset": 资源
+  - 自定义组: 项目特定的内容类型
+  
+  示例:
+  - groups="[media]": 只接受媒体内容
+  - groups="[media,page]": 接受媒体和页面
+  - groups="[foundation]": 接受基础组件
+-->
+
+<!--
+  3.4 propertyName 属性详解
+  -----------------------
+  
+  propertyName 定义拖放内容保存到的属性路径。
+  
+  路径格式:
+  - 相对路径: "./image/fileReference"
+  - 绝对路径: "/content/dam/image.jpg"
+  - 子节点路径: "./image/jcr:content"
+  
+  常见模式:
+  - "./image/fileReference": 保存到 image/fileReference 属性
+  - "./fileReference": 保存到当前节点的 fileReference 属性
+  - "./content/image": 保存到 content 子节点的 image 属性
+  
+  注意事项:
+  - 路径相对于组件实例节点
+  - 如果路径包含子节点，AEM 会自动创建
+  - 对于 DAM 资源，通常使用 fileReference 属性
+-->
+
+<!--
+  3.5 多个拖放目标
+  --------------
+-->
+
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:dropTargets jcr:primaryType="nt:unstructured">
+        <!-- 图片拖放目标 -->
+        <image jcr:primaryType="cq:DropTargetConfig"
+               accept="[image/.*]"
+               groups="[media]"
+               propertyName="./image/fileReference"/>
+        
+        <!-- 视频拖放目标 -->
+        <video jcr:primaryType="cq:DropTargetConfig"
+               accept="[video/.*]"
+               groups="[media]"
+               propertyName="./video/fileReference"/>
+        
+        <!-- 文档拖放目标 -->
+        <document jcr:primaryType="cq:DropTargetConfig"
+                  accept="[application/pdf,application/msword]"
+                  groups="[media]"
+                  propertyName="./document/fileReference"/>
+    </cq:dropTargets>
+</jcr:root>
+
+<!--
+  多个拖放目标说明:
+  - 可以为组件定义多个拖放目标
+  - 每个拖放目标有独立的名称（image, video, document）
+  - 每个拖放目标可以接受不同类型的内容
+  - 拖放时 AEM 会根据内容类型匹配相应的拖放目标
+-->
+
+<!--
+  3.6 高级拖放配置
+  --------------
+-->
+
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:dropTargets jcr:primaryType="nt:unstructured">
+        <image jcr:primaryType="cq:DropTargetConfig"
+               accept="[image/.*]"
+               groups="[media]"
+               propertyName="./image/fileReference"
+               targetParameter="image"
+               nodeName="image"
+               allowSameNameSiblings="{Boolean}false"/>
+    </cq:dropTargets>
+</jcr:root>
+
+<!--
+  高级属性说明:
+  
+  targetParameter
+  - 类型: String
+  - 说明: 拖放时传递的参数名
+  - 用于自定义处理逻辑
+  
+  nodeName
+  - 类型: String
+  - 说明: 创建的子节点名称（如果 propertyName 指向子节点）
+  - 默认使用拖放目标名称
+  
+  allowSameNameSiblings
+  - 类型: Boolean
+  - 说明: 是否允许同名兄弟节点
+  - 默认: false
+-->
+
+<!--
+  4. 监听器配置（详细）
+  ====================
+-->
+
+<!--
+  4.1 基本监听器配置
+  ----------------
+-->
+
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:listeners jcr:primaryType="nt:unstructured"
+                  afteredit="REFRESH_PAGE"
+                  afterinsert="REFRESH_PAGE"
+                  afterdelete="REFRESH_PAGE"
+                  aftermove="REFRESH_PAGE"/>
+</jcr:root>
+
+<!--
+  监听器事件说明:
+  
+  afteredit: 编辑后触发（保存对话框后）
+  afterinsert: 插入后触发（添加组件后）
+  afterdelete: 删除后触发（删除组件后）
+  aftermove: 移动后触发（移动组件后）
+  
+  可用操作:
+  - REFRESH_PAGE: 刷新整个页面（默认）
+  - REFRESH_SELF: 只刷新当前组件
+  - REFRESH_PARENT: 刷新父组件
+  - REFRESH_INSERTED: 刷新插入的组件
+  - REACT: 触发 React 更新（如果使用）
+  - IGNORE: 不执行任何操作
+-->
+
+<!--
+  4.2 常用监听器组合
+  ----------------
+-->
+
+<!-- 示例 1: 编辑后刷新页面 -->
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:listeners jcr:primaryType="nt:unstructured"
+                  afteredit="REFRESH_PAGE"/>
+</jcr:root>
+
+<!-- 示例 2: 编辑后只刷新组件 -->
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:listeners jcr:primaryType="nt:unstructured"
+                  afteredit="REFRESH_SELF"/>
+</jcr:root>
+
+<!-- 示例 3: 插入后刷新父组件（用于容器组件） -->
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:listeners jcr:primaryType="nt:unstructured"
+                  afterinsert="REFRESH_PARENT"/>
+</jcr:root>
+
+<!-- 示例 4: 删除后不刷新（性能优化） -->
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:listeners jcr:primaryType="nt:unstructured"
+                  afterdelete="IGNORE"/>
+</jcr:root>
+
+<!--
+  4.3 自定义监听器函数
+  ------------------
+-->
+
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:listeners jcr:primaryType="nt:unstructured"
+                  afteredit="function(editable, action) {
+                      if (action === 'edit') {
+                          CQ.Ext.get(editable.dom).refresh();
+                      }
+                  }"/>
+</jcr:root>
+
+<!--
+  自定义函数说明:
+  - 可以使用 JavaScript 函数自定义行为
+  - 函数接收 editable 和 action 参数
+  - editable: 可编辑元素对象
+  - action: 执行的操作
+  
+  注意:
+  - 自定义函数在客户端执行
+  - 需要确保函数在页面加载时可用
+  - 推荐使用标准的 REFRESH_* 操作
+-->
+
+<!--
+  5. 内联编辑配置（详细）
+  ======================
+-->
+
+<!--
+  5.1 基本内联编辑配置
+  ------------------
+-->
+
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:inplaceEditing jcr:primaryType="cq:InplaceEditingConfig"
+                       active="{Boolean}true"
+                       editorType="plaintext"/>
+</jcr:root>
+
+<!--
+  内联编辑说明:
+  
+  active: 是否启用内联编辑
+  - true: 启用内联编辑
+  - false: 禁用内联编辑（默认）
+  
+  editorType: 编辑器类型
+  - "plaintext": 纯文本编辑器（默认）
+  - "text": 文本编辑器（带格式化）
+  - "title": 标题编辑器
+  - 自定义编辑器类型
+-->
+
+<!--
+  5.2 编辑器类型详解
+  ----------------
+-->
+
+<!-- plaintext: 纯文本编辑器 -->
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:inplaceEditing jcr:primaryType="cq:InplaceEditingConfig"
+                       active="{Boolean}true"
+                       editorType="plaintext"
+                       configPath=""/>
+</jcr:root>
+
+<!--
+  plaintext 编辑器:
+  - 最简单的文本编辑器
+  - 支持纯文本输入
+  - 无格式化功能
+  - 适合简单文本字段
+-->
+
+<!-- text: 文本编辑器（带格式化） -->
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:inplaceEditing jcr:primaryType="cq:InplaceEditingConfig"
+                       active="{Boolean}true"
+                       editorType="text"
+                       configPath="/libs/foundation/components/text/inplaceediting/dialog"/>
+</jcr:root>
+
+<!--
+  text 编辑器:
+  - 支持富文本格式化
+  - 可以配置格式化工具栏
+  - configPath 指向编辑器配置对话框
+  - 适合需要格式化的文本内容
+-->
+
+<!-- title: 标题编辑器 -->
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:inplaceEditing jcr:primaryType="cq:InplaceEditingConfig"
+                       active="{Boolean}true"
+                       editorType="title"/>
+</jcr:root>
+
+<!--
+  title 编辑器:
+  - 专门用于标题字段
+  - 可能有字符限制
+  - 适合页面标题、组件标题等
+-->
+
+<!--
+  5.3 内联编辑属性配置
+  ------------------
+-->
+
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:inplaceEditing jcr:primaryType="cq:InplaceEditingConfig"
+                       active="{Boolean}true"
+                       editorType="plaintext">
+        <config jcr:primaryType="nt:unstructured"
+                text="Editable text property"/>
+    </cq:inplaceEditing>
+</jcr:root>
+
+<!--
+  配置说明:
+  - config 子节点包含编辑器特定配置
+  - text 属性: 编辑器占位文本或提示
+  - 其他配置取决于编辑器类型
+-->
+
+<!--
+  5.4 在 HTL 模板中使用内联编辑
+  ---------------------------
+-->
+
+<!--
+  在 HTL 模板中启用内联编辑:
+  
+  <div class="editable-text"
+       data-sly-attribute.data-cq-editable="${properties.text}">
+      ${properties.text}
+  </div>
+  
+  或者使用 Core Components 的内联编辑支持:
+  
+  <h2 data-sly-attribute.data-cq-editable="${'text'}">
+      ${properties.title}
+  </h2>
+  
+  注意:
+  - 需要设置 data-cq-editable 属性
+  - 属性值对应 _cq_editConfig.xml 中的配置
+  - 编辑器类型需要匹配
+-->
+
+<!--
+  6. 操作配置（详细）
+  ==================
+-->
+
+<!--
+  6.1 基本操作配置
+  --------------
+-->
+
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:actions jcr:primaryType="nt:unstructured">
+        <action0 jcr:primaryType="nt:unstructured"
+                 text="Edit"
+                 handler="function() { CQ.wcm.EditBase.editDialog(this); }"/>
+        <action1 jcr:primaryType="nt:unstructured"
+                 text="Delete"
+                 handler="function() { CQ.wcm.EditBase.deletePage(this); }"/>
+    </cq:actions>
+</jcr:root>
+
+<!--
+  操作配置说明:
+  
+  action0, action1, ...: 操作按钮名称（按顺序）
+  text: 按钮显示的文本
+  handler: JavaScript 函数，定义按钮点击时的行为
+  
+  注意:
+  - 操作按钮按 action0, action1, action2... 的顺序显示
+  - 如果跳过序号，按钮可能不显示
+  - handler 必须是有效的 JavaScript 函数
+-->
+
+<!--
+  6.2 标准操作函数
+  --------------
+-->
+
+<!--
+  CQ.wcm.EditBase.editDialog(editable)
+  - 打开编辑对话框
+  
+  CQ.wcm.EditBase.deletePage(editable)
+  - 删除组件
+  
+  CQ.wcm.EditBase.copyPage(editable)
+  - 复制组件
+  
+  CQ.wcm.EditBase.cutPage(editable)
+  - 剪切组件
+  
+  CQ.wcm.EditBase.pastePage(editable)
+  - 粘贴组件
+-->
+
+<!--
+  6.3 自定义操作
+  ------------
+-->
+
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:actions jcr:primaryType="nt:unstructured">
+        <action0 jcr:primaryType="nt:unstructured"
+                 text="Edit"
+                 handler="function() { CQ.wcm.EditBase.editDialog(this); }"/>
+        <action1 jcr:primaryType="nt:unstructured"
+                 text="Custom Action"
+                 handler="function() {
+                     var editable = this;
+                     // 自定义逻辑
+                     console.log('Custom action clicked');
+                     // 可以调用自定义服务等
+                 }"/>
+    </cq:actions>
+</jcr:root>
+
+<!--
+  自定义操作说明:
+  - 可以定义任意自定义操作
+  - handler 函数中 this 指向当前可编辑元素
+  - 可以访问 CQ 和 Ext JS API
+  - 可以调用自定义 JavaScript 函数或服务
+-->
+
+<!--
+  7. 完整配置示例
+  ==============
+-->
+
+<!--
+  7.1 图片组件配置示例
+  ------------------
+-->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+          xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          jcr:primaryType="cq:EditConfig"
+          cq:dialogMode="floating"
+          cq:layout="auto">
+    
+    <!-- 拖放配置 -->
+    <cq:dropTargets jcr:primaryType="nt:unstructured">
+        <image jcr:primaryType="cq:DropTargetConfig"
+               accept="[image/.*]"
+               groups="[media]"
+               propertyName="./fileReference"/>
+    </cq:dropTargets>
+    
+    <!-- 监听器配置 -->
+    <cq:listeners jcr:primaryType="nt:unstructured"
+                  afteredit="REFRESH_PAGE"/>
+    
+    <!-- 内联编辑配置 -->
+    <cq:inplaceEditing jcr:primaryType="cq:InplaceEditingConfig"
+                       active="{Boolean}true"
+                       editorType="plaintext"/>
+    
+    <!-- 操作配置 -->
+    <cq:actions jcr:primaryType="nt:unstructured">
+        <action0 jcr:primaryType="nt:unstructured"
+                 text="Edit"
+                 handler="function() { CQ.wcm.EditBase.editDialog(this); }"/>
+    </cq:actions>
+</jcr:root>
+
+<!--
+  7.2 文本组件配置示例
+  ------------------
+-->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+          xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          jcr:primaryType="cq:EditConfig"
+          cq:dialogMode="floating">
+    
+    <!-- 监听器配置 -->
+    <cq:listeners jcr:primaryType="nt:unstructured"
+                  afteredit="REFRESH_SELF"/>
+    
+    <!-- 内联编辑配置（富文本） -->
+    <cq:inplaceEditing jcr:primaryType="cq:InplaceEditingConfig"
+                       active="{Boolean}true"
+                       editorType="text"
+                       configPath="/libs/foundation/components/text/inplaceediting/dialog"/>
+</jcr:root>
+
+<!--
+  7.3 容器组件配置示例
+  ------------------
+-->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+          xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          jcr:primaryType="cq:EditConfig"
+          cq:dialogMode="floating">
+    
+    <!-- 监听器配置（插入后刷新父组件） -->
+    <cq:listeners jcr:primaryType="nt:unstructured"
+                  afterinsert="REFRESH_PARENT"
+                  afterdelete="REFRESH_PARENT"/>
+</jcr:root>
+
+<!--
+  7.4 多媒体组件配置示例
+  --------------------
+-->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+          xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          jcr:primaryType="cq:EditConfig"
+          cq:dialogMode="floating">
+    
+    <!-- 多个拖放目标 -->
+    <cq:dropTargets jcr:primaryType="nt:unstructured">
+        <image jcr:primaryType="cq:DropTargetConfig"
+               accept="[image/.*]"
+               groups="[media]"
+               propertyName="./image/fileReference"/>
+        
+        <video jcr:primaryType="cq:DropTargetConfig"
+               accept="[video/.*]"
+               groups="[media]"
+               propertyName="./video/fileReference"/>
+        
+        <audio jcr:primaryType="cq:DropTargetConfig"
+               accept="[audio/.*]"
+               groups="[media]"
+               propertyName="./audio/fileReference"/>
+    </cq:dropTargets>
+    
+    <!-- 监听器配置 -->
+    <cq:listeners jcr:primaryType="nt:unstructured"
+                  afteredit="REFRESH_PAGE"/>
+</jcr:root>
+
+<!--
+  8. 属性参考表（完整版）
+  =====================
+-->
+
+<!--
+  | 属性/节点 | 类型 | 必需 | 默认值 | 说明 | 版本支持 |
+  |----------|------|------|--------|------|---------|
+  | jcr:primaryType | String | 是 | - | 必须为 "cq:EditConfig" | 所有版本 |
+  | cq:dialogMode | String | 否 | "floating" | 对话框模式（floating/inline/auto） | 所有版本 |
+  | cq:layout | String | 否 | "auto" | 布局模式（auto/editbar/rollover） | 所有版本 |
+  | cq:inherit | Boolean | 否 | false | 是否继承父组件配置 | 所有版本 |
+  | cq:dropTargets | Node | 否 | - | 拖放目标配置节点 | 所有版本 |
+  | cq:listeners | Node | 否 | - | 事件监听器配置节点 | 所有版本 |
+  | cq:inplaceEditing | Node | 否 | - | 内联编辑配置节点 | 所有版本 |
+  | cq:actions | Node | 否 | - | 操作按钮配置节点 | 所有版本 |
+  | cq:formParameters | Node | 否 | - | 表单参数配置节点 | 所有版本 |
+  | cq:emptyText | String | 否 | - | 空状态文本 | 所有版本 |
+  | cq:emptyTextIcon | String | 否 | - | 空状态图标 | 所有版本 |
+  | cq:emptyTextClass | String | 否 | - | 空状态CSS类 | 所有版本 |
+  | cq:emptyTextIconClass | String | 否 | - | 空状态图标CSS类 | 所有版本 |
+-->
+
+<!--
+  9. 高级配置
+  ==========
+-->
+
+<!--
+  9.1 表单参数配置
+  --------------
+-->
+
+<jcr:root jcr:primaryType="cq:EditConfig">
+    <cq:formParameters jcr:primaryType="nt:unstructured"
+                       param1="value1"
+                       param2="value2"/>
+</jcr:root>
+
+<!--
+  cq:formParameters
+  - 类型: Node (nt:unstructured)
+  - 说明: 定义提交表单时的额外参数
+  - 这些参数会附加到编辑对话框的表单提交中
+  - 可以通过 JavaScript 或服务器端代码访问
+-->
+
+<!--
+  9.2 空状态配置
+  -------------
+-->
+
+<jcr:root jcr:primaryType="cq:EditConfig"
+          cq:emptyText="Drag an image here"
+          cq:emptyTextIcon="/libs/wcm/core/components/resource/image/icon.png"
+          cq:emptyTextClass="cq-emptystate"
+          cq:emptyTextIconClass="cq-emptystate-icon"/>
+
+<!--
+  空状态配置说明:
+  
+  cq:emptyText: 组件为空时显示的文本
+  cq:emptyTextIcon: 空状态图标路径
+  cq:emptyTextClass: 空状态文本的CSS类
+  cq:emptyTextIconClass: 空状态图标的CSS类
+  
+  使用场景:
+  - 容器组件（提示用户添加内容）
+  - 可选内容组件（提示用户配置）
+  - 提供更好的用户体验
+-->
+
+<!--
+  9.3 条件配置
+  -----------
+-->
+
+<!--
+  注意: _cq_editConfig.xml 本身不支持条件配置
+  但可以通过以下方式实现条件行为:
+  
+  1. 使用 JavaScript 在客户端处理
+  2. 使用不同的编辑配置文件（根据环境）
+  3. 在组件模板中根据条件显示不同的编辑配置
+  
+  示例: 在 HTL 模板中条件显示编辑配置
+  
+  <div data-sly-test="${wcmmode.edit}"
+       data-cq-edit-config="${properties.editConfigPath}">
+      <!-- 内容 -->
+  </div>
+-->
+
+<!--
+  10. 最佳实践
+  ===========
+-->
+
+<!--
+  10.1 配置原则
+  -----------
+  
+  1. 保持配置简洁
+     - 只配置必要的属性
+     - 使用默认值尽可能多
+     - 避免过度配置
+  
+  2. 合理使用继承
+     - 基础组件配置通用的编辑行为
+     - 子组件通过 cq:inherit 继承
+     - 只在需要时覆盖特定配置
+  
+  3. 优化用户体验
+     - 选择合适的对话框模式
+     - 配置合适的刷新策略
+     - 提供清晰的空状态提示
+  
+  4. 性能考虑
+     - 避免不必要的页面刷新
+     - 使用 REFRESH_SELF 而非 REFRESH_PAGE（如果可能）
+     - 合理使用 IGNORE（对于不需要刷新的操作）
+-->
+
+<!--
+  10.2 常见配置模式
+  ---------------
+  
+  模式 1: 简单内容组件
+  - 基本对话框模式
+  - 编辑后刷新页面
+  - 标准操作按钮
+  
+  模式 2: 容器组件
+  - 插入/删除后刷新父组件
+  - 可能需要空状态提示
+  - 通常不需要拖放配置
+  
+  模式 3: 媒体组件
+  - 配置拖放目标
+  - 编辑后刷新页面
+  - 可能需要多个拖放目标
+  
+  模式 4: 可内联编辑组件
+  - 启用内联编辑
+  - 配置编辑器类型
+  - 编辑后刷新组件本身
+-->
+
+<!--
+  10.3 调试技巧
+  -----------
+  
+  1. 检查配置文件位置
+     - 确保文件在正确的位置
+     - 文件名必须是 _cq_editConfig.xml
+     - 检查文件权限
+  
+  2. 验证 XML 语法
+     - 使用 XML 验证工具
+     - 检查命名空间声明
+     - 检查属性值格式
+  
+  3. 查看浏览器控制台
+     - 打开浏览器开发者工具
+     - 查看 JavaScript 错误
+     - 检查编辑相关的事件
+  
+  4. 使用 CRX/DE Lite
+     - 查看节点结构
+     - 检查属性值
+     - 验证节点类型
+  
+  5. 启用调试日志
+     - 设置日志级别为 DEBUG
+     - 查看编辑相关的日志
+     - 检查配置加载日志
+-->
+
+<!--
+  11. 常见问题和解决方案
+  ====================
+-->
+
+<!--
+  11.1 编辑配置不生效
+  -----------------
+  
+  问题: 修改了 _cq_editConfig.xml 但没有效果
+  
+  检查项:
+  1. 文件位置是否正确
+     - 路径: /apps/{project}/components/{component}/_cq_editConfig.xml
+     - 文件名拼写正确
+  
+  2. XML 语法是否正确
+     - 检查 XML 格式
+     - 检查命名空间声明
+     - 验证节点类型
+  
+  3. 缓存问题
+     - 清除浏览器缓存
+     - 重启 AEM 实例
+     - 清除 JCR 缓存
+  
+  4. 权限问题
+     - 检查文件读取权限
+     - 检查用户权限
+  
+  5. 继承问题
+     - 检查是否设置了 cq:inherit
+     - 检查父组件配置
+-->
+
+<!--
+  11.2 拖放不工作
+  -------------
+  
+  问题: 无法将内容拖放到组件上
+  
+  检查项:
+  1. 拖放目标配置
+     - accept 属性是否正确
+     - groups 属性是否匹配
+     - propertyName 是否正确
+  
+  2. 内容类型匹配
+     - 检查拖放内容的 MIME 类型
+     - 验证 accept 正则表达式
+     - 检查 groups 配置
+  
+  3. 属性路径
+     - propertyName 路径是否正确
+     - 是否有写入权限
+     - 节点结构是否正确
+  
+  4. 组件模板
+     - HTL 模板中是否有拖放目标标记
+     - data-cq-drop-target 属性是否正确
+-->
+
+<!--
+  11.3 内联编辑不工作
+  -----------------
+  
+  问题: 无法使用内联编辑功能
+  
+  检查项:
+  1. 内联编辑配置
+     - active 是否为 true
+     - editorType 是否正确
+     - configPath 是否存在（如果需要）
+  
+  2. HTL 模板
+     - data-cq-editable 属性是否存在
+     - 属性值是否匹配
+     - 元素结构是否正确
+  
+  3. 编辑器类型
+     - 编辑器类型是否支持
+     - 配置文件是否存在
+     - JavaScript 是否正确加载
+-->
+
+<!--
+  12. 版本兼容性
+  =============
+-->
+
+<!--
+  AEM 6.0+
+  - 所有基本功能都支持
+  - cq:dialogMode, cq:dropTargets, cq:listeners 等
+  
+  AEM 6.1+
+  - 增强的拖放功能
+  - 改进的内联编辑
+  
+  AEM 6.2+
+  - 改进的对话框处理
+  - 更好的移动端支持
+  
+  AEM 6.3+ (Touch UI)
+  - 全面支持 Touch UI
+  - 新的编辑体验
+  - 改进的配置选项
+  
+  AEM 6.4+
+  - 性能优化
+  - 更好的错误处理
+  
+  AEM 6.5+
+  - 增强的编辑功能
+  - 改进的用户体验
+  
+  AEM as a Cloud Service
+  - 所有功能都支持
+  - 性能优化
+  - 更好的云原生支持
+-->
+
+<!--
+  13. 与 Core Components 的关系
+  ===========================
+-->
+
+<!--
+  Core Components 通常不使用传统的 _cq_editConfig.xml
+  而是使用更现代的方式:
+  
+  1. Sling Models 处理编辑逻辑
+  2. HTL 模板中的 data-cq-* 属性
+  3. 客户端 JavaScript（如果需要）
+  
+  但理解 _cq_editConfig.xml 仍然重要:
+  - 自定义组件开发
+  - 维护旧组件
+  - 理解 AEM 编辑机制
+  
+  如果需要与 Core Components 保持一致:
+  - 参考 Core Components 的实现方式
+  - 使用现代的编辑配置方法
+  - 遵循 AEM 最佳实践
+-->
+
+<!--
+  14. 编程方式操作编辑配置
+  ======================
+-->
+
+<!--
+  14.1 Java 代码读取编辑配置
+  ------------------------
+-->
+
+<!--
+// 通过 ResourceResolver 读取编辑配置
+ResourceResolver resolver = ...;
+Resource componentResource = resolver.resolve("/apps/myapp/components/hero");
+Resource editConfigResource = componentResource.getChild("_cq_editConfig");
+
+if (editConfigResource != null) {
+    ValueMap properties = editConfigResource.getValueMap();
+    
+    // 读取基本属性
+    String dialogMode = properties.get("cq:dialogMode", "floating");
+    String layout = properties.get("cq:layout", "auto");
+    Boolean inherit = properties.get("cq:inherit", false);
+    
+    // 读取拖放配置
+    Resource dropTargets = editConfigResource.getChild("cq:dropTargets");
+    if (dropTargets != null) {
+        // 处理拖放配置
+    }
+    
+    // 读取监听器配置
+    Resource listeners = editConfigResource.getChild("cq:listeners");
+    if (listeners != null) {
+        ValueMap listenerProps = listeners.getValueMap();
+        String afterEdit = listenerProps.get("afteredit", String.class);
+    }
+}
+-->
+
+<!--
+  14.2 Sling Model 中使用编辑配置
+  ----------------------------
+-->
+
+<!--
+// 在 Sling Model 中访问编辑配置
+@Model(adaptables = Resource.class)
+public class ComponentModel {
+    
+    @Inject
+    private Resource componentResource;
+    
+    public String getDialogMode() {
+        Resource editConfig = componentResource.getParent().getChild("_cq_editConfig");
+        if (editConfig != null) {
+            return editConfig.getValueMap().get("cq:dialogMode", "floating");
+        }
+        return "floating";
+    }
+}
+-->
+
+<!--
+  16. 子组件编辑配置（_cq_childEditConfig）
+  ========================================
+-->
+
+<!--
+  16.1 概述
+  -------
+  
+  _cq_childEditConfig.xml 用于容器组件，定义子组件的编辑行为。
+  与 _cq_editConfig.xml 不同，它控制的是容器内子组件的编辑行为，而非容器本身。
+  
+  文件位置: /apps/{project}/components/{container-component}/_cq_childEditConfig.xml
+  节点类型: cq:ChildEditConfig
+-->
+
+<!--
+  16.2 基本结构
+  -----------
+-->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          jcr:primaryType="cq:ChildEditConfig">
+    <cq:listeners jcr:primaryType="cq:EditListenersConfig"
+                  afterinsert="REFRESH_PARENT"
+                  afterdelete="REFRESH_PARENT"
+                  afteredit="REFRESH_PARENT"
+                  aftermove="REFRESH_PARENT"/>
+</jcr:root>
+
+<!--
+  说明:
+  - jcr:primaryType="cq:ChildEditConfig": 子组件编辑配置类型
+  - cq:listeners: 子组件事件监听器配置
+  - 这些事件是子组件触发时容器组件的响应行为
+-->
+
+<!--
+  16.3 子组件监听器配置
+  -------------------
+-->
+
+<jcr:root jcr:primaryType="cq:ChildEditConfig">
+    <cq:listeners jcr:primaryType="cq:EditListenersConfig"
+                  afterinsert="REFRESH_PARENT"
+                  afterdelete="REFRESH_PARENT"
+                  afteredit="REFRESH_PARENT"
+                  aftermove="REFRESH_PARENT"
+                  aftercopy="REFRESH_PARENT"/>
+</jcr:root>
+
+<!--
+  事件说明:
+  
+  afterinsert: 子组件插入后触发
+  afterdelete: 子组件删除后触发
+  afteredit: 子组件编辑后触发
+  aftermove: 子组件移动后触发
+  aftercopy: 子组件复制后触发
+  
+  常用操作:
+  - REFRESH_PARENT: 刷新父容器（最常用）
+  - REFRESH_PAGE: 刷新整个页面
+  - IGNORE: 不执行任何操作
+-->
+
+<!--
+  16.4 实际应用示例
+  ----------------
+-->
+
+<!-- 示例: Parsys 容器的子组件编辑配置 -->
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          jcr:primaryType="cq:ChildEditConfig">
+    <cq:listeners jcr:primaryType="cq:EditListenersConfig"
+                  afterinsert="REFRESH_PARENT"
+                  afterdelete="REFRESH_PARENT"
+                  afteredit="REFRESH_PARENT"/>
+</jcr:root>
+
+<!--
+  使用场景:
+  - 容器组件（如 Parsys, Container, Section）
+  - 需要在子组件操作后刷新容器
+  - 提供更好的编辑体验
+-->
+
+<!--
+  16.5 _cq_editConfig 与 _cq_childEditConfig 的区别
+  -----------------------------------------------
+  
+  1. 作用对象不同:
+     - _cq_editConfig: 控制组件本身的编辑行为
+     - _cq_childEditConfig: 控制容器内子组件的编辑行为
+  
+  2. 使用场景不同:
+     - _cq_editConfig: 所有组件都可以使用
+     - _cq_childEditConfig: 只有容器组件使用
+  
+  3. 配置内容不同:
+     - _cq_editConfig: 拖放、内联编辑、工具栏等
+     - _cq_childEditConfig: 主要是子组件事件监听器
+  
+  4. 文件位置相同:
+     - 都在组件目录下
+     - 文件名不同
+-->
+
+<!--
+  17. HTL 模板中的编辑配置集成
+  ===========================
+-->
+
+<!--
+  17.1 拖放目标标记
+  ----------------
+-->
+
+<!--
+  在 HTL 模板中标记拖放目标:
+  
+  <div class="image-container"
+       data-cq-drop-target="image"
+       data-sly-test="${properties.image}">
+      <img src="${properties.image}" alt="${properties.altText}">
+  </div>
+  
+  说明:
+  - data-cq-drop-target="image": 对应 _cq_editConfig.xml 中拖放目标的名称
+  - 名称必须与配置中的拖放目标名称匹配
+  - 可以有多个拖放目标标记
+-->
+
+<!--
+  17.2 内联编辑标记
+  ----------------
+-->
+
+<!--
+  在 HTL 模板中启用内联编辑:
+  
+  <div class="editable-text"
+       data-cq-editable="text"
+       data-sly-attribute.data-cq-editable="${properties.text}">
+      ${properties.text}
+  </div>
+  
+  或者使用 Core Components 的方式:
+  
+  <h2 data-sly-attribute.data-cq-editable="${'text'}">
+      ${properties.title}
+  </h2>
+  
+  说明:
+  - data-cq-editable 属性启用内联编辑
+  - 属性值对应编辑器类型或属性名
+  - 需要在 _cq_editConfig.xml 中配置内联编辑
+-->
+
+<!--
+  17.3 编辑模式检测
+  ----------------
+-->
+
+<!--
+  在 HTL 模板中检测编辑模式:
+  
+  <div class="component"
+       data-sly-attribute.class="${wcmmode.edit ? 'edit-mode' : ''}">
+      <!-- 编辑模式下显示额外信息 -->
+      <div data-sly-test="${wcmmode.edit}" class="edit-info">
+          Component Path: ${resource.path}
+      </div>
+      
+      <!-- 内容 -->
+      <div class="content">
+          ${properties.content}
+      </div>
+  </div>
+  
+  wcmmode 变量说明:
+  - wcmmode.edit: 编辑模式
+  - wcmmode.preview: 预览模式
+  - wcmmode.disabled: 禁用编辑模式（发布环境）
+  - wcmmode.design: 设计模式（旧版 AEM）
+-->
+
+<!--
+  17.4 完整的集成示例
+  ------------------
+-->
+
+<!--
+  HTL 模板示例（配合 _cq_editConfig.xml）:
+  
+  <!-- 图片拖放区域 -->
+  <div class="hero-image"
+       data-cq-drop-target="image"
+       data-sly-test="${properties.image}">
+      <img src="${properties.image}" alt="${properties.altText}">
+  </div>
+  
+  <!-- 可内联编辑的标题 -->
+  <h1 class="hero-title"
+      data-cq-editable="title">
+      ${properties.title}
+  </h1>
+  
+  <!-- 可内联编辑的文本 -->
+  <div class="hero-text"
+       data-cq-editable="text">
+      ${properties.text}
+  </div>
+  
+  对应的 _cq_editConfig.xml:
+  
+  <jcr:root jcr:primaryType="cq:EditConfig">
+      <cq:dropTargets jcr:primaryType="nt:unstructured">
+          <image jcr:primaryType="cq:DropTargetConfig"
+                 accept="[image/.*]"
+                 groups="[media]"
+                 propertyName="./image"/>
+      </cq:dropTargets>
+      <cq:inplaceEditing jcr:primaryType="cq:InplaceEditingConfig"
+                         active="{Boolean}true"
+                         editorType="plaintext"/>
+  </jcr:root>
+-->
+
+<!--
+  18. 实际应用案例
+  ==============
+-->
+
+<!--
+  18.1 案例 1: 图片组件
+  ------------------
+  
+  需求: 图片组件，支持拖放图片，编辑后刷新页面
+  
+  _cq_editConfig.xml:
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:cq="http://www.day.com/jcr/cq/1.0"
+            jcr:primaryType="cq:EditConfig"
+            cq:dialogMode="floating">
+      <cq:dropTargets jcr:primaryType="nt:unstructured">
+          <image jcr:primaryType="cq:DropTargetConfig"
+                 accept="[image/.*]"
+                 groups="[media]"
+                 propertyName="./fileReference"/>
+      </cq:dropTargets>
+      <cq:listeners jcr:primaryType="nt:unstructured"
+                    afteredit="REFRESH_PAGE"/>
+  </jcr:root>
+  
+  HTL 模板:
+  
+  <div class="image-component"
+       data-cq-drop-target="image"
+       data-sly-test="${properties.fileReference}">
+      <img src="${properties.fileReference}" alt="${properties.altText}">
+  </div>
+-->
+
+<!--
+  18.2 案例 2: 文本组件（富文本）
+  ----------------------------
+  
+  需求: 文本组件，支持内联编辑和对话框编辑
+  
+  _cq_editConfig.xml:
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:cq="http://www.day.com/jcr/cq/1.0"
+            jcr:primaryType="cq:EditConfig"
+            cq:dialogMode="floating">
+      <cq:inplaceEditing jcr:primaryType="cq:InplaceEditingConfig"
+                         active="{Boolean}true"
+                         editorType="text"
+                         configPath="/libs/foundation/components/text/inplaceediting/dialog"/>
+      <cq:listeners jcr:primaryType="nt:unstructured"
+                    afteredit="REFRESH_SELF"/>
+  </jcr:root>
+  
+  HTL 模板:
+  
+  <div class="text-component"
+       data-cq-editable="text">
+      ${properties.text @ context='html'}
+  </div>
+-->
+
+<!--
+  18.3 案例 3: 容器组件
+  ------------------
+  
+  需求: 容器组件，子组件操作后刷新容器
+  
+  _cq_childEditConfig.xml:
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:cq="http://www.day.com/jcr/cq/1.0"
+            jcr:primaryType="cq:ChildEditConfig">
+      <cq:listeners jcr:primaryType="cq:EditListenersConfig"
+                    afterinsert="REFRESH_PARENT"
+                    afterdelete="REFRESH_PARENT"
+                    afteredit="REFRESH_PARENT"/>
+  </jcr:root>
+  
+  HTL 模板:
+  
+  <div class="container-component">
+      <div data-sly-resource="${'parsys' @ resourceType='foundation/components/parsys'}"></div>
+  </div>
+-->
+
+<!--
+  18.4 案例 4: 多媒体组件
+  --------------------
+  
+  需求: 支持图片、视频、文档的拖放
+  
+  _cq_editConfig.xml:
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:cq="http://www.day.com/jcr/cq/1.0"
+            jcr:primaryType="cq:EditConfig">
+      <cq:dropTargets jcr:primaryType="nt:unstructured">
+          <image jcr:primaryType="cq:DropTargetConfig"
+                 accept="[image/.*]"
+                 groups="[media]"
+                 propertyName="./image/fileReference"/>
+          <video jcr:primaryType="cq:DropTargetConfig"
+                 accept="[video/.*]"
+                 groups="[media]"
+                 propertyName="./video/fileReference"/>
+          <document jcr:primaryType="cq:DropTargetConfig"
+                    accept="[application/pdf,application/msword]"
+                    groups="[media]"
+                    propertyName="./document/fileReference"/>
+      </cq:dropTargets>
+      <cq:listeners jcr:primaryType="nt:unstructured"
+                    afteredit="REFRESH_PAGE"/>
+  </jcr:root>
+-->
+
+<!--
+  19. 调试和故障排查（详细）
+  ========================
+-->
+
+<!--
+  19.1 配置文件位置检查
+  -------------------
+  
+  检查清单:
+  
+  1. 文件路径正确
+     ✓ /apps/{project}/components/{component}/_cq_editConfig.xml
+     ✓ 文件名拼写正确（注意大小写）
+  
+  2. 文件权限
+     ✓ 文件可读
+     ✓ 用户有读取权限
+  
+  3. 文件格式
+     ✓ XML 格式正确
+     ✓ 编码为 UTF-8
+     ✓ 命名空间声明正确
+-->
+
+<!--
+  19.2 XML 语法验证
+  ---------------
+  
+  常见 XML 错误:
+  
+  1. 未闭合标签
+     ✗ <jcr:root ...>
+     ✓ <jcr:root .../>
+  
+  2. 属性值未引号
+     ✗ cq:dialogMode=floating
+     ✓ cq:dialogMode="floating"
+  
+  3. 命名空间未声明
+     ✗ 使用 cq:dialogMode 但未声明 cq 命名空间
+     ✓ xmlns:cq="http://www.day.com/jcr/cq/1.0"
+  
+  4. 特殊字符未转义
+     ✗ text="<bold>text</bold>"
+     ✓ text="&lt;bold&gt;text&lt;/bold&gt;"
+-->
+
+<!--
+  19.3 浏览器控制台调试
+  -------------------
+  
+  在浏览器开发者工具中:
+  
+  1. 打开控制台 (F12)
+  2. 查看 JavaScript 错误
+  3. 检查编辑相关的警告
+  
+  常见错误:
+  - "Cannot read property 'editDialog' of undefined"
+    → 检查操作处理函数是否正确
+  - "Drop target not found"
+    → 检查 data-cq-drop-target 属性是否正确
+  - "Inline editor not initialized"
+    → 检查内联编辑配置是否正确
+-->
+
+<!--
+  19.4 CRX/DE Lite 验证
+  -------------------
+  
+  使用 CRX/DE Lite 验证配置:
+  
+  1. 访问: http://localhost:4502/crx/de/index.jsp
+  2. 导航到组件路径
+  3. 查看 _cq_editConfig 节点
+  4. 检查属性值
+  5. 验证节点类型
+  
+  检查项:
+  - 节点是否存在
+  - 节点类型是否正确 (cq:EditConfig)
+  - 属性值是否正确
+  - 子节点结构是否正确
+-->
+
+<!--
+  19.5 日志调试
+  -----------
+  
+  启用调试日志:
+  
+  1. 访问 OSGi Console: http://localhost:4502/system/console/configMgr
+  2. 配置日志级别
+  3. 查看相关日志
+  
+  相关日志器:
+  - org.apache.sling.scripting.sightly
+  - com.day.cq.wcm.core.components
+  - com.day.cq.wcm.commons
+  
+  日志级别:
+  - DEBUG: 详细调试信息
+  - INFO: 一般信息
+  - WARN: 警告信息
+  - ERROR: 错误信息
+-->
+
+<!--
+  20. 性能优化
+  ==========
+-->
+
+<!--
+  20.1 刷新策略优化
+  ---------------
+  
+  选择合适的刷新策略:
+  
+  1. REFRESH_SELF vs REFRESH_PAGE
+     - REFRESH_SELF: 只刷新组件本身（性能更好）
+     - REFRESH_PAGE: 刷新整个页面（性能较差）
+     - 优先使用 REFRESH_SELF
+  
+  2. IGNORE 的使用
+     - 对于不需要刷新的操作使用 IGNORE
+     - 减少不必要的 DOM 操作
+     - 提高编辑响应速度
+  
+  示例:
+  
+  <!-- 好的做法: 只刷新组件 -->
+  <cq:listeners jcr:primaryType="nt:unstructured"
+                afteredit="REFRESH_SELF"/>
+  
+  <!-- 不好的做法: 总是刷新页面 -->
+  <cq:listeners jcr:primaryType="nt:unstructured"
+                afteredit="REFRESH_PAGE"/>
+-->
+
+<!--
+  20.2 拖放目标优化
+  ---------------
+  
+  优化拖放配置:
+  
+  1. 精确的 accept 配置
+     - 使用具体的 MIME 类型而非通配符（如果可能）
+     - 减少不必要的匹配检查
+  
+  2. 合理的 groups 配置
+     - 只包含需要的组
+     - 避免过度宽泛的配置
+  
+  示例:
+  
+  <!-- 好的做法: 精确配置 -->
+  <image jcr:primaryType="cq:DropTargetConfig"
+         accept="[image/jpeg,image/png,image/gif]"
+         groups="[media]"
+         propertyName="./fileReference"/>
+  
+  <!-- 可接受的做法: 使用通配符（如果确实需要） -->
+  <image jcr:primaryType="cq:DropTargetConfig"
+         accept="[image/.*]"
+         groups="[media]"
+         propertyName="./fileReference"/>
+-->
+
+<!--
+  21. 与 Core Components 的集成
+  ===========================
+-->
+
+<!--
+  21.1 Core Components 的编辑配置方式
+  --------------------------------
+  
+  Core Components 使用更现代的方式处理编辑配置:
+  
+  1. 使用 data-cq-* 属性
+     - data-cq-editable
+     - data-cq-drop-target
+     - data-cq-edit-config
+  
+  2. 客户端 JavaScript
+     - React 组件（如果使用）
+     - 自定义事件处理
+  
+  3. Sling Models
+     - 处理编辑相关逻辑
+     - 提供编辑数据
+  
+  但 _cq_editConfig.xml 仍然重要:
+  - 自定义组件开发
+  - 维护旧组件
+  - 理解编辑机制
+-->
+
+<!--
+  21.2 迁移到 Core Components 风格
+  ------------------------------
+  
+  如果需要迁移到 Core Components 风格:
+  
+  1. 保持 _cq_editConfig.xml（如果需要）
+  2. 使用 data-cq-* 属性
+  3. 使用 Sling Models 处理逻辑
+  4. 遵循 Core Components 的最佳实践
+  
+  参考:
+  - Core Components 源代码
+  - Core Components 文档
+  - AEM 官方迁移指南
+-->
+
+<!--
+  22. 属性完整参考（扩展版）
+  ========================
+-->
+
+<!--
+  除了前面列出的属性，_cq_editConfig.xml 还支持以下属性:
+  
+  | 属性/节点 | 类型 | 说明 | 版本 |
+  |----------|------|------|------|
+  | cq:disableTargeting | Boolean | 禁用 Targeting 功能 | 6.3+ |
+  | cq:emptyTextImage | String | 空状态图片路径 | 所有版本 |
+  | cq:emptyTextImageClass | String | 空状态图片CSS类 | 所有版本 |
+  | cq:toolbar | Node | 工具栏配置节点 | 所有版本 |
+  | cq:htmlTag | Node | HTML标签配置节点 | 所有版本 |
+  
+  注意: 某些属性可能仅在特定版本或场景中可用
+-->
+
+<!--
+  23. 最佳实践总结
+  ==============
+-->
+
+<!--
+  23.1 配置原则
+  -----------
+  
+  1. 保持配置简洁
+     - 只配置必要的属性
+     - 使用默认值
+     - 避免过度配置
+  
+  2. 遵循命名规范
+     - 拖放目标使用有意义的名称
+     - 保持一致性
+  
+  3. 优化性能
+     - 选择合适的刷新策略
+     - 避免不必要的刷新
+     - 精确的拖放配置
+  
+  4. 提供良好的用户体验
+     - 清晰的空状态提示
+     - 合适的对话框模式
+     - 及时的反馈
+-->
+
+<!--
+  23.2 常见模式
+  -----------
+  
+  模式 1: 简单内容组件
+  - 基本对话框模式
+  - 编辑后刷新组件
+  - 标准操作
+  
+  模式 2: 媒体组件
+  - 拖放目标配置
+  - 编辑后刷新页面
+  - 空状态提示
+  
+  模式 3: 容器组件
+  - 子组件编辑配置
+  - 插入/删除后刷新父组件
+  - 空状态提示
+  
+  模式 4: 可内联编辑组件
+  - 内联编辑配置
+  - 编辑后刷新组件
+  - 适当的编辑器类型
+-->
+
+<!--
+  25. 编辑配置的查找机制（深入分析）
+  =================================
+-->
+
+<!--
+  25.1 查找顺序和路径解析
+  ---------------------
+  
+  AEM 在查找编辑配置时遵循特定的查找顺序:
+  
+  1. 组件实例的编辑配置
+     - 路径: /content/{site}/jcr:content/{page}/jcr:content/{component}/_cq_editConfig
+     - 优先级: 最高（通常不存在）
+  
+  2. 组件定义的编辑配置
+     - 路径: /apps/{project}/components/{component}/_cq_editConfig.xml
+     - 优先级: 高
+  
+  3. 通过 resourceSuperType 继承的编辑配置
+     - 路径: /apps/{project}/components/{super-component}/_cq_editConfig.xml
+     - 优先级: 中（递归查找）
+  
+  4. 默认编辑配置
+     - AEM 系统默认配置
+     - 优先级: 低
+-->
+
+<!--
+  25.2 Resource Resolution 集成
+  ----------------------------
+  
+  编辑配置的查找使用 Sling Resource Resolution:
+  
+  ResourceResolver resolver = request.getResourceResolver();
+  Resource componentResource = resolver.resolve(componentPath);
+  Resource editConfigResource = componentResource.getChild("_cq_editConfig");
+  
+  如果当前组件没有编辑配置，系统会:
+  1. 检查 sling:resourceSuperType
+  2. 递归查找父组件的编辑配置
+  3. 如果设置了 cq:inherit="true"，会合并父组件配置
+-->
+
+<!--
+  25.3 配置合并机制
+  ---------------
+  
+  当子组件设置 cq:inherit="true" 时，编辑配置会合并:
+  
+  父组件配置:
+  <jcr:root jcr:primaryType="cq:EditConfig"
+            cq:dialogMode="floating">
+      <cq:listeners jcr:primaryType="nt:unstructured"
+                    afteredit="REFRESH_PAGE"/>
+  </jcr:root>
+  
+  子组件配置:
+  <jcr:root jcr:primaryType="cq:EditConfig"
+            cq:inherit="{Boolean}true"
+            cq:dialogMode="inline">
+      <cq:dropTargets jcr:primaryType="nt:unstructured">
+          <!-- 拖放配置 -->
+      </cq:dropTargets>
+  </jcr:root>
+  
+  合并结果:
+  - cq:dialogMode: "inline" (子组件覆盖)
+  - cq:listeners: 继承父组件
+  - cq:dropTargets: 子组件新增
+-->
+
+<!--
+  26. JavaScript API 深度使用
+  ==========================
+-->
+
+<!--
+  26.1 CQ.wcm.EditBase API
+  ----------------------
+  
+  CQ.wcm.EditBase 是编辑配置的核心 JavaScript API:
+  
+  // 打开编辑对话框
+  CQ.wcm.EditBase.editDialog(editable, config);
+  
+  // 删除组件
+  CQ.wcm.EditBase.deletePage(editable);
+  
+  // 刷新组件
+  CQ.wcm.EditBase.refresh(editable, refreshMode);
+  
+  // 复制组件
+  CQ.wcm.EditBase.copyPage(editable);
+  
+  // 剪切组件
+  CQ.wcm.EditBase.cutPage(editable);
+  
+  // 粘贴组件
+  CQ.wcm.EditBase.pastePage(editable);
+  
+  参数说明:
+  - editable: 可编辑元素对象（通常是 this）
+  - config: 配置对象（可选）
+  - refreshMode: 刷新模式（REFRESH_PAGE, REFRESH_SELF 等）
+-->
+
+<!--
+  26.2 自定义事件处理
+  -----------------
+  
+  可以在 JavaScript 中自定义事件处理:
+  
+  <cq:listeners jcr:primaryType="nt:unstructured"
+                afteredit="function(editable, action, path) {
+                    // editable: 可编辑元素
+                    // action: 执行的操作
+                    // path: 组件路径
+                    
+                    // 自定义逻辑
+                    if (action === 'edit') {
+                        // 发送分析事件
+                        _satellite.track('component-edited', {
+                            componentPath: path
+                        });
+                        
+                        // 刷新组件
+                        CQ.wcm.EditBase.refresh(editable, 'REFRESH_SELF');
+                    }
+                }"/>
+  
+  注意事项:
+  - 函数在全局作用域执行
+  - 可以使用 AEM 全局对象（CQ, Granite, $ 等）
+  - 可以使用第三方库（如果已加载）
+-->
+
+<!--
+  26.3 Granite Authoring API
+  ------------------------
+  
+  Touch UI 使用 Granite Authoring API:
+  
+  // 获取可编辑元素
+  var editable = Granite.author.editables.find(componentPath);
+  
+  // 刷新可编辑元素
+  editable.refresh();
+  
+  // 打开对话框
+  editable.openDialog();
+  
+  // 监听编辑事件
+  editable.on('cq-edit', function(event) {
+      console.log('Component edited:', event.path);
+  });
+  
+  在现代 AEM（Touch UI）中，推荐使用 Granite API
+-->
+
+<!--
+  27. 自定义编辑器开发
+  ===================
+-->
+
+<!--
+  27.1 创建自定义编辑器类型
+  -----------------------
+  
+  可以创建自定义的内联编辑器类型:
+  
+  1. 创建编辑器组件
+     路径: /apps/{project}/components/editors/{editor-name}
+     结构:
+     - .content.xml (编辑器定义)
+     - editor.html (编辑器模板)
+     - editor.js (编辑器逻辑)
+     - editor.css (编辑器样式)
+  
+  2. 在编辑配置中引用
+     <cq:inplaceEditing jcr:primaryType="cq:InplaceEditingConfig"
+                        active="{Boolean}true"
+                        editorType="{editor-name}"
+                        configPath="/apps/{project}/components/editors/{editor-name}"/>
+  
+  3. 编辑器接口
+     编辑器需要实现特定接口:
+     - activate(): 激活编辑器
+     - deactivate(): 停用编辑器
+     - save(): 保存编辑内容
+     - cancel(): 取消编辑
+-->
+
+<!--
+  27.2 编辑器配置示例
+  -----------------
+  
+  自定义编辑器的基本结构:
+  
+  /apps/myapp/components/editors/custom-editor/
+    ├── .content.xml
+    ├── editor.html
+    ├── editor.js
+    └── editor.css
+  
+  .content.xml:
+  <jcr:root jcr:primaryType="cq:Component"
+            jcr:title="Custom Editor"
+            sling:resourceType="cq/gui/components/authoring/editors/foundation"/>
+  
+  editor.html:
+  <div class="custom-editor" data-editor="${editorType}">
+      <input type="text" class="editor-input" value="${properties.text}"/>
+      <button class="editor-save">Save</button>
+      <button class="editor-cancel">Cancel</button>
+  </div>
+  
+  editor.js:
+  (function() {
+      'use strict';
+      
+      var CustomEditor = {
+          init: function() {
+              // 初始化编辑器
+          },
+          activate: function() {
+              // 激活编辑器
+          },
+          deactivate: function() {
+              // 停用编辑器
+          },
+          save: function() {
+              // 保存内容
+          }
+      };
+      
+      // 注册编辑器
+      if (window.CQ && window.CQ.Ext) {
+          window.CQ.Ext.namespace('CQ.authoring.editors');
+          window.CQ.authoring.editors.CustomEditor = CustomEditor;
+      }
+  })();
+-->
+
+<!--
+  28. 测试策略
+  ===========
+-->
+
+<!--
+  28.1 单元测试
+  -----------
+  
+  编辑配置的单元测试:
+  
+  // 测试编辑配置读取
+  @Test
+  public void testEditConfigLoading() {
+      Resource componentResource = resolver.resolve("/apps/myapp/components/hero");
+      Resource editConfigResource = componentResource.getChild("_cq_editConfig");
+      
+      assertNotNull("Edit config should exist", editConfigResource);
+      
+      ValueMap properties = editConfigResource.getValueMap();
+      assertEquals("floating", properties.get("cq:dialogMode", ""));
+      
+      // 测试拖放配置
+      Resource dropTargets = editConfigResource.getChild("cq:dropTargets");
+      assertNotNull("Drop targets should exist", dropTargets);
+  }
+  
+  // 测试配置继承
+  @Test
+  public void testEditConfigInheritance() {
+      Resource childComponent = resolver.resolve("/apps/myapp/components/hero");
+      Resource parentComponent = resolver.resolve("/apps/myapp/components/base");
+      
+      // 验证继承关系
+      // ...
+  }
+-->
+
+<!--
+  28.2 集成测试
+  -----------
+  
+  使用 AEM Testing Framework:
+  
+  @ExtendWith(AemContextExtension.class)
+  class EditConfigIntegrationTest {
+      
+      @RegisterExtension
+      AemContext context = new AemContext();
+      
+      @Test
+      void testEditConfigRendering() {
+          // 创建组件资源
+          context.create().resource("/content/test/component",
+              "sling:resourceType", "myapp/components/hero");
+          
+          // 模拟编辑模式
+          context.request().setAttribute("wcmmode", "edit");
+          
+          // 渲染组件
+          Component component = new Component();
+          String html = component.getHtml(context.request());
+          
+          // 验证编辑配置属性
+          assertTrue(html.contains("data-cq-drop-target"));
+      }
+  }
+-->
+
+<!--
+  28.3 浏览器测试
+  -------------
+  
+  使用 Selenium 或 Cypress 测试编辑功能:
+  
+  // Cypress 示例
+  describe('Edit Config Tests', () => {
+      it('should open edit dialog', () => {
+          cy.visit('/content/my-site.html');
+          cy.get('[data-cq-component="myapp/components/hero"]').click();
+          cy.get('.cq-edit-button').click();
+          cy.get('.cq-dialog').should('be.visible');
+      });
+      
+      it('should support drag and drop', () => {
+          cy.visit('/content/my-site.html');
+          // 拖放测试
+      });
+      
+      it('should refresh after edit', () => {
+          cy.visit('/content/my-site.html');
+          // 编辑并验证刷新
+      });
+  });
+-->
+
+<!--
+  29. 性能监控和分析
+  =================
+-->
+
+<!--
+  29.1 编辑配置加载性能
+  -------------------
+  
+  监控编辑配置的加载时间:
+  
+  // 在浏览器控制台测量
+  console.time('editConfigLoad');
+  // 执行编辑操作
+  console.timeEnd('editConfigLoad');
+  
+  // 使用 Performance API
+  performance.mark('editConfigStart');
+  // 执行编辑操作
+  performance.mark('editConfigEnd');
+  performance.measure('editConfigLoad', 'editConfigStart', 'editConfigEnd');
+  
+  性能指标:
+  - 配置加载时间
+  - 对话框打开时间
+  - 保存响应时间
+  - 刷新时间
+-->
+
+<!--
+  29.2 性能优化建议
+  ----------------
+  
+  1. 延迟加载
+     - 只在需要时加载编辑配置
+     - 使用懒加载策略
+     - 避免加载不必要的配置
+  
+  2. 缓存策略
+     - 浏览器缓存编辑配置
+     - 服务器端缓存配置解析结果
+     - 避免重复加载
+  
+  3. 减少刷新范围
+     - 使用 REFRESH_SELF 而非 REFRESH_PAGE
+     - 精确控制刷新区域
+     - 避免全页面刷新
+  
+  4. 优化拖放匹配
+     - 精确的 accept 配置
+     - 减少正则表达式复杂度
+     - 提前过滤不匹配的内容
+-->
+
+<!--
+  30. 安全考虑
+  ===========
+-->
+
+<!--
+  30.1 权限控制
+  -----------
+  
+  编辑配置应该考虑权限:
+  
+  1. 文件系统权限
+     - 编辑配置文件应该有适当的读取权限
+     - 避免暴露敏感配置
+  
+  2. 功能权限
+     - 某些编辑功能可能需要特定权限
+     - 使用 ACL 控制访问
+  
+  3. 内容权限
+     - 拖放操作应该检查内容权限
+     - 编辑操作应该验证用户权限
+-->
+
+<!--
+  30.2 XSS 防护
+  -----------
+  
+  在自定义 JavaScript 中防止 XSS:
+  
+  // 错误做法: 直接使用用户输入
+  handler="function() { alert('${properties.userInput}'); }"
+  
+  // 正确做法: 转义用户输入
+  handler="function() { 
+      var input = CQ.I18n.escape('${properties.userInput}'); 
+      alert(input); 
+  }"
+  
+  注意事项:
+  - 始终验证和转义用户输入
+  - 使用 AEM 提供的转义函数
+  - 避免在 JavaScript 中直接插入 HTML
+-->
+
+<!--
+  30.3 CSRF 防护
+  ------------
+  
+  AEM 自动处理 CSRF 防护:
+  - 编辑操作使用 CSRF token
+  - 表单提交包含验证 token
+  - 不需要手动处理（AEM 自动处理）
+  
+  自定义操作需要注意:
+  - 如果自定义 AJAX 请求，需要包含 CSRF token
+  - 使用 Granite.HTTP 进行请求（自动包含 token）
+-->
+
+<!--
+  31. 国际化支持
+  =============
+-->
+
+<!--
+  31.1 编辑配置文本的国际化
+  -----------------------
+  
+  编辑配置中的文本可以国际化:
+  
+  1. 使用 i18n 字典
+     - 在组件目录创建 i18n/{locale}.json
+     - 在配置中引用 i18n key
+  
+  2. 客户端国际化
+     - 使用 CQ.I18n.get() 函数
+     - 在 JavaScript 中获取翻译文本
+  
+  示例:
+  
+  i18n/en.json:
+  {
+      "editConfig.emptyText": "Drag an image here",
+      "editConfig.editButton": "Edit"
+  }
+  
+  _cq_editConfig.xml:
+  <jcr:root jcr:primaryType="cq:EditConfig"
+            cq:emptyText="${'editConfig.emptyText' @ i18n, locale=request.locale}"/>
+  
+  或者使用 JavaScript:
+  handler="function() {
+      var text = CQ.I18n.get('editConfig.editButton');
+      // 使用翻译文本
+  }"
+-->
+
+<!--
+  32. 与 Content Fragments 集成
+  ============================
+-->
+
+<!--
+  32.1 Content Fragment 编辑器配置
+  ------------------------------
+  
+  Content Fragment 组件可以使用编辑配置:
+  
+  <jcr:root jcr:primaryType="cq:EditConfig"
+            cq:dialogMode="floating">
+      <cq:listeners jcr:primaryType="nt:unstructured"
+                    afteredit="REFRESH_SELF"/>
+  </jcr:root>
+  
+  特殊考虑:
+  - Content Fragment 有自己的编辑界面
+  - 编辑配置主要控制组件级别的行为
+  - 内容编辑在 Content Fragment 编辑器中完成
+-->
+
+<!--
+  32.2 Experience Fragments 集成
+  ----------------------------
+  
+  Experience Fragment 组件编辑配置:
+  
+  <jcr:root jcr:primaryType="cq:EditConfig"
+            cq:dialogMode="floating">
+      <!-- Experience Fragment 特定配置 -->
+  </jcr:root>
+  
+  注意事项:
+  - Experience Fragment 可以包含多个组件
+  - 编辑配置应用于 Experience Fragment 容器
+  - 子组件使用各自的编辑配置
+-->
+
+<!--
+  33. Headless 场景下的编辑配置
+  =============================
+-->
+
+<!--
+  33.1 GraphQL 和编辑配置
+  ---------------------
+  
+  在 Headless 场景中:
+  
+  1. 编辑配置仍然存在
+     - 在 AEM 编辑器中仍然使用
+     - 控制编辑体验
+  
+  2. GraphQL 查询不包含编辑配置
+     - GraphQL 只返回内容数据
+     - 编辑配置是编辑器专用
+  
+  3. 前端框架集成
+     - React/Vue 等框架需要自己的编辑 UI
+     - AEM 编辑配置不直接适用
+     - 可能需要自定义编辑界面
+-->
+
+<!--
+  33.2 Content Services API
+  -----------------------
+  
+  通过 Content Services API 访问编辑配置:
+  
+  GET /content/my-site/components/hero._cq_editConfig.json
+  
+  响应:
+  {
+      "jcr:primaryType": "cq:EditConfig",
+      "cq:dialogMode": "floating",
+      "cq:dropTargets": {
+          "image": {
+              "jcr:primaryType": "cq:DropTargetConfig",
+              "accept": "[image/.*]"
+          }
+      }
+  }
+  
+  用途:
+  - 前端框架可以读取配置
+  - 实现自定义编辑界面
+  - 了解组件编辑能力
+-->
+
+<!--
+  34. 错误处理和调试工具
+  =====================
+-->
+
+<!--
+  34.1 常见错误和解决方案
+  ---------------------
+  
+  错误 1: "Edit config not found"
+  原因: 配置文件不存在或路径错误
+  解决: 检查文件路径和名称
+  
+  错误 2: "Invalid XML syntax"
+  原因: XML 格式错误
+  解决: 验证 XML 语法
+  
+  错误 3: "Drop target not initialized"
+  原因: HTL 模板中缺少 data-cq-drop-target
+  解决: 添加相应的 HTML 属性
+  
+  错误 4: "Inline editor not found"
+  原因: 编辑器类型不存在
+  解决: 检查 editorType 配置
+-->
+
+<!--
+  34.2 调试工具和技巧
+  ------------------
+  
+  1. 浏览器开发者工具
+     - 查看网络请求（编辑配置加载）
+     - 检查 JavaScript 错误
+     - 使用断点调试
+  
+  2. AEM 开发工具
+     - CRX/DE Lite: 查看节点结构
+     - OSGi Console: 查看服务状态
+     - Log Viewer: 查看日志
+  
+  3. 自定义调试代码
+     <cq:listeners jcr:primaryType="nt:unstructured"
+                   afteredit="function(editable, action) {
+                       console.log('Edit action:', action);
+                       console.log('Editable:', editable);
+                       debugger; // 设置断点
+                   }"/>
+-->
+
+<!--
+  35. 版本控制和部署
+  =================
+-->
+
+<!--
+  35.1 版本控制策略
+  ---------------
+  
+  编辑配置文件应该纳入版本控制:
+  
+  1. 文件结构
+     /apps/myapp/components/{component}/_cq_editConfig.xml
+     应该提交到 Git/SVN
+  
+  2. 变更管理
+     - 记录配置变更历史
+     - 使用有意义的提交消息
+     - 代码审查编辑配置变更
+  
+  3. 环境同步
+     - 确保所有环境配置一致
+     - 使用构建工具同步配置
+     - 避免手动修改生产环境
+-->
+
+<!--
+  35.2 部署最佳实践
+  ----------------
+  
+  1. 打包策略
+     - 将编辑配置包含在组件包中
+     - 使用 Maven 或 Gradle 构建
+     - 创建可安装的包
+  
+  2. 部署顺序
+     - 先部署组件定义（.content.xml）
+     - 再部署编辑配置
+     - 最后部署模板和脚本
+  
+  3. 回滚策略
+     - 保留旧版本配置
+     - 准备回滚脚本
+     - 测试回滚流程
+-->
+
+<!--
+  36. 扩展点和插件
+  ===============
+-->
+
+<!--
+  36.1 OSGi 服务扩展
+  -----------------
+  
+  可以创建 OSGi 服务扩展编辑功能:
+  
+  @Component(service = EditConfigProcessor.class)
+  public class CustomEditConfigProcessor implements EditConfigProcessor {
+      
+      @Override
+      public void process(Resource editConfig, Map<String, Object> context) {
+          // 处理编辑配置
+          // 可以修改配置或添加额外功能
+      }
+  }
+  
+  使用场景:
+  - 全局配置修改
+  - 环境特定配置
+  - 动态配置生成
+-->
+
+<!--
+  36.2 客户端 JavaScript 插件
+  -------------------------
+  
+  创建 JavaScript 插件扩展编辑功能:
+  
+  (function() {
+      'use strict';
+      
+      // 扩展 EditBase
+      if (window.CQ && window.CQ.wcm && window.CQ.wcm.EditBase) {
+          var originalEditDialog = CQ.wcm.EditBase.editDialog;
+          
+          CQ.wcm.EditBase.editDialog = function(editable, config) {
+              // 前置处理
+              console.log('Opening edit dialog for:', editable.path);
+              
+              // 调用原始方法
+              var result = originalEditDialog.call(this, editable, config);
+              
+              // 后置处理
+              // ...
+              
+              return result;
+          };
+      }
+  })();
+  
+  注意事项:
+  - 确保在编辑配置加载之前执行
+  - 避免破坏原有功能
+  - 测试兼容性
+-->
+
+<!--
+  37. 文档和 API 参考
+  ==================
+-->
+
+<!--
+  37.1 官方文档资源
+  ---------------
+  
+  1. AEM 官方文档
+     - https://experienceleague.adobe.com/docs/experience-manager-65/developing/components/components-edit-config.html
+     - AEM Component Development Guide
+  
+  2. Apache Sling 文档
+     - Sling Resource Resolution
+     - Sling Scripting
+  
+  3. Adobe Granite 文档
+     - Granite UI Components
+     - Touch UI API
+-->
+
+<!--
+  37.2 代码示例资源
+  ---------------
+  
+  1. AEM Core Components
+     - GitHub: https://github.com/adobe/aem-core-wcm-components
+     - 查看核心组件的编辑配置实现
+  
+  2. AEM WCM Core Components
+     - 基础组件的编辑配置示例
+  
+  3. Adobe 示例项目
+     - We.Retail
+     - WKND
+-->
+
+<!--
+  38. 未来趋势和演进
+  ================
+-->
+
+<!--
+  38.1 AEM as a Cloud Service
+  --------------------------
+  
+  Cloud Service 中的编辑配置:
+  
+  1. 完全支持现有功能
+     - 所有编辑配置功能都支持
+     - 行为与 AEM 6.5 一致
+  
+  2. 性能优化
+     - 更快的配置加载
+     - 优化的编辑体验
+     - 更好的缓存策略
+  
+  3. 新功能
+     - 改进的编辑 UI
+     - 更好的移动端支持
+     - 增强的协作功能
+-->
+
+<!--
+  38.2 现代 Web 技术集成
+  --------------------
+  
+  未来可能的方向:
+  
+  1. Web Components
+     - 使用标准 Web Components
+     - 更好的框架兼容性
+  
+  2. Progressive Web App
+     - 离线编辑支持
+     - 更好的移动体验
+  
+  3. Headless 编辑
+     - GraphQL 编辑 API
+     - 前端框架集成
+-->
+
+<!--
+  39. 总结和检查清单
+  ================
+-->
+
+<!--
+  39.1 编辑配置检查清单
+  -------------------
+  
+  开发时检查:
+  ✓ 配置文件位置正确
+  ✓ XML 语法正确
+  ✓ 命名空间声明完整
+  ✓ 属性值格式正确
+  ✓ HTL 模板中有相应的标记
+  ✓ 测试编辑功能
+  ✓ 检查浏览器控制台错误
+  ✓ 验证权限设置
+  
+  部署前检查:
+  ✓ 配置文件在版本控制中
+  ✓ 所有环境配置一致
+  ✓ 性能测试通过
+  ✓ 安全审查通过
+  ✓ 文档更新
+  ✓ 团队培训完成
+-->
+
+<!--
+  39.2 最佳实践总结
+  ----------------
+  
+  核心原则:
+  1. 保持配置简洁明了
+  2. 优先使用标准功能
+  3. 合理使用继承机制
+  4. 优化性能和用户体验
+  5. 遵循安全最佳实践
+  6. 充分的测试覆盖
+  7. 完善的文档记录
+  8. 持续学习和改进
+-->
+
+<!--
+  40. 相关文档
+  ==========
+  
+  - 组件结构: 01-component-structure.html
+  - 组件配置: 04-component-content-xml.html
+  - 组件对话框: 待创建文档
+  - 组件模板: 05-component-htl-template.html
+  - 高级主题: 04-advanced/
+  - Core Components: https://github.com/adobe/aem-core-wcm-components
+  - AEM 官方文档: https://experienceleague.adobe.com/docs/experience-manager.html
+-->
+

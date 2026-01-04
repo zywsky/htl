@@ -1,0 +1,4299 @@
+<!--
+  AEM 组件 HTL: 组件 HTL 模板文件分析
+  
+  分析组件中的 HTL 模板文件（.html 文件）的定义、查找机制和渲染流程
+-->
+
+<!--
+  1. HTL 模板文件概述
+  ==================
+-->
+
+<!--
+  0. 为什么需要模板文件？模板文件的核心作用
+  ========================================
+  
+  在理解模板文件的具体语法之前，首先要明白一个核心问题：
+  
+  为什么 AEM 组件需要模板文件？
+  
+  ===== 核心答案 =====
+  
+  模板文件是组件的"渲染引擎"，它定义了"组件如何将数据转换为 HTML"。
+  
+  ===== 详细解释 =====
+  
+  1. 组件的本质
+  
+  AEM 组件由两部分组成:
+  
+  a) 数据层（存储在 JCR 中）
+     - 组件配置数据（通过对话框配置）
+     - 属性值（title, description, image 等）
+     - 存储位置: /content/page/jcr:content/hero
+     - 数据格式: JCR 节点和属性
+  
+  b) 展示层（模板文件）
+     - 定义如何渲染数据
+     - 定义 HTML 结构
+     - 定义样式和交互
+     - 存储位置: /apps/myapp/components/hero/hero.html
+  
+  2. 模板文件的作用（类比理解）
+  
+  想象一个组件就像一个"工厂":
+  
+  - 输入（Input）: JCR 中的数据（properties）
+    例如: { title: "欢迎", description: "欢迎来到我们的网站" }
+  
+  - 处理（Process）: 模板文件（hero.html）
+    定义如何处理这些数据，转换成 HTML 结构
+  
+  - 输出（Output）: 最终的 HTML
+    例如: <div class="hero"><h1>欢迎</h1><p>欢迎来到我们的网站</p></div>
+  
+  3. 如果没有模板文件会怎样？
+  
+  如果没有模板文件，AEM 不知道如何渲染组件:
+  
+  ❌ 无法生成 HTML 输出
+  ❌ 组件在页面上无法显示
+  ❌ 浏览器收到的是空白或错误
+  ❌ 即使数据存在，也无法呈现给用户
+  
+  示例:
+  
+  假设组件数据存在:
+  /content/page/jcr:content/hero
+    - title = "Hero Title"
+    - description = "Hero Description"
+  
+  但没有模板文件:
+  /apps/myapp/components/hero/hero.html (不存在)
+  
+  结果:
+  - 页面加载时，Sling 找不到渲染脚本
+  - 组件无法渲染
+  - 可能返回 404 或空白内容
+  
+  4. 模板文件的三个核心职责
+  
+  a) 定义 HTML 结构
+     - 组件的 DOM 结构
+     - 使用的 HTML 元素（div, h1, p, img 等）
+     - 元素的层级关系
+  
+  b) 绑定数据到 HTML
+     - 将 JCR 属性映射到 HTML 元素
+     - 使用 HTL 表达式输出数据
+     - 例如: ${properties.title} → <h1>Hero Title</h1>
+  
+  c) 控制渲染逻辑
+     - 条件渲染（data-sly-test）
+     - 循环渲染（data-sly-list）
+     - 包含子组件（data-sly-resource）
+     - 调用业务逻辑（data-sly-use）
+  
+  5. 模板文件在整个组件系统中的地位
+  
+  AEM 组件生态系统:
+  
+  .content.xml          → 组件定义（组件是什么）
+  hero.html             → 渲染脚本（组件如何显示）← 这就是模板文件！
+  _cq_dialog/           → 编辑界面（如何配置组件）
+  _cq_editConfig.xml    → 编辑行为（在编辑器中如何表现）
+  _cq_htmlTag/          → HTML 包装（组件的外层标签）
+  _cq_template/         → 初始内容（首次创建时的默认值）
+  
+  模板文件（hero.html）是组件的核心，其他所有配置都是围绕它工作的。
+  
+  6. 模板文件的工作流程
+  
+  完整的数据流转过程:
+  
+  步骤 1: 用户配置组件
+  ─────────────────────
+  内容作者在编辑器中配置组件
+  → 打开对话框
+  → 填写 title, description, image
+  → 保存
+  
+  步骤 2: 数据存储
+  ───────────────
+  数据保存到 JCR
+  → /content/page/jcr:content/hero
+  → jcr:title = "Hero Title"
+  → description = "Hero Description"
+  → image = "/content/dam/hero-image.jpg"
+  
+  步骤 3: 用户访问页面
+  ──────────────────
+  浏览器请求页面
+  → GET /content/page.html
+  → AEM 接收请求
+  
+  步骤 4: Sling 资源解析
+  ────────────────────
+  Sling 框架处理请求
+  → 解析 URL: /content/page.html
+  → 找到资源: /content/page/jcr:content
+  → 找到组件节点: /content/page/jcr:content/hero
+  → 获取 resourceType: myapp/components/hero
+  
+  步骤 5: 查找模板文件
+  ──────────────────
+  Sling 查找渲染脚本
+  → 根据 resourceType: myapp/components/hero
+  → 查找: /apps/myapp/components/hero/hero.html
+  → 找到模板文件！
+  
+  步骤 6: 执行模板文件
+  ──────────────────
+  模板文件执行（这是关键步骤！）
+  → 加载模板文件: hero.html
+  → 准备上下文数据:
+     - properties: { title: "Hero Title", description: "...", image: "..." }
+     - resource: /content/page/jcr:content/hero
+     - currentPage: /content/page
+     - component: 组件对象
+  → 执行 HTL 代码:
+     <div class="hero">
+         <h1>${properties.title}</h1>          → <h1>Hero Title</h1>
+         <p>${properties.description}</p>      → <p>Hero Description</p>
+         <img src="${properties.image}">       → <img src="/content/dam/hero-image.jpg">
+     </div>
+  → 生成 HTML 字符串
+  
+  步骤 7: 返回 HTML
+  ────────────────
+  AEM 返回渲染结果
+  → HTTP 响应: 200 OK
+  → Content-Type: text/html
+  → 响应体: 生成的 HTML
+  → 浏览器接收并显示
+  
+  7. 模板文件的重要性总结
+  
+  ✅ 没有模板文件，组件无法工作
+  ✅ 模板文件定义了组件的视觉呈现
+  ✅ 模板文件连接了数据层和展示层
+  ✅ 模板文件是组件系统中最核心的部分
+  ✅ 所有其他组件配置都服务于模板文件的执行
+  
+  类比总结:
+  
+  如果把组件比作一辆汽车:
+  - .content.xml 是汽车的"身份证"（定义这是什么车）
+  - _cq_dialog 是汽车的"控制面板"（如何操作）
+  - hero.html（模板文件）是汽车的"发动机"（如何运行，如何工作）
+  
+  没有模板文件，就像汽车没有发动机，即使有完美的车身和控制面板，也无法运行。
+-->
+
+<!--
+  1.1 什么是组件 HTL 模板文件
+  --------------------------
+  
+  组件的 HTL 模板文件是组件的核心渲染脚本，定义了组件的 HTML 输出。
+  文件通常命名为 <component-name>.html，位于组件目录的根目录下。
+  
+  文件位置:
+  /apps/myapp/components/hero/
+    ├── .content.xml          # 组件定义
+    └── hero.html              # HTL 模板文件（核心渲染脚本）
+  
+  文件特点:
+  - 使用 HTL (HTML Template Language) 语法
+  - 混合 HTML 和 HTL 表达式/指令
+  - 服务器端渲染，生成最终的 HTML 输出
+  - 自动转义，防止 XSS 攻击
+  - 支持 Sling Model 和 Use API
+  
+  核心作用:
+  - 定义组件的 HTML 结构
+  - 将 JCR 数据绑定到 HTML 元素
+  - 控制组件的渲染逻辑
+  - 生成最终的 HTML 输出
+-->
+
+<!--
+  1.2 模板文件的基本结构
+  --------------------
+-->
+
+<!-- 基础 HTL 模板示例 -->
+<div class="hero-component">
+    <h1>${properties.title}</h1>
+    <p>${properties.description}</p>
+</div>
+
+<!--
+  典型结构:
+  
+  <html元素 class="样式类">
+      ${表达式}                  <!-- 输出属性值 -->
+      <元素 data-sly-指令>       <!-- HTL 指令 -->
+          <!-- 内容 -->
+      </元素>
+  </html元素>
+  
+  组件:
+  - HTML 结构: 定义组件的 DOM 结构
+  - HTL 表达式: 动态输出数据
+  - HTL 指令: 控制逻辑（条件、循环、包含等）
+  - CSS 类名: 样式标识
+  - data 属性: 可用于前端交互
+-->
+
+<!--
+  2. 模板文件的查找机制
+  ====================
+-->
+
+<!--
+  2.1 Sling 脚本解析机制
+  --------------------
+  
+  AEM 使用 Sling 的脚本解析机制来查找组件模板文件。
+  
+  查找顺序:
+  
+  1. 组件实例节点的 sling:resourceType 属性
+     /content/page/jcr:content/hero
+       sling:resourceType = "myapp/components/hero"
+  
+  2. 根据 resourceType 查找脚本文件
+     路径: /apps/myapp/components/hero/hero.html
+     或: /apps/myapp/components/hero/hero.jsp
+     或: /apps/myapp/components/hero/hero.esp
+  
+  3. 如果不存在，查找父组件的脚本（如果设置了 sling:resourceSuperType）
+     /apps/myapp/components/hero/.content.xml
+       sling:resourceSuperType = "myapp/components/base"
+     查找: /apps/myapp/components/base/base.html
+  
+  4. 脚本类型优先级（按扩展名）:
+     - .html (HTL) - 最高优先级
+     - .jsp (JSP)
+     - .esp (ECMAScript)
+  
+  5. 如果都不存在，返回错误或默认输出
+-->
+
+<!--
+  2.2 脚本查找路径规则
+  ------------------
+  
+  脚本路径 = /apps/<resourceType>/<脚本名>.<扩展名>
+  
+  示例:
+  resourceType = "myapp/components/hero"
+  查找路径:
+    /apps/myapp/components/hero/hero.html
+    /apps/myapp/components/hero/hero.jsp
+    /apps/myapp/components/hero/hero.esp
+  
+  注意:
+  - 脚本名通常与组件名相同（最后一个路径段）
+  - 但也可以是组件目录下的任意文件名
+  - Sling 会查找所有匹配的脚本文件，选择优先级最高的
+-->
+
+<!--
+  2.3 脚本继承机制
+  --------------
+  
+  如果组件设置了 sling:resourceSuperType，脚本查找会递归向上查找:
+  
+  示例组件层次:
+  base (基础组件)
+    └── hero (继承自 base)
+  
+  Hero 组件配置:
+  /apps/myapp/components/hero/.content.xml
+    sling:resourceSuperType = "myapp/components/base"
+  
+  脚本查找流程:
+  
+  1. 查找 Hero 组件的脚本
+     /apps/myapp/components/hero/hero.html
+  
+  2. 如果不存在，查找 Base 组件的脚本
+     /apps/myapp/components/base/base.html
+  
+  3. 如果 Base 也有 resourceSuperType，继续向上查找
+  
+  4. 直到找到脚本或到达继承链的顶部
+-->
+
+<!--
+  2.4 Java 代码示例：脚本查找
+  -------------------------
+-->
+
+<!--
+// 使用 ResourceResolver 查找脚本
+ResourceResolver resolver = request.getResourceResolver();
+Resource componentResource = resolver.resolve("/apps/myapp/components/hero");
+
+// Sling 会自动查找脚本
+// 实际渲染时会调用:
+RequestDispatcher dispatcher = request.getRequestDispatcher(componentResource);
+dispatcher.include(request, response);
+
+// Sling 内部查找逻辑（简化版）:
+String resourceType = componentResource.getResourceType();
+String scriptPath = resourceType + "/" + getScriptName(resourceType) + ".html";
+Resource scriptResource = resolver.getResource(scriptPath);
+
+if (scriptResource == null) {
+    // 查找父组件脚本
+    String superType = componentResource.getValueMap().get("sling:resourceSuperType", String.class);
+    if (superType != null) {
+        scriptPath = superType + "/" + getScriptName(superType) + ".html";
+        scriptResource = resolver.getResource(scriptPath);
+    }
+}
+-->
+
+<!--
+  3. HTL 模板文件的执行流程
+  ========================
+-->
+
+<!--
+  3.1 渲染流程概述
+  --------------
+  
+  请求处理流程:
+  
+  1. HTTP 请求到达 AEM
+     GET /content/page.html
+  
+  2. Sling 解析 URL，找到资源
+     /content/page/jcr:content
+  
+  3. 根据资源的 sling:resourceType 确定组件类型
+     myapp/components/page
+  
+  4. 查找组件的渲染脚本
+     /apps/myapp/components/page/page.html
+  
+  5. 准备 HTL 执行上下文
+     - properties: 资源属性
+     - currentPage: 当前页面对象
+     - resource: 当前资源对象
+     - component: 组件对象
+     - request/response: HTTP 请求/响应对象
+  
+  6. 执行 HTL 脚本
+     - 解析 HTL 表达式
+     - 执行 HTL 指令
+     - 调用 Use API / Sling Models
+  
+  7. 生成 HTML 输出
+     - 自动转义 HTML 特殊字符
+     - 输出最终的 HTML 字符串
+  
+  8. 返回给客户端
+-->
+
+<!--
+  3.2 HTL 执行上下文
+  ----------------
+  
+  HTL 模板在执行时可以访问以下上下文对象:
+  
+  properties (ValueMap)
+  - 当前资源的属性
+  - 来自组件对话框配置
+  - 来自 JCR 节点属性
+  - 示例: ${properties.title}
+  
+  currentPage (Page)
+  - 当前页面的 Page 对象
+  - 可以访问页面属性和方法
+  - 示例: ${currentPage.title}
+  
+  resource (Resource)
+  - 当前资源对象
+  - 可以访问资源路径、属性等
+  - 示例: ${resource.path}
+  
+  component (Component)
+  - 当前组件对象
+  - 包含组件 ID、路径等信息
+  - 示例: ${component.id}
+  
+  pageProperties (ValueMap)
+  - 页面属性（jcr:content 节点的属性）
+  - 示例: ${pageProperties.jcr:title}
+  
+  request (SlingHttpServletRequest)
+  - HTTP 请求对象
+  - 示例: ${request.requestURI}
+  
+  response (SlingHttpServletResponse)
+  - HTTP 响应对象
+  - 通常不在模板中直接使用
+-->
+
+<!--
+  3.3 执行顺序和优先级
+  ------------------
+  
+  HTL 模板的执行顺序:
+  
+  1. 解析 HTL 指令（从外到内）
+     - data-sly-use (首先执行，准备数据模型)
+     - data-sly-set (定义变量)
+     - data-sly-test (条件判断)
+     - data-sly-list/repeat (循环)
+     - data-sly-resource (包含子组件)
+     - data-sly-call (调用模板)
+  
+  2. 执行表达式（从左到右，从上到下）
+     - ${表达式}
+     - 自动转义输出
+  
+  3. 输出 HTML 结构
+     - 保留 HTML 元素
+     - 插入表达式结果
+     - 应用指令效果
+  
+  执行优先级:
+  - Use API 在模板开始执行前初始化
+  - 变量定义在所在作用域内有效
+  - 条件判断影响元素渲染
+  - 表达式在输出时计算
+-->
+
+<!--
+  4. HTL 模板中的常用模式
+  ======================
+-->
+
+<!--
+  4.1 属性访问模式
+  --------------
+-->
+
+<!-- 直接访问属性 -->
+<h1>${properties.title}</h1>
+
+<!-- 使用默认值 -->
+<h1>${properties.title || '默认标题'}</h1>
+
+<!-- 安全访问（可选链） -->
+<h1>${properties.author?.name || '匿名'}</h1>
+
+<!-- 嵌套属性访问 -->
+<div>${properties.configuration.settings.theme}</div>
+
+<!-- 属性转换 -->
+<div class="${properties.isActive ? 'active' : 'inactive'}">
+    ${properties.count ?: 0}
+</div>
+
+<!--
+  4.2 条件渲染模式
+  --------------
+-->
+
+<!-- 简单条件 -->
+<div data-sly-test="${properties.showTitle}">
+    <h1>${properties.title}</h1>
+</div>
+
+<!-- 条件分支 -->
+<div data-sly-test="${properties.type == 'hero'}">
+    <!-- Hero 内容 -->
+</div>
+<div data-sly-test="${properties.type == 'banner'}">
+    <!-- Banner 内容 -->
+</div>
+
+<!-- 嵌套条件 -->
+<div data-sly-test="${properties.enabled}">
+    <div data-sly-test="${properties.showDetails}">
+        <!-- 详细信息 -->
+    </div>
+</div>
+
+<!-- 条件属性 -->
+<div data-sly-attribute.class="${properties.isActive ? 'active' : ''}">
+    内容
+</div>
+
+<!--
+  4.3 循环模式
+  ----------
+-->
+
+<!-- 列表循环 -->
+<ul>
+    <li data-sly-list="${properties.items}">
+        ${item}
+    </li>
+</ul>
+
+<!-- 循环索引 -->
+<ul>
+    <li data-sly-list="${properties.items}">
+        ${itemList.index + 1}. ${item}
+    </li>
+</ul>
+
+<!-- 循环条件 -->
+<ul>
+    <li data-sly-list="${properties.items}"
+        data-sly-test="${item.enabled}">
+        ${item.name}
+    </li>
+</ul>
+
+<!-- 嵌套循环 -->
+<div data-sly-list="${properties.categories}">
+    <h3>${item.name}</h3>
+    <ul>
+        <li data-sly-list="${item.items}">
+            ${item}
+        </li>
+    </ul>
+</div>
+
+<!--
+  4.4 组件包含模式
+  --------------
+-->
+
+<!-- 包含子资源 -->
+<div data-sly-resource="${'child' @ resourceType='myapp/components/child'}"></div>
+
+<!-- 传递属性 -->
+<div data-sly-resource="${'child' @ resourceType='myapp/components/child', wcmmode='disabled'}"></div>
+
+<!-- 包含相对路径 -->
+<div data-sly-resource="${resource.path + '/parsys'}"></div>
+
+<!-- 条件包含 -->
+<div data-sly-test="${properties.showChild}">
+    <div data-sly-resource="${'child' @ resourceType='myapp/components/child'}"></div>
+</div>
+
+<!--
+  4.5 Use API / Sling Model 模式
+  -----------------------------
+-->
+
+<!-- 使用 Sling Model -->
+<sly data-sly-use.model="${'com.myapp.models.HeroModel'}"></sly>
+<div class="hero">
+    <h1>${model.title}</h1>
+    <p>${model.description}</p>
+</div>
+
+<!-- 使用相对路径 -->
+<sly data-sly-use.model="${'hero.js'}"></sly>
+<div>${model.data}</div>
+
+<!-- 传递参数 -->
+<sly data-sly-use.model="${'com.myapp.models.Model' @ param1='value1', param2=properties.value2}"></sly>
+<div>${model.result}</div>
+
+<!-- 条件使用 -->
+<sly data-sly-use.model="${'com.myapp.models.Model'}" data-sly-test="${model.isValid}"></sly>
+<div data-sly-test="${model}">${model.content}</div>
+
+<!--
+  4.6 客户端库模式
+  --------------
+-->
+
+<!--
+  4.6.1 categories 参数详解
+  -----------------------
+  
+  categories 是什么？
+  ──────────────────
+  
+  categories 是 AEM ClientLibs（客户端库）的"标识符"或"标签"。
+  它用来标识和查找对应的 CSS/JavaScript 文件集合。
+  
+  类比理解:
+  - categories 就像图书馆的"分类号"或"标签"
+  - 通过 categories 可以找到对应的 CSS/JS 文件
+  - 一个 ClientLib 可以有多个 categories（标签）
+  - 一个 category 可以对应一个 ClientLib 配置
+  
+  工作原理:
+  ────────
+  
+  1. 在模板中使用 categories:
+     <sly data-sly-call="${clientlib.css @ categories='myapp.components.hero'}"></sly>
+  
+  2. AEM 根据 categories 查找 ClientLib 配置:
+     - 在 JCR 中查找 categories 属性包含 'myapp.components.hero' 的节点
+     - 通常存储在: /apps/myapp/clientlibs/components/hero/.content.xml
+  
+  3. 找到对应的 CSS/JS 文件:
+     - /apps/myapp/clientlibs/components/hero/css/hero.css
+     - /apps/myapp/clientlibs/components/hero/js/hero.js
+  
+  4. 生成 HTML 标签:
+     - <link rel="stylesheet" href="/etc.clientlibs/myapp/clientlibs/components/hero.css">
+     - <script src="/etc.clientlibs/myapp/clientlibs/components/hero.js"></script>
+  
+  categories 的命名规范:
+  ────────────────────
+  
+  建议使用点分隔的层次结构:
+  
+  ✅ 好的命名:
+  - myapp.components.hero
+  - myapp.components.card
+  - myapp.base
+  - myapp.theme
+  - myapp.vendor.jquery
+  
+  ❌ 不好的命名:
+  - hero (太简单，可能冲突)
+  - myapp-hero (使用连字符，不符合惯例)
+  - Hero (大写开头)
+  
+  命名建议:
+  - 使用小写字母
+  - 使用点号(.)分隔层级
+  - 使用有意义的名称
+  - 保持一致性
+  
+  categories 的配置位置:
+  ────────────────────
+  
+  ClientLib 配置文件: /apps/myapp/clientlibs/components/hero/.content.xml
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:cq="http://www.day.com/jcr/cq/1.0" 
+            xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            jcr:primaryType="cq:ClientLibraryFolder"
+            categories="[myapp.components.hero]"
+            dependencies="[myapp.base]"/>
+  
+  关键点:
+  - categories 属性定义了此 ClientLib 的标识符
+  - 可以是单个值: categories="[myapp.components.hero]"
+  - 可以是多个值: categories="[myapp.components.hero,myapp.components.base]"
+  - dependencies 定义了依赖的其他 categories
+  
+  示例说明:
+  ────────
+  
+  示例 1: 单个 category
+  
+  ClientLib 配置:
+  /apps/myapp/clientlibs/components/hero/.content.xml
+    categories="[myapp.components.hero]"
+  
+  在模板中使用:
+  <sly data-sly-call="${clientlib.css @ categories='myapp.components.hero'}"></sly>
+  
+  AEM 查找:
+  → 查找 categories 包含 'myapp.components.hero' 的 ClientLib
+  → 找到 /apps/myapp/clientlibs/components/hero
+  → 加载该 ClientLib 的 CSS 文件
+  
+  示例 2: 多个 categories（数组）
+  
+  在模板中使用:
+  <sly data-sly-call="${clientlib.css @ categories=['myapp.components.hero', 'myapp.components.base']}"></sly>
+  
+  AEM 查找:
+  → 查找 categories 包含 'myapp.components.hero' 的 ClientLib
+  → 查找 categories 包含 'myapp.components.base' 的 ClientLib
+  → 合并两个 ClientLib 的 CSS 文件
+  → 按顺序加载
+  
+  示例 3: 字符串形式（多个 categories）
+  
+  在模板中使用:
+  <sly data-sly-call="${clientlib.css @ categories='myapp.components.hero,myapp.components.base'}"></sly>
+  
+  效果:
+  → 与数组形式相同
+  → 使用逗号分隔的字符串
+  
+  示例 4: 依赖关系
+  
+  ClientLib 配置:
+  /apps/myapp/clientlibs/components/hero/.content.xml
+    categories="[myapp.components.hero]"
+    dependencies="[myapp.base]"
+  
+  在模板中使用:
+  <sly data-sly-call="${clientlib.css @ categories='myapp.components.hero'}"></sly>
+  
+  AEM 处理:
+  → 查找 'myapp.components.hero' 的 ClientLib
+  → 发现它依赖 'myapp.base'
+  → 自动加载 'myapp.base' 的 CSS（在 hero 之前）
+  → 然后加载 'myapp.components.hero' 的 CSS
+  → 最终顺序: myapp.base.css → myapp.components.hero.css
+  
+  实际查找流程:
+  ────────────
+  
+  步骤 1: 解析 categories 参数
+  ──────────────────────────
+  模板代码: categories='myapp.components.hero'
+  → AEM 解析得到: "myapp.components.hero"
+  
+  步骤 2: JCR 查询查找 ClientLib
+  ────────────────────────────
+  AEM 执行查询（概念性）:
+  SELECT * FROM [cq:ClientLibraryFolder] 
+  WHERE categories = 'myapp.components.hero'
+  
+  搜索路径:
+  - /apps/myapp/clientlibs/**/.content.xml
+  - /libs/myapp/clientlibs/**/.content.xml
+  
+  步骤 3: 匹配 ClientLib 配置
+  ──────────────────────────
+  找到配置文件: /apps/myapp/clientlibs/components/hero/.content.xml
+  
+  读取配置:
+  - categories: [myapp.components.hero]
+  - dependencies: [myapp.base]
+  - 文件路径: css/hero.css, js/hero.js
+  
+  步骤 4: 处理依赖
+  ───────────────
+  递归处理 dependencies:
+  → 查找 'myapp.base' 的 ClientLib
+  → 加载 myapp.base 的 CSS（在 hero 之前）
+  
+  步骤 5: 收集文件
+  ───────────────
+  收集所有 CSS 文件:
+  - /apps/myapp/clientlibs/base/css/base.css (依赖)
+  - /apps/myapp/clientlibs/components/hero/css/hero.css (主库)
+  
+  步骤 6: 合并和生成
+  ────────────────
+  合并文件（如果启用合并）:
+  → base.css + hero.css → merged.css
+  
+  生成代理路径:
+  → /etc.clientlibs/myapp/clientlibs/components/hero.css
+  
+  步骤 7: 输出 HTML
+  ───────────────
+  生成 <link> 标签:
+  <link rel="stylesheet" 
+        href="/etc.clientlibs/myapp/clientlibs/components/hero.css" 
+        type="text/css">
+  
+  常见问题和注意事项:
+  ────────────────
+  
+  问题 1: categories 不存在怎么办？
+  ─────────────────────────────
+  如果指定的 categories 不存在:
+  - AEM 不会报错
+  - 不会生成任何 <link> 或 <script> 标签
+  - 样式/脚本不会加载
+  - 页面可能缺少样式或功能
+  
+  调试方法:
+  - 检查 ClientLib 配置是否存在
+  - 检查 categories 名称是否匹配
+  - 检查路径是否正确
+  
+  问题 2: 多个 ClientLib 使用相同的 categories 会怎样？
+  ───────────────────────────────────────────────
+  如果多个 ClientLib 配置使用相同的 categories:
+  - AEM 会找到所有匹配的 ClientLib
+  - 所有匹配的 CSS/JS 文件都会被加载
+  - 可能造成样式冲突或脚本冲突
+  - 不推荐这种做法，应该使用唯一的 categories
+  
+  问题 3: categories 的大小写敏感吗？
+  ───────────────────────────────
+  categories 是大小写敏感的:
+  - 'myapp.components.hero' ≠ 'MyApp.Components.Hero'
+  - 'myapp.components.hero' ≠ 'myapp.Components.hero'
+  - 建议统一使用小写
+  
+  问题 4: 如何查看某个 categories 对应的文件？
+  ───────────────────────────────────────
+  方法 1: 通过 CRX/DE Lite
+  - 访问: http://localhost:4502/crx/de/index.jsp
+  - 搜索: categories 属性
+  - 查看匹配的节点
+  
+  方法 2: 通过浏览器开发者工具
+  - 查看生成的 <link> 和 <script> 标签
+  - 查看 href/src 属性
+  - 反向查找对应的 ClientLib
+  
+  方法 3: 通过 AEM ClientLibs 工具
+  - 访问: http://localhost:4502/libs/granite/ui/content/dumplibs.html
+  - 查看所有 ClientLibs 的 categories 和文件
+  
+  最佳实践:
+  ───────
+  
+  1. 使用清晰的命名规范
+     ✅ myapp.components.hero
+     ✅ myapp.components.card
+     ✅ myapp.base
+     ❌ hero
+     ❌ myapp-hero
+  
+  2. 保持一致性
+     - 整个项目使用统一的命名规范
+     - 使用点号分隔的层次结构
+     - 使用小写字母
+  
+  3. 按功能模块组织
+     - components: 组件相关的样式/脚本
+     - base: 基础样式/脚本
+     - theme: 主题样式
+     - vendor: 第三方库
+  
+  4. 使用有意义的名称
+     - 名称应该清楚地表明用途
+     - 避免使用缩写（除非是标准缩写）
+     - 使用描述性的名称
+  
+  5. 避免冲突
+     - 确保 categories 的唯一性
+     - 使用项目前缀（如 myapp）
+     - 不要使用过于通用的名称
+-->
+
+<!-- 包含 CSS -->
+<sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+<sly data-sly-call="${clientlib.css @ categories='myapp.components.hero'}"></sly>
+
+<!--
+  说明:
+  - categories='myapp.components.hero' 指定要加载的 ClientLib 标识符
+  - AEM 会查找 categories 属性为 'myapp.components.hero' 的 ClientLib 配置
+  - 找到对应的 CSS 文件并生成 <link> 标签
+-->
+
+<!-- 包含 JavaScript -->
+<sly data-sly-call="${clientlib.js @ categories='myapp.components.hero'}"></sly>
+
+<!--
+  说明:
+  - categories='myapp.components.hero' 与 CSS 使用相同的 categories
+  - AEM 会加载同一个 ClientLib 的 JavaScript 文件
+  - 生成 <script> 标签
+-->
+
+<!-- 包含多个类别（数组形式） -->
+<sly data-sly-call="${clientlib.css @ categories=['myapp.components.hero', 'myapp.components.base']}"></sly>
+
+<!--
+  说明:
+  - 使用数组形式指定多个 categories
+  - AEM 会查找并合并多个 ClientLib 的 CSS 文件
+  - 按数组顺序加载
+-->
+
+<!-- 包含多个类别（字符串形式） -->
+<sly data-sly-call="${clientlib.css @ categories='myapp.components.hero,myapp.components.base'}"></sly>
+
+<!--
+  说明:
+  - 使用逗号分隔的字符串形式
+  - 效果与数组形式相同
+  - 更简洁的写法
+-->
+
+<!--
+  5. 模板文件的结构组织
+  ====================
+-->
+
+<!--
+  5.1 基本结构
+  ----------
+-->
+
+<!--
+  典型的组件模板结构:
+  
+  <!-- 客户端库 -->
+  <sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+  <sly data-sly-call="${clientlib.css @ categories='myapp.components.hero'}"></sly>
+  
+  <!-- Use API / Sling Model -->
+  <sly data-sly-use.model="${'com.myapp.models.HeroModel'}"></sly>
+  
+  <!-- 组件容器 -->
+  <div class="hero-component ${component.cssClassNames}"
+       data-sly-attribute.id="${component.id}">
+      
+      <!-- 条件渲染 -->
+      <div data-sly-test="${properties.showTitle}">
+          <h1>${properties.title}</h1>
+      </div>
+      
+      <!-- 主要内容 -->
+      <div class="hero-content">
+          ${properties.description}
+      </div>
+      
+      <!-- 子组件包含 -->
+      <div data-sly-resource="${'parsys' @ resourceType='foundation/components/parsys'}"></div>
+      
+  </div>
+  
+  <!-- JavaScript -->
+  <sly data-sly-call="${clientlib.js @ categories='myapp.components.hero'}"></sly>
+-->
+
+<!--
+  5.2 模板分段
+  ----------
+  
+  大型组件模板可以按功能分段:
+  
+  <!-- 1. 初始化和配置 -->
+  <sly data-sly-use.model="${'com.myapp.models.ComponentModel'}"></sly>
+  <sly data-sly-set.config="${model.config}"></sly>
+  
+  <!-- 2. 客户端库 -->
+  <sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+  <sly data-sly-call="${clientlib.css @ categories=config.cssCategories}"></sly>
+  
+  <!-- 3. 组件容器开始 -->
+  <div class="${config.cssClass}">
+  
+      <!-- 4. 头部区域 -->
+      <header data-sly-test="${properties.showHeader}">
+          <!-- 头部内容 -->
+      </header>
+  
+      <!-- 5. 主体区域 -->
+      <main>
+          <!-- 主体内容 -->
+      </main>
+  
+      <!-- 6. 尾部区域 -->
+      <footer data-sly-test="${properties.showFooter}">
+          <!-- 尾部内容 -->
+      </footer>
+  
+  <!-- 7. 组件容器结束 -->
+  </div>
+  
+  <!-- 8. JavaScript -->
+  <sly data-sly-call="${clientlib.js @ categories=config.jsCategories}"></sly>
+-->
+
+<!--
+  5.3 模板复用（data-sly-template）
+  ------------------------------
+-->
+
+<!-- 定义模板 -->
+<template data-sly-template.card="${@ title, description, image}">
+    <div class="card">
+        <h3>${title}</h3>
+        <p>${description}</p>
+        <img data-sly-test="${image}" src="${image}" alt="${title}">
+    </div>
+</template>
+
+<!-- 调用模板 -->
+<div data-sly-call="${card @ title=properties.title, description=properties.description, image=properties.image}"></div>
+
+<!-- 在循环中使用模板 -->
+<div data-sly-list="${properties.cards}">
+    <div data-sly-call="${card @ title=item.title, description=item.description, image=item.image}"></div>
+</div>
+
+<!--
+  6. 模板文件的查找和调试
+  ======================
+-->
+
+<!--
+  6.1 如何确定使用的模板文件
+  ------------------------
+  
+  方法 1: 查看页面源代码
+  - 在浏览器中查看页面源代码
+  - 查找组件相关的 HTML 输出
+  - 根据输出的特征推断使用的模板
+  
+  方法 2: 使用 CRX/DE Lite
+  - 访问: http://localhost:4502/crx/de/index.jsp
+  - 导航到组件路径: /apps/myapp/components/hero
+  - 查看 hero.html 文件内容
+  
+  方法 3: 使用 Sling 脚本解析器
+  - 访问: http://localhost:4502/system/console/sling
+  - 使用脚本解析器工具查看脚本查找路径
+  
+  方法 4: 启用调试日志
+  - 设置日志级别为 DEBUG
+  - 查看脚本解析日志
+  - 日志会显示使用的脚本路径
+-->
+
+<!--
+  6.2 常见问题诊断
+  --------------
+  
+  问题 1: 模板文件不执行
+  
+  检查项:
+  - 组件路径是否正确
+  - sling:resourceType 是否正确设置
+  - 模板文件是否存在
+  - 文件扩展名是否正确（.html）
+  - 是否有读取权限
+  
+  问题 2: 属性值为空
+  
+  检查项:
+  - 组件对话框是否已配置
+  - 属性名是否正确（大小写敏感）
+  - 属性是否存在（使用 data-sly-test 检查）
+  - 是否有继承属性（检查父组件）
+  
+  问题 3: 子组件不显示
+  
+  检查项:
+  - data-sly-resource 路径是否正确
+  - resourceType 是否正确
+  - 子组件是否存在
+  - 是否有包含权限
+  
+  问题 4: Sling Model 不工作
+  
+  检查项:
+  - Sling Model 类路径是否正确
+  - Model 是否正确注册（@Model 注解）
+  - 依赖是否已安装
+  - 是否有编译错误
+-->
+
+<!--
+  7. 最佳实践
+  ==========
+-->
+
+<!--
+  7.1 模板组织原则
+  --------------
+  
+  1. 保持模板简洁
+     - 将复杂逻辑移到 Sling Model
+     - 模板只负责展示逻辑
+  
+  2. 使用语义化的 HTML
+     - 使用正确的 HTML5 语义标签
+     - 保持良好的 HTML 结构
+  
+  3. 合理使用条件渲染
+     - 避免过深的嵌套
+     - 使用变量简化复杂条件
+  
+  4. 组织客户端库
+     - CSS 在顶部加载
+     - JavaScript 在底部加载
+     - 按需加载（只在需要时加载）
+  
+  5. 使用组件 CSS 类名
+     - 使用 component.cssClassNames
+     - 保持类名一致性
+     - 使用 BEM 命名规范
+-->
+
+<!--
+  7.2 性能优化建议
+  --------------
+  
+  1. 减少 Use API 调用
+     - 在模板顶部一次性调用
+     - 避免在循环中重复调用
+  
+  2. 优化数据访问
+     - 使用属性缓存
+     - 避免重复的属性访问
+  
+  3. 合理使用条件渲染
+     - 尽早返回（data-sly-test）
+     - 避免不必要的计算
+  
+  4. 优化客户端库
+     - 合并 CSS/JS 文件
+     - 使用异步加载
+     - 按需加载
+  
+  5. 避免过度嵌套
+     - 限制组件嵌套深度
+     - 使用模板函数简化结构
+-->
+
+<!--
+  7.3 安全建议
+  ----------
+  
+  1. 始终使用 HTL 表达式（自动转义）
+     ✓ ${properties.content}
+     ✗ <div>${properties.content @ context='html'}</div>
+  
+  2. 谨慎使用 context='html'
+     - 只在确定内容安全时使用
+     - 验证内容来源
+     - 考虑使用 HTML 清理库
+  
+  3. 验证用户输入
+     - 在 Sling Model 中验证
+     - 不在模板中验证业务逻辑
+  
+  4. 避免 XSS 攻击
+     - 依赖 HTL 的自动转义
+     - 不要拼接 HTML 字符串
+     - 使用 data-sly-attribute 设置属性
+-->
+
+<!--
+  8. React 迁移映射
+  ================
+-->
+
+<!--
+  AEM HTL 模板          →  React 组件
+  ────────────────────────────────────────────────
+  hero.html             →  Hero.tsx
+  ${properties.title}   →  {props.title}
+  data-sly-test         →  {condition && <div>...</div>}
+  data-sly-list         →  {items.map(item => ...)}
+  data-sly-resource     →  <ChildComponent />
+  data-sly-use          →  useHook() 或自定义 Hook
+  component.cssClassNames →  className={styles.hero}
+  component.id          →  id={id} 或 useId()
+-->
+
+<!--
+  10. HTL 模板编译和缓存机制
+  =========================
+-->
+
+<!--
+  10.1 HTL 编译过程
+  ---------------
+  
+  HTL 模板文件不是直接执行的，而是先编译为 Java 类，然后执行。
+  
+  编译流程:
+  
+  1. 语法解析 (HTL Parser)
+     - 解析 HTL 语法
+     - 识别指令和表达式
+     - 构建抽象语法树 (AST)
+  
+  2. Java 代码生成 (Code Generator)
+     - 将 AST 转换为 Java 代码
+     - 生成 doProcess 方法
+     - 处理表达式和指令
+  
+  3. Java 编译 (Java Compiler)
+     - 编译为 .class 文件
+     - 加载到 JVM
+     - 缓存编译结果
+  
+  编译后的类结构:
+  
+  public class HeroHtml {
+      public void doProcess(SlingHttpServletRequest request, 
+                           SlingHttpServletResponse response,
+                           Bindings bindings) {
+          // 编译后的 HTL 模板代码
+          // 表达式和指令都被转换为 Java 代码
+      }
+  }
+-->
+
+<!--
+  10.2 脚本缓存机制
+  ---------------
+  
+  Sling 使用 ScriptCache 缓存编译后的脚本，提高性能。
+  
+  缓存策略:
+  
+  1. 缓存键
+     - 脚本路径 + 最后修改时间
+     - 格式: "/apps/myapp/components/hero/hero.html:1234567890"
+  
+  2. 缓存失效
+     - 文件修改时自动失效
+     - 重新编译新的脚本
+     - 更新缓存
+  
+  3. 缓存大小
+     - 默认限制缓存数量
+     - LRU (Least Recently Used) 策略
+     - 超出限制时移除最旧的缓存
+  
+  Java 代码示例:
+  
+  public class ScriptCache {
+      private Map<String, CompiledScript> cache = new ConcurrentHashMap<>();
+      
+      public CompiledScript getScript(String scriptPath, long lastModified) {
+          String cacheKey = scriptPath + ":" + lastModified;
+          
+          CompiledScript script = cache.get(cacheKey);
+          if (script != null) {
+              return script;  // 缓存命中
+          }
+          
+          // 缓存未命中，编译脚本
+          script = compileScript(scriptPath);
+          cache.put(cacheKey, script);
+          
+          return script;
+      }
+  }
+-->
+
+<!--
+  10.3 开发模式 vs 生产模式
+  -----------------------
+  
+  开发模式 (Development):
+  - 脚本修改后立即重新编译
+  - 缓存失效更快
+  - 支持热重载（某些情况下）
+  - 性能较低（频繁编译）
+  
+  生产模式 (Production):
+  - 缓存更积极
+  - 减少重新编译
+  - 性能最优
+  - 需要重启或手动清除缓存才能看到更改
+  
+  配置方式:
+  - 通过 OSGi 配置调整缓存策略
+  - 设置缓存大小和失效策略
+  - 调整编译超时时间
+-->
+
+<!--
+  10.4 模板文件修改后的行为
+  -----------------------
+  
+  当模板文件被修改时:
+  
+  1. 文件系统监控检测到更改
+     - 文件修改时间更新
+     - 触发缓存失效
+  
+  2. 下次请求时重新编译
+     - 检测到文件已更改
+     - 重新编译模板
+     - 更新缓存
+  
+  3. 开发环境自动生效
+     - 修改后立即生效（无需重启）
+     - 生产环境可能需要清除缓存
+  
+  注意:
+  - 某些情况下需要清除缓存才能看到更改
+  - 可以通过 OSGi Console 清除脚本缓存
+  - 重启 AEM 实例会清除所有缓存
+-->
+
+<!--
+  11. 模板文件的上下文对象详解
+  ============================
+-->
+
+<!--
+  11.1 properties (ValueMap) 详解
+  -----------------------------
+  
+  properties 是当前资源的所有属性的 ValueMap。
+  
+  数据来源:
+  - 组件对话框配置的字段
+  - JCR 节点属性
+  - 继承的属性（如果设置了 sling:resourceSuperType）
+  
+  访问方式:
+  ${properties.title}              <!-- 直接访问 -->
+  ${properties['title']}           <!-- 使用方括号 -->
+  ${properties.title || 'default'} <!-- 默认值 -->
+  
+  属性类型:
+  - String: ${properties.title}
+  - Boolean: ${properties.isActive}
+  - Number: ${properties.count}
+  - Date: ${properties.date}
+  - String[]: ${properties.tags}
+  - ValueMap: ${properties.config}
+  
+  嵌套属性:
+  ${properties.config.theme}       <!-- 访问嵌套对象 -->
+  ${properties.items[0].name}      <!-- 访问数组元素 -->
+-->
+
+<!--
+  11.2 component 对象详解
+  ---------------------
+  
+  component 对象提供组件相关的信息。
+  
+  可用属性:
+  
+  component.id
+  - 组件的唯一 ID
+  - 格式: "cq_id_1234567890"
+  - 用于 DOM ID 和 JavaScript 选择器
+  
+  component.cssClassNames
+  - 组件 CSS 类名
+  - 包含组件路径等类名
+  - 格式: "myapp-components-hero"
+  
+  component.path
+  - 组件定义路径
+  - 格式: "/apps/myapp/components/hero"
+  
+  component.resourceType
+  - 组件资源类型
+  - 格式: "myapp/components/hero"
+  
+  使用示例:
+  
+  <div class="${component.cssClassNames}"
+       data-sly-attribute.id="${component.id}">
+      内容
+  </div>
+-->
+
+<!--
+  11.3 currentPage 对象详解
+  -----------------------
+  
+  currentPage 是当前页面的 Page 对象（CQ Page API）。
+  
+  常用属性:
+  
+  currentPage.title
+  - 页面标题
+  - 来自 jcr:title 属性
+  
+  currentPage.path
+  - 页面路径
+  - 格式: "/content/my-site/en/page"
+  
+  currentPage.name
+  - 页面名称
+  - 格式: "page"
+  
+  currentPage.pageTitle
+  - 页面标题（可能不同于 title）
+  
+  currentPage.description
+  - 页面描述
+  
+  currentPage.properties
+  - 页面属性 ValueMap
+  
+  常用方法:
+  
+  currentPage.getLanguage()
+  - 获取页面语言
+  
+  currentPage.getDepth()
+  - 获取页面深度
+  
+  currentPage.getParent()
+  - 获取父页面
+  
+  使用示例:
+  
+  <title>${currentPage.title} - ${currentPage.pageTitle}</title>
+  <meta name="description" content="${currentPage.description}">
+-->
+
+<!--
+  11.4 resource 对象详解
+  ---------------------
+  
+  resource 是当前资源的 Resource 对象（Sling Resource API）。
+  
+  常用属性:
+  
+  resource.path
+  - 资源路径
+  - 格式: "/content/my-site/en/page/jcr:content/hero"
+  
+  resource.resourceType
+  - 资源类型
+  - 格式: "myapp/components/hero"
+  
+  resource.resourceSuperType
+  - 资源超类型
+  - 格式: "myapp/components/base"
+  
+  resource.name
+  - 资源名称
+  - 格式: "hero"
+  
+  resource.parent
+  - 父资源
+  - 返回 Resource 对象
+  
+  resource.children
+  - 子资源迭代器
+  
+  常用方法:
+  
+  resource.adaptTo(Class)
+  - 适配到其他类型（如 Node, ValueMap）
+  
+  resource.getValueMap()
+  - 获取属性 ValueMap
+  
+  resource.getResourceResolver()
+  - 获取 ResourceResolver
+  
+  使用示例:
+  
+  <div data-resource-path="${resource.path}">
+      ${resource.name}
+  </div>
+-->
+
+<!--
+  11.5 其他上下文对象
+  ------------------
+  
+  pageProperties (ValueMap)
+  - 页面属性（jcr:content 节点的属性）
+  - ${pageProperties.jcr:title}
+  - ${pageProperties.sling:resourceType}
+  
+  request (SlingHttpServletRequest)
+  - HTTP 请求对象
+  - ${request.requestURI}
+  - ${request.requestPathInfo.resourcePath}
+  - ${request.requestPathInfo.selectorString}
+  
+  response (SlingHttpServletResponse)
+  - HTTP 响应对象
+  - 通常不在模板中直接使用
+  
+  sling (SlingScriptHelper)
+  - Sling 辅助对象
+  - ${sling.getService(ServiceClass)}
+  - ${sling.include(resource, script)}
+  
+  out (PrintWriter)
+  - 输出流（已废弃，不推荐使用）
+  - 使用 HTL 表达式替代
+-->
+
+<!--
+  12. 模板文件的错误处理和调试
+  ===========================
+-->
+
+<!--
+  12.1 常见错误类型
+  ---------------
+  
+  1. 编译错误
+     - HTL 语法错误
+     - 表达式语法错误
+     - 指令使用错误
+  
+  2. 运行时错误
+     - 属性不存在（NullPointerException）
+     - 类型转换错误
+     - Sling Model 初始化失败
+  
+  3. 逻辑错误
+     - 条件判断错误
+     - 循环逻辑错误
+     - 数据访问错误
+  
+  错误处理策略:
+  
+  1. 使用默认值
+     ${properties.title || '默认标题'}
+  
+  2. 使用安全访问
+     ${properties.author?.name || '匿名'}
+  
+  3. 使用条件检查
+     <div data-sly-test="${properties.title}">
+         ${properties.title}
+     </div>
+  
+  4. 错误日志记录
+     - 在 Sling Model 中记录错误
+     - 使用日志框架（SLF4J）
+     - 不要在模板中直接记录日志
+-->
+
+<!--
+  12.2 调试技巧（高级）
+  -------------------
+  
+  方法 1: 在模板中输出调试信息
+  
+  <!-- 临时调试输出 -->
+  <div style="display:none;">
+      <p>Resource Path: ${resource.path}</p>
+      <p>Resource Type: ${resource.resourceType}</p>
+      <p>Properties: ${properties}</p>
+  </div>
+  
+  方法 2: 使用浏览器开发者工具
+  
+  - 查看生成的 HTML
+  - 检查数据属性
+  - 查看网络请求
+  - 使用 JavaScript 调试器
+  
+  方法 3: 启用 AEM Developer Mode
+  
+  - 显示组件边界
+  - 显示组件路径和类型
+  - 显示编辑工具栏
+  - 访问组件配置
+  
+  方法 4: 使用日志
+  
+  在 Sling Model 中:
+  
+  @Slf4j
+  @Model(adaptables = Resource.class)
+  public class HeroModel {
+      @PostConstruct
+      protected void init() {
+          log.debug("Hero Model initialized for: {}", resource.getPath());
+      }
+  }
+  
+  方法 5: 使用断点调试
+  
+  - 在 Sling Model 中设置断点
+  - 使用 IDE 远程调试
+  - 连接 AEM 实例
+  - 逐步执行代码
+  
+  方法 6: 使用 AEM Developer Tools
+  
+  - Eclipse/IntelliJ 插件
+  - 同步代码到 AEM
+  - 查看日志
+  - 调试 Sling Models
+-->
+
+<!--
+  12.3 错误日志分析
+  ---------------
+  
+  查看错误日志位置:
+  
+  1. AEM 错误日志
+     - 访问: http://localhost:4502/system/console/status-slinglogs
+     - 查看错误和异常
+  
+  2. 服务器日志文件
+     - crx-quickstart/logs/error.log
+     - crx-quickstart/logs/stdout.log
+  
+  3. 应用日志
+     - 自定义日志配置
+     - 使用 SLF4J 记录
+  
+  常见错误模式:
+  
+  1. NullPointerException
+     - 原因: 属性不存在或为 null
+     - 解决: 使用默认值或安全访问
+  
+  2. ClassNotFoundException
+     - 原因: Sling Model 类不存在
+     - 解决: 检查类路径和包名
+  
+  3. Script compilation failed
+     - 原因: HTL 语法错误
+     - 解决: 检查模板语法
+  
+  4. Resource not found
+     - 原因: 资源路径错误
+     - 解决: 检查资源路径和权限
+-->
+
+<!--
+  13. 模板文件的国际化 (i18n)
+  ===========================
+-->
+
+<!--
+  13.1 国际化概述
+  -------------
+  
+  AEM 支持多语言内容管理。
+  
+  国际化方式:
+  
+  1. 内容国际化
+     - 为每种语言创建内容页面
+     - 使用语言副本（Language Copy）
+     - 内容存储在 /content/site/en, /content/site/zh 等
+  
+  2. 模板国际化
+     - 使用 i18n 字典
+     - 存储在组件或应用级别
+     - 根据语言自动选择
+  
+  3. 日期和数字格式化
+     - 根据语言区域格式化
+     - 使用 Java 格式化 API
+-->
+
+<!--
+  13.2 i18n 字典使用
+  ----------------
+  
+  i18n 字典文件位置:
+  
+  /apps/myapp/components/hero/i18n/
+    ├── en.json
+    ├── zh-CN.json
+    └── ja.json
+  
+  字典文件格式:
+  
+  {
+      "title": "Hero Title",
+      "description": "Hero Description",
+      "button": {
+          "label": "Click Me",
+          "aria-label": "Click button"
+      }
+  }
+  
+  在模板中使用:
+  
+  <sly data-sly-use.i18n="${'com.adobe.cq.sightly.i18n.I18n' @ locale=currentPage.language}"></sly>
+  
+  <h1>${i18n.get('title')}</h1>
+  <p>${i18n.get('description')}</p>
+  <button>${i18n.get('button.label')}</button>
+  
+  或者使用更简单的方式（AEM Core Components）:
+  
+  <h1 data-sly-use.i18n="core/wcm/components/commons/v1/templates/i18n.html"
+      data-i18n="${'title'}">Title</h1>
+-->
+
+<!--
+  13.3 语言检测
+  -----------
+  
+  语言检测方式:
+  
+  1. 从页面路径检测
+     ${currentPage.language}
+     ${pageProperties['jcr:language']}
+  
+  2. 从请求头检测
+     ${request.locale}
+  
+  3. 从资源路径检测
+     ${resource.path}  // 包含语言代码
+  
+  使用示例:
+  
+  <sly data-sly-set.lang="${currentPage.language || request.locale.language}"></sly>
+  <sly data-sly-use.i18n="${'com.adobe.cq.sightly.i18n.I18n' @ locale=lang}"></sly>
+-->
+
+<!--
+  14. 模板文件的性能优化（深入）
+  =============================
+-->
+
+<!--
+  14.1 表达式性能
+  -------------
+  
+  优化建议:
+  
+  1. 避免重复计算
+     <!-- 不好的做法 -->
+     <div data-sly-list="${properties.items}">
+         ${properties.title}  <!-- 每次循环都访问 -->
+     </div>
+     
+     <!-- 好的做法 -->
+     <sly data-sly-set.title="${properties.title}"></sly>
+     <div data-sly-list="${properties.items}">
+         ${title}  <!-- 使用变量 -->
+     </div>
+  
+  2. 使用变量缓存复杂表达式
+     <sly data-sly-set.config="${properties.config}"></sly>
+     <div>${config.theme}</div>
+     <div>${config.color}</div>
+  
+  3. 避免深层嵌套属性访问
+     <!-- 不好的做法 -->
+     ${properties.config.settings.theme.colors.primary}
+     
+     <!-- 好的做法 -->
+     <sly data-sly-set.primaryColor="${properties.config.settings.theme.colors.primary}"></sly>
+     ${primaryColor}
+-->
+
+<!--
+  14.2 Use API 性能
+  ----------------
+  
+  优化建议:
+  
+  1. 在模板顶部调用
+     <!-- 好的做法 -->
+     <sly data-sly-use.model="${'com.myapp.Model'}"></sly>
+     <div>${model.value1}</div>
+     <div>${model.value2}</div>
+  
+  2. 避免在循环中调用
+     <!-- 不好的做法 -->
+     <div data-sly-list="${items}">
+         <sly data-sly-use.model="${'com.myapp.Model' @ item=item}"></sly>
+         ${model.value}
+     </div>
+     
+     <!-- 好的做法：在 Sling Model 中处理循环 -->
+     <sly data-sly-use.model="${'com.myapp.ListModel' @ items=properties.items}"></sly>
+     <div data-sly-list="${model.processedItems}">
+         ${item.value}
+     </div>
+  
+  3. 使用可缓存的 Sling Model
+     @Model(adaptables = Resource.class, cache = true)
+     public class CachedModel {
+         // 模型实例会被缓存
+     }
+-->
+
+<!--
+  14.3 条件渲染性能
+  ---------------
+  
+  优化建议:
+  
+  1. 尽早返回
+     <!-- 好的做法：条件在前 -->
+     <div data-sly-test="${properties.enabled}">
+         <!-- 大量内容 -->
+     </div>
+  
+  2. 避免复杂条件
+     <!-- 不好的做法 -->
+     <div data-sly-test="${properties.a && properties.b && properties.c && properties.d}">
+         <!-- 内容 -->
+     </div>
+     
+     <!-- 好的做法：使用变量 -->
+     <sly data-sly-set.isEnabled="${properties.a && properties.b && properties.c && properties.d}"></sly>
+     <div data-sly-test="${isEnabled}">
+         <!-- 内容 -->
+     </div>
+  
+  3. 使用短路求值
+     ${properties.title || properties.name || 'Default'}
+     <!-- 如果 title 存在，不会计算 name -->
+-->
+
+<!--
+  14.4 客户端库性能
+  ----------------
+  
+  优化建议:
+  
+  1. 按需加载
+     <!-- 只在需要时加载 -->
+     <div data-sly-test="${properties.enableFeature}">
+         <sly data-sly-call="${clientlib.js @ categories='myapp.feature'}"></sly>
+     </div>
+  
+  2. 合并和压缩
+     - 使用 ClientLib 合并功能
+     - 启用 CSS/JS 压缩
+     - 使用 Gzip 压缩
+  
+  3. 异步加载 JavaScript
+     <!-- 使用 async 或 defer -->
+     <script src="..." async></script>
+  
+  4. 延迟加载非关键 CSS
+     <!-- 使用 media="print" 然后切换 -->
+     <link rel="stylesheet" href="..." media="print" onload="this.media='all'">
+-->
+
+<!--
+  15. 模板文件与 Dispatcher 缓存
+  =============================
+-->
+
+<!--
+  15.1 Dispatcher 缓存机制
+  ----------------------
+  
+  Dispatcher 可以缓存组件的 HTML 输出。
+  
+  缓存策略:
+  
+  1. 可缓存组件
+     - 不依赖用户会话
+     - 不包含个性化内容
+     - 不频繁变化
+  
+  2. 不可缓存组件
+     - 包含用户特定内容
+     - 包含时间戳
+     - 包含动态数据
+  
+  控制缓存:
+  
+  1. 使用响应头
+     response.setHeader("Cache-Control", "no-cache");
+  
+  2. 使用 Dispatcher 配置
+     /cache
+       /rules
+         /0001 { /type "allow" /glob "*.html" }
+         /0002 { /type "deny" /glob "*/personalized/*" }
+  
+  3. 使用组件注释
+     <!--/* Cacheable: true */-->
+-->
+
+<!--
+  15.2 缓存失效
+  -----------
+  
+  缓存失效策略:
+  
+  1. 自动失效
+     - 内容更新时自动失效
+     - 通过 Dispatcher Flush Agent
+     - 基于路径匹配
+  
+  2. 手动失效
+     - 通过 Dispatcher Flush UI
+     - 通过 API 调用
+     - 清除特定路径缓存
+  
+  3. 时间过期 (TTL)
+     - 设置缓存时间
+     - 过期后自动失效
+     - 重新获取内容
+-->
+
+<!--
+  16. 模板文件的测试
+  ================
+-->
+
+<!--
+  16.1 单元测试
+  -----------
+  
+  测试 HTL 模板的方法:
+  
+  1. 使用 AEM Mocks
+     - 模拟 Resource 和 Request
+     - 测试模板输出
+     - 验证数据绑定
+  
+  2. 使用 Sling Testing
+     - 创建测试资源
+     - 执行模板渲染
+     - 断言输出结果
+  
+  Java 测试示例:
+  
+  @ExtendWith(AemContextExtension.class)
+  class HeroTemplateTest {
+      @Test
+      void testHeroTemplate(AemContext context) {
+          // 创建资源
+          context.create().resource("/content/hero",
+              "title", "Test Title",
+              "description", "Test Description");
+          
+          // 渲染模板
+          String html = context.resourceResolver()
+              .resolve("/content/hero")
+              .adaptTo(HTLScriptEngine.class)
+              .eval("hero.html", context.request());
+          
+          // 断言
+          assertThat(html).contains("Test Title");
+      }
+  }
+-->
+
+<!--
+  16.2 集成测试
+  -----------
+  
+  集成测试方法:
+  
+  1. 使用 AEM Testing Tools
+     - 创建测试内容
+     - 执行完整渲染流程
+     - 验证最终输出
+  
+  2. 使用 Selenium
+     - 自动化浏览器测试
+     - 验证页面渲染
+     - 测试交互功能
+  
+  3. 使用 Visual Regression Testing
+     - 截图对比
+     - 检测视觉变化
+     - 确保 UI 一致性
+-->
+
+<!--
+  17. 模板文件的代码审查要点
+  =========================
+-->
+
+<!--
+  17.1 代码质量检查清单
+  -------------------
+  
+  1. 语法和格式
+     ✓ HTL 语法正确
+     ✓ 缩进和格式一致
+     ✓ 注释清晰
+  
+  2. 安全性
+     ✓ 使用自动转义（不滥用 context='html'）
+     ✓ 验证用户输入（在 Sling Model 中）
+     ✓ 避免 XSS 漏洞
+  
+  3. 性能
+     ✓ 避免重复计算
+     ✓ 合理使用 Use API
+     ✓ 优化客户端库加载
+  
+  4. 可维护性
+     ✓ 代码结构清晰
+     ✓ 使用语义化 HTML
+     ✓ 遵循命名规范
+  
+  5. 可访问性
+     ✓ 使用语义化标签
+     ✓ 提供 alt 文本
+     ✓ 支持键盘导航
+     ✓ ARIA 属性正确
+-->
+
+<!--
+  17.2 常见问题检查
+  ----------------
+  
+  1. 硬编码值
+     ✗ <h1>Title</h1>
+     ✓ <h1>${properties.title || 'Default Title'}</h1>
+  
+  2. 缺少错误处理
+     ✗ ${properties.data.value}
+     ✓ ${properties.data?.value || ''}
+  
+  3. 性能问题
+     ✗ 在循环中调用 Use API
+     ✓ 在模板顶部调用 Use API
+  
+  4. 安全问题
+     ✗ ${properties.content @ context='html'}
+     ✓ ${properties.content}  <!-- 使用默认转义 -->
+  
+  5. 可访问性问题
+     ✗ <div onclick="...">Click</div>
+     ✓ <button>Click</button>
+-->
+
+<!--
+  18. 模板文件在 AEM Cloud Service 中的特殊行为
+  ============================================
+-->
+
+<!--
+  18.1 Cloud Service 特性
+  ---------------------
+  
+  AEM Cloud Service 对模板文件的处理:
+  
+  1. 编译优化
+     - 预编译模板
+     - 优化编译过程
+     - 提高执行性能
+  
+  2. 缓存策略
+     - 更积极的缓存
+     - 自动缓存失效
+     - CDN 集成
+  
+  3. 监控和日志
+     - 性能监控
+     - 错误追踪
+     - 自动告警
+  
+  4. 部署流程
+     - 代码扫描
+     - 自动测试
+     - 渐进式部署
+-->
+
+<!--
+  18.2 最佳实践
+  -----------
+  
+  Cloud Service 特定建议:
+  
+  1. 遵循代码规范
+     - 通过代码扫描
+     - 避免已废弃的 API
+     - 使用推荐的模式
+  
+  2. 性能优化
+     - 优化模板性能
+     - 减少依赖
+     - 使用缓存
+  
+  3. 错误处理
+     - 完善的错误处理
+     - 日志记录
+     - 优雅降级
+  
+  4. 测试覆盖
+     - 单元测试
+     - 集成测试
+     - 性能测试
+-->
+
+<!--
+  19. 模板文件的打包和部署
+  =======================
+-->
+
+<!--
+  19.1 Maven 项目结构
+  -----------------
+  
+  模板文件在 Maven 项目中的位置:
+  
+  myproject/
+    └── ui.apps/
+        └── src/
+            └── main/
+                └── content/
+                    └── jcr_root/
+                        └── apps/
+                            └── myapp/
+                                └── components/
+                                    └── hero/
+                                        ├── .content.xml
+                                        └── hero.html
+  
+  构建过程:
+  
+  1. Maven 构建
+     mvn clean install
+  
+  2. 内容包创建
+     - 将文件打包为 .zip
+     - 包含 JCR 结构和内容
+  
+  3. 部署到 AEM
+     - 通过 Package Manager
+     - 通过 Maven 插件
+     - 通过 Cloud Manager (Cloud Service)
+-->
+
+<!--
+  19.2 部署策略
+  -----------
+  
+  1. 开发环境
+     - 直接部署
+     - 快速迭代
+     - 频繁更新
+  
+  2. 测试环境
+     - 完整测试
+     - 验证功能
+     - 性能测试
+  
+  3. 生产环境
+     - 渐进式部署
+     - 监控和回滚
+     - 最小化影响
+  
+  部署检查清单:
+  
+  ✓ 代码审查通过
+  ✓ 测试通过
+  ✓ 性能测试通过
+  ✓ 安全扫描通过
+  ✓ 文档更新
+  ✓ 回滚计划准备
+-->
+
+<!--
+  20. HTL 表达式高级语法
+  ====================
+-->
+
+<!--
+  20.1 表达式操作符详解
+  -------------------
+  
+  HTL 支持多种操作符:
+  
+  1. 算术操作符
+     ${properties.count + 1}
+     ${properties.total - properties.discount}
+     ${properties.price * properties.quantity}
+     ${properties.total / properties.items}
+     ${properties.count % 2}
+  
+  2. 比较操作符
+     ${properties.status == 'active'}
+     ${properties.count != 0}
+     ${properties.age > 18}
+     ${properties.score >= 60}
+     ${properties.level < 10}
+     ${properties.rank <= 5}
+  
+  3. 逻辑操作符
+     ${properties.enabled && properties.visible}
+     ${properties.hidden || properties.collapsed}
+     ${!properties.disabled}
+  
+  4. 三元操作符
+     ${properties.isActive ? 'active' : 'inactive'}
+     ${properties.count > 0 ? properties.count : 0}
+  
+  5. 空值合并操作符
+     ${properties.title ?: 'Default Title'}
+     ${properties.description ?: properties.summary ?: 'No description'}
+  
+  6. 可选链操作符
+     ${properties.author?.name}
+     ${properties.config?.theme?.color}
+     ${properties.items?.[0]?.title}
+-->
+
+<!--
+  20.2 表达式上下文切换
+  -------------------
+  
+  HTL 支持不同的输出上下文，控制转义行为:
+  
+  1. text 上下文（默认）
+     ${properties.title}
+     <!-- 自动转义 HTML 特殊字符 -->
+  
+  2. html 上下文
+     ${properties.content @ context='html'}
+     <!-- 不转义，输出原始 HTML -->
+     <!-- ⚠️ 危险：只在确定内容安全时使用 -->
+  
+  3. attribute 上下文
+     <div data-sly-attribute.class="${properties.cssClass}">
+     <!-- 自动转义属性值 -->
+  
+  4. uri 上下文
+     <a href="${properties.link @ context='uri'}">
+     <!-- URL 编码 -->
+  
+  5. scriptString 上下文
+     <script>
+         var title = ${properties.title @ context='scriptString'};
+     </script>
+     <!-- JavaScript 字符串转义 -->
+  
+  6. scriptToken 上下文
+     <script>
+         var count = ${properties.count @ context='scriptToken'};
+     </script>
+     <!-- JavaScript 标识符/数字 -->
+  
+  7. styleToken 上下文
+     <div style="color: ${properties.color @ context='styleToken'}">
+     <!-- CSS 值转义 -->
+  
+  8. styleString 上下文
+     <div style="content: ${properties.content @ context='styleString'}">
+     <!-- CSS 字符串转义 -->
+  
+  9. json 上下文
+     <script>
+         var data = ${properties.data @ context='json'};
+     </script>
+     <!-- JSON 编码 -->
+-->
+
+<!--
+  20.3 表达式格式化
+  --------------
+  
+  HTL 支持格式化输出:
+  
+  1. 日期格式化
+     ${properties.date @ format='yyyy-MM-dd'}
+     ${properties.timestamp @ format='dd/MM/yyyy HH:mm'}
+     ${currentPage.lastModified @ format='relative'}
+  
+  2. 数字格式化
+     ${properties.price @ format='currency', locale='en_US'}
+     ${properties.percentage @ format='percent'}
+     ${properties.count @ format='number', locale='zh_CN'}
+  
+  3. 字符串格式化
+     ${properties.text @ format='lowercase'}
+     ${properties.title @ format='uppercase'}
+     ${properties.name @ format='capitalize'}
+  
+  4. 自定义格式化
+     <!-- 通过 Sling Model 或 Use API 实现 -->
+     ${model.formattedDate}
+     ${model.formattedPrice}
+-->
+
+<!--
+  21. HTL 指令完整参考
+  ===================
+-->
+
+<!--
+  21.1 数据绑定指令
+  ----------------
+  
+  data-sly-use
+  - 绑定 Use API 对象或 Sling Model
+  - 示例: <sly data-sly-use.model="${'com.myapp.Model'}"></sly>
+  
+  data-sly-set
+  - 定义变量
+  - 示例: <sly data-sly-set.title="${properties.title}"></sly>
+  
+  data-sly-unwrap
+  - 移除包装元素（只输出内容）
+  - 示例: <div data-sly-unwrap data-sly-test="${properties.hide}">内容</div>
+-->
+
+<!--
+  21.2 条件指令
+  -----------
+  
+  data-sly-test
+  - 条件渲染
+  - 示例: <div data-sly-test="${properties.show}">内容</div>
+  
+  data-sly-if / data-sly-else
+  - 条件分支（HTL 1.4+）
+  - 示例:
+    <div data-sly-if="${properties.type == 'hero'}">Hero</div>
+    <div data-sly-else>Default</div>
+-->
+
+<!--
+  21.3 循环指令
+  -----------
+  
+  data-sly-list
+  - 列表循环
+  - 示例: <li data-sly-list="${properties.items}">${item}</li>
+  
+  data-sly-repeat
+  - 重复渲染（固定次数）
+  - 示例: <div data-sly-repeat="${3}">重复内容</div>
+  
+  循环状态对象:
+  - itemList.index: 当前索引（从 0 开始）
+  - itemList.count: 当前计数（从 1 开始）
+  - itemList.first: 是否是第一项
+  - itemList.last: 是否是最后一项
+  - itemList.odd: 是否是奇数项
+  - itemList.even: 是否是偶数项
+-->
+
+<!--
+  21.4 包含指令
+  -----------
+  
+  data-sly-resource
+  - 包含子资源/组件
+  - 示例: <div data-sly-resource="${'child' @ resourceType='myapp/components/child'}"></div>
+  
+  data-sly-include
+  - 包含其他模板文件
+  - 示例: <div data-sly-include="partial.html"></div>
+  
+  data-sly-call
+  - 调用模板函数
+  - 示例: <div data-sly-call="${card @ title=properties.title}"></div>
+-->
+
+<!--
+  21.5 属性指令
+  -----------
+  
+  data-sly-attribute
+  - 动态设置属性
+  - 示例: <div data-sly-attribute.class="${properties.cssClass}"></div>
+  
+  data-sly-element
+  - 动态设置元素名
+  - 示例: <div data-sly-element="${properties.tagName}">内容</div>
+-->
+
+<!--
+  21.6 文本指令
+  -----------
+  
+  data-sly-text
+  - 设置元素文本内容
+  - 示例: <div data-sly-text="${properties.title}"></div>
+  
+  data-sly-unescape
+  - 取消转义（不推荐使用）
+  - 示例: <div data-sly-unescape="${properties.html}"></div>
+-->
+
+<!--
+  22. 模板文件的 SEO 优化
+  ======================
+-->
+
+<!--
+  22.1 语义化 HTML
+  --------------
+  
+  使用语义化标签提高 SEO:
+  
+  <article>
+      <header>
+          <h1>${properties.title}</h1>
+          <time datetime="${properties.date @ format='yyyy-MM-dd'}">
+              ${properties.date @ format='MMMM dd, yyyy'}
+          </time>
+      </header>
+      <section>
+          ${properties.content}
+      </section>
+      <footer>
+          <address>${properties.author}</address>
+      </footer>
+  </article>
+  
+  好处:
+  - 搜索引擎更好地理解内容结构
+  - 提高可访问性
+  - 改善页面排名
+-->
+
+<!--
+  22.2 Meta 标签优化
+  -----------------
+  
+  在模板中设置 SEO meta 标签:
+  
+  <head>
+      <title>${properties.seoTitle || currentPage.title}</title>
+      <meta name="description" content="${properties.seoDescription || currentPage.description}">
+      <meta name="keywords" content="${properties.keywords}">
+      <meta property="og:title" content="${properties.ogTitle || properties.title}">
+      <meta property="og:description" content="${properties.ogDescription}">
+      <meta property="og:image" content="${properties.ogImage}">
+      <link rel="canonical" href="${currentPage.path}.html">
+  </head>
+-->
+
+<!--
+  22.3 结构化数据
+  --------------
+  
+  使用 JSON-LD 添加结构化数据:
+  
+  <script type="application/ld+json">
+  {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "${properties.title}",
+      "author": {
+          "@type": "Person",
+          "name": "${properties.author}"
+      },
+      "datePublished": "${properties.publishDate @ format='yyyy-MM-dd'}",
+      "image": "${properties.image}"
+  }
+  </script>
+-->
+
+<!--
+  23. 模板文件的可访问性 (A11y)
+  ============================
+-->
+
+<!--
+  23.1 ARIA 属性
+  ------------
+  
+  使用 ARIA 属性提高可访问性:
+  
+  <div role="banner" aria-label="Site header">
+      <nav role="navigation" aria-label="Main navigation">
+          <ul>
+              <li><a href="/" aria-current="${currentPage.path == '/' ? 'page' : 'false'}">Home</a></li>
+          </ul>
+      </nav>
+  </div>
+  
+  <button aria-label="Close dialog" aria-expanded="${properties.isOpen}">
+      <span aria-hidden="true">×</span>
+  </button>
+-->
+
+<!--
+  23.2 键盘导航支持
+  ---------------
+  
+  确保所有交互元素支持键盘导航:
+  
+  <!-- 好的做法 -->
+  <button onclick="handleClick()">Click Me</button>
+  <a href="/page" tabindex="0">Link</a>
+  
+  <!-- 不好的做法 -->
+  <div onclick="handleClick()">Click Me</div>  <!-- 不可键盘访问 -->
+  <a href="#" tabindex="-1">Link</a>  <!-- 从键盘导航中移除 -->
+-->
+
+<!--
+  23.3 焦点管理
+  -----------
+  
+  管理焦点状态:
+  
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <h2 id="modal-title">Modal Title</h2>
+      <button aria-label="Close" data-sly-attribute.tabindex="${properties.isOpen ? '0' : '-1'}">
+          Close
+      </button>
+  </div>
+-->
+
+<!--
+  23.4 屏幕阅读器支持
+  -----------------
+  
+  为屏幕阅读器提供额外信息:
+  
+  <img src="${properties.image}" 
+       alt="${properties.altText || properties.title}"
+       aria-describedby="image-description">
+  <p id="image-description" class="sr-only">
+      ${properties.imageDescription}
+  </p>
+  
+  <!-- 隐藏但可被屏幕阅读器读取 -->
+  <style>
+      .sr-only {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border-width: 0;
+      }
+  </style>
+-->
+
+<!--
+  24. 模板文件的响应式设计模式
+  ===========================
+-->
+
+<!--
+  24.1 响应式图片
+  -------------
+  
+  使用 srcset 和 sizes 属性:
+  
+  <img src="${properties.image}"
+       srcset="${properties.imageMobile} 480w,
+               ${properties.imageTablet} 768w,
+               ${properties.imageDesktop} 1200w"
+       sizes="(max-width: 480px) 100vw,
+              (max-width: 768px) 50vw,
+              33vw"
+       alt="${properties.altText}">
+-->
+
+<!--
+  24.2 响应式类名
+  -------------
+  
+  根据断点应用不同的类名:
+  
+  <div class="hero 
+              hero--mobile 
+              hero--tablet 
+              hero--desktop
+              ${component.cssClassNames}">
+      <!-- 内容 -->
+  </div>
+  
+  在 CSS 中使用媒体查询:
+  
+  .hero--mobile { /* 移动端样式 */ }
+  @media (min-width: 768px) {
+      .hero--tablet { /* 平板样式 */ }
+  }
+  @media (min-width: 1200px) {
+      .hero--desktop { /* 桌面样式 */ }
+  }
+-->
+
+<!--
+  24.3 条件响应式内容
+  -----------------
+  
+  根据设备类型显示不同内容:
+  
+  <div class="mobile-only" data-sly-test="${request.userAgent.mobile}">
+      <!-- 移动端专用内容 -->
+  </div>
+  
+  <div class="desktop-only" data-sly-test="${!request.userAgent.mobile}">
+      <!-- 桌面端专用内容 -->
+  </div>
+-->
+
+<!--
+  25. 模板文件的性能监控
+  =====================
+-->
+
+<!--
+  25.1 性能指标收集
+  ---------------
+  
+  在模板中添加性能监控:
+  
+  <div class="component" 
+       data-component-path="${resource.path}"
+       data-component-type="${resource.resourceType}"
+       data-render-time="${request.attributes['renderTime']}">
+      <!-- 内容 -->
+  </div>
+  
+  在 Sling Model 中记录性能:
+  
+  @Model(adaptables = SlingHttpServletRequest.class)
+  public class PerformanceModel {
+      @Inject
+      private SlingHttpServletRequest request;
+      
+      @PostConstruct
+      protected void init() {
+          long startTime = System.currentTimeMillis();
+          // ... 处理逻辑 ...
+          long duration = System.currentTimeMillis() - startTime;
+          request.setAttribute("renderTime", duration);
+      }
+  }
+-->
+
+<!--
+  25.2 性能分析工具
+  ---------------
+  
+  1. AEM Developer Tools
+     - 组件渲染时间
+     - 资源加载时间
+     - 脚本执行时间
+  
+  2. 浏览器 Performance API
+     - 使用 PerformanceObserver
+     - 测量组件渲染时间
+     - 分析性能瓶颈
+  
+  3. AEM 日志分析
+     - 启用性能日志
+     - 分析慢查询
+     - 优化热点代码
+  
+  4. 第三方工具
+     - New Relic
+     - AppDynamics
+     - Dynatrace
+-->
+
+<!--
+  25.3 性能优化检查清单
+  -------------------
+  
+  ✓ 减少 DOM 操作
+  ✓ 优化图片加载（懒加载）
+  ✓ 减少 HTTP 请求
+  ✓ 使用 CDN
+  ✓ 启用 Gzip 压缩
+  ✓ 缓存静态资源
+  ✓ 优化 CSS/JS 大小
+  ✓ 使用异步加载
+  ✓ 减少重排和重绘
+  ✓ 使用虚拟滚动（长列表）
+-->
+
+<!--
+  26. 模板文件的错误边界和降级策略
+  ===============================
+-->
+
+<!--
+  26.1 错误边界模式
+  ---------------
+  
+  使用条件渲染处理错误:
+  
+  <sly data-sly-use.model="${'com.myapp.Model'}" data-sly-test="${model}"></sly>
+  
+  <div data-sly-test="${model && model.isValid}">
+      <!-- 正常内容 -->
+      ${model.content}
+  </div>
+  
+  <div data-sly-test="${!model || !model.isValid}">
+      <!-- 降级内容 -->
+      <p>内容暂时不可用</p>
+  </div>
+-->
+
+<!--
+  26.2 优雅降级
+  -----------
+  
+  当功能不可用时提供降级方案:
+  
+  <!-- 尝试加载高级功能 -->
+  <sly data-sly-use.advanced="${'com.myapp.AdvancedModel'}" 
+       data-sly-test="${advanced && advanced.isAvailable}"></sly>
+  
+  <div data-sly-test="${advanced && advanced.isAvailable}">
+      <!-- 高级功能 -->
+      ${advanced.enhancedContent}
+  </div>
+  
+  <div data-sly-test="${!advanced || !advanced.isAvailable}">
+      <!-- 基础功能（降级） -->
+      ${properties.basicContent}
+  </div>
+-->
+
+<!--
+  26.3 错误处理最佳实践
+  -------------------
+  
+  1. 始终提供默认值
+     ${properties.title || 'Untitled'}
+  
+  2. 验证数据有效性
+     <div data-sly-test="${properties.items && properties.items.size > 0}">
+         <!-- 列表内容 -->
+     </div>
+  
+  3. 记录错误但不暴露给用户
+     <!-- 在 Sling Model 中记录错误 -->
+     <!-- 在模板中显示友好的错误消息 -->
+  
+  4. 使用 try-catch（在 Sling Model 中）
+     try {
+         // 可能失败的操作
+     } catch (Exception e) {
+         log.error("Error processing", e);
+         return defaultValue;
+     }
+-->
+
+<!--
+  27. 模板文件的版本控制和协作
+  ===========================
+-->
+
+<!--
+  27.1 Git 工作流
+  -------------
+  
+  模板文件的版本控制最佳实践:
+  
+  1. 文件组织
+     - 每个组件一个目录
+     - 清晰的命名规范
+     - 避免冲突的文件名
+  
+  2. 提交规范
+     - 有意义的提交消息
+     - 原子性提交（一次一个功能）
+     - 避免大文件提交
+  
+  3. 分支策略
+     - feature/component-name
+     - bugfix/component-issue
+     - release/version
+-->
+
+<!--
+  27.2 代码审查流程
+  --------------
+  
+  模板文件代码审查要点:
+  
+  1. 功能正确性
+     - 是否满足需求
+     - 边界情况处理
+     - 错误处理
+  
+  2. 代码质量
+     - 可读性
+     - 可维护性
+     - 性能
+  
+  3. 最佳实践
+     - 遵循团队规范
+     - 安全性检查
+     - 可访问性检查
+  
+  4. 测试覆盖
+     - 单元测试
+     - 集成测试
+     - 手动测试
+-->
+
+<!--
+  27.3 协作工具
+  -----------
+  
+  1. 代码审查工具
+     - GitHub Pull Requests
+     - GitLab Merge Requests
+     - Bitbucket Pull Requests
+  
+  2. 文档工具
+     - Confluence
+     - Markdown 文档
+     - 内联注释
+  
+  3. 沟通工具
+     - Slack/Teams
+     - Jira
+     - 代码审查评论
+-->
+
+<!--
+  28. 模板文件的调试工具
+  ====================
+-->
+
+<!--
+  28.1 浏览器扩展
+  -------------
+  
+  有用的浏览器扩展:
+  
+  1. AEM Developer Tools
+     - 显示组件信息
+     - 编辑模式切换
+     - 组件路径显示
+  
+  2. React DevTools (如果使用 React)
+     - 组件树查看
+     - Props 检查
+     - 状态调试
+  
+  3. Redux DevTools (如果使用 Redux)
+     - 状态时间旅行
+     - Action 日志
+     - 状态检查
+-->
+
+<!--
+  28.2 AEM 调试工具
+  ---------------
+  
+  AEM 内置调试工具:
+  
+  1. Developer Mode
+     - 访问: ?wcmmode=developer
+     - 显示组件边界
+     - 显示组件路径
+  
+  2. CRX/DE Lite
+     - 访问: /crx/de/index.jsp
+     - 查看 JCR 结构
+     - 编辑节点属性
+  
+  3. Sling Script Resolver
+     - 访问: /system/console/sling
+     - 查看脚本解析
+     - 测试脚本查找
+  
+  4. OSGi Console
+     - 访问: /system/console
+     - 查看服务状态
+     - 管理配置
+-->
+
+<!--
+  28.3 日志调试
+  -----------
+  
+  启用详细日志:
+  
+  1. 在 OSGi Console 配置日志级别
+     - org.apache.sling.scripting.sightly: DEBUG
+     - com.myapp: DEBUG
+  
+  2. 查看日志文件
+     - error.log
+     - access.log
+     - stdout.log
+  
+  3. 使用日志分析工具
+     - Splunk
+     - ELK Stack
+     - Loggly
+-->
+
+<!--
+  29. 模板文件的 CI/CD 集成
+  =======================
+-->
+
+<!--
+  29.1 自动化测试
+  -------------
+  
+  CI/CD 管道中的测试:
+  
+  1. 单元测试
+     - 在每次提交时运行
+     - 快速反馈
+     - 高覆盖率
+  
+  2. 集成测试
+     - 在合并前运行
+     - 验证完整流程
+     - 端到端测试
+  
+  3. 性能测试
+     - 定期运行
+     - 检测性能回归
+     - 基准测试
+  
+  4. 安全扫描
+     - 依赖扫描
+     - 代码扫描
+     - 漏洞检测
+-->
+
+<!--
+  29.2 自动化部署
+  -------------
+  
+  部署流程:
+  
+  1. 代码提交
+     git push origin feature/component
+  
+  2. 自动构建
+     - Maven 构建
+     - 运行测试
+     - 生成包
+  
+  3. 自动部署
+     - 部署到开发环境
+     - 运行冒烟测试
+     - 通知团队
+  
+  4. 生产部署
+     - 手动审批
+     - 渐进式部署
+     - 监控和回滚
+-->
+
+<!--
+  29.3 质量门禁
+  -----------
+  
+  部署前的质量检查:
+  
+  ✓ 代码审查通过
+  ✓ 所有测试通过
+  ✓ 代码覆盖率达标
+  ✓ 性能测试通过
+  ✓ 安全扫描通过
+  ✓ 文档更新
+  ✓ 变更日志更新
+-->
+
+<!--
+  30. 模板文件与前端框架集成
+  =========================
+-->
+
+<!--
+  30.1 React 集成
+  -------------
+  
+  AEM HTL 与 React 的集成方式:
+  
+  1. 客户端渲染
+     - HTL 输出 React 组件挂载点
+     - React 在客户端接管渲染
+     - 示例:
+       <div id="react-root" 
+            data-props="${properties @ context='json'}">
+       </div>
+       <script>
+           ReactDOM.render(
+               React.createElement(MyComponent, 
+                   JSON.parse(document.getElementById('react-root').dataset.props)),
+               document.getElementById('react-root')
+           );
+       </script>
+  
+  2. 服务器端渲染 (SSR)
+     - 使用 React Server Components
+     - 或使用 Node.js 渲染
+     - 输出 HTML 到 HTL
+  
+  3. 混合模式
+     - 关键内容服务器端渲染
+     - 交互部分客户端渲染
+     - 渐进式增强
+-->
+
+<!--
+  30.2 Vue.js 集成
+  ---------------
+  
+  Vue.js 集成模式:
+  
+  <div id="vue-app" 
+       data-props="${properties @ context='json'}">
+  </div>
+  
+  <script>
+      new Vue({
+          el: '#vue-app',
+          data: {
+              props: JSON.parse(document.getElementById('vue-app').dataset.props)
+          },
+          template: '<my-component :props="props"></my-component>'
+      });
+  </script>
+-->
+
+<!--
+  30.3 Angular 集成
+  ---------------
+  
+  Angular 集成模式:
+  
+  <div id="angular-app" 
+       data-props="${properties @ context='json'}">
+  </div>
+  
+  <script>
+      const props = JSON.parse(
+          document.getElementById('angular-app').dataset.props
+      );
+      
+      platformBrowserDynamic()
+          .bootstrapModule(AppModule)
+          .then(moduleRef => {
+              const componentRef = moduleRef.instance;
+              componentRef.props = props;
+          });
+  </script>
+-->
+
+<!--
+  30.4 微前端架构
+  ---------------
+  
+  使用微前端模式:
+  
+  1. 组件级微前端
+     - 每个组件独立部署
+     - 使用 iframe 或 Web Components
+     - 独立版本控制
+  
+  2. 应用级微前端
+     - 多个应用组合
+     - 使用 Module Federation
+     - 共享依赖
+  
+  3. AEM 作为编排层
+     - AEM 负责页面结构
+     - 微前端负责组件
+     - 通过 API 通信
+-->
+
+<!--
+  31. 模板文件的代码生成和工具链
+  =============================
+-->
+
+<!--
+  31.1 代码生成工具
+  ----------------
+  
+  1. Yeoman 生成器
+     - 快速创建组件结构
+     - 生成模板文件
+     - 生成 Sling Model
+  
+  2. AEM Archetype
+     - Maven 项目模板
+     - 标准项目结构
+     - 最佳实践配置
+  
+  3. 自定义脚本
+     - 生成重复代码
+     - 自动化常见任务
+     - 保持一致性
+-->
+
+<!--
+  31.2 构建工具
+  -----------
+  
+  1. Maven
+     - 标准 Java 构建工具
+     - 依赖管理
+     - 打包和部署
+  
+  2. Gradle
+     - 替代 Maven
+     - 更灵活的配置
+     - 更好的性能
+  
+  3. Webpack (前端资源)
+     - 打包 CSS/JS
+     - 代码分割
+     - 优化资源
+-->
+
+<!--
+  31.3 开发工具
+  -----------
+  
+  1. IDE 插件
+     - AEM Developer Tools (Eclipse/IntelliJ)
+     - HTL 语法高亮
+     - 代码补全
+  
+  2. 代码格式化
+     - Prettier
+     - ESLint
+     - HTL Linter
+  
+  3. 热重载
+     - 文件监控
+     - 自动同步
+     - 快速反馈
+-->
+
+<!--
+  32. 模板文件的类型安全
+  =====================
+-->
+
+<!--
+  32.1 TypeScript 集成
+  -------------------
+  
+  虽然 HTL 本身不支持 TypeScript，但可以通过以下方式提高类型安全:
+  
+  1. Sling Model 类型定义
+     - 使用 Java 类型系统
+     - 接口定义
+     - 类型检查
+  
+  2. 前端 TypeScript
+     - 客户端代码使用 TypeScript
+     - 类型定义文件
+     - 编译时检查
+  
+  3. JSON Schema
+     - 定义属性结构
+     - 验证数据格式
+     - 文档生成
+-->
+
+<!--
+  32.2 属性类型定义
+  ---------------
+  
+  在组件文档中定义属性类型:
+  
+  <!--
+  组件属性:
+  - title: String, 必需, 标题文本
+  - description: String, 可选, 描述文本
+  - count: Number, 可选, 数量，默认值 0
+  - items: Array<String>, 可选, 项目列表
+  - config: Object, 可选, 配置对象
+      - theme: String, 主题名称
+      - color: String, 颜色值
+  -->
+-->
+
+<!--
+  32.3 运行时类型检查
+  -----------------
+  
+  在 Sling Model 中进行类型检查:
+  
+  @Model(adaptables = Resource.class)
+  public class TypedModel {
+      @ValueMapValue
+      private String title;  // 自动类型转换
+  
+      @ValueMapValue
+      @Default(intValues = 0)
+      private Integer count;  // 默认值
+  
+      @PostConstruct
+      protected void validate() {
+          if (title == null || title.isEmpty()) {
+              throw new IllegalArgumentException("Title is required");
+          }
+          if (count < 0) {
+              throw new IllegalArgumentException("Count must be non-negative");
+          }
+      }
+  }
+-->
+
+<!--
+  33. 模板文件的安全深度防护
+  =========================
+-->
+
+<!--
+  33.1 XSS 攻击防护（深入）
+  -----------------------
+  
+  HTL 自动转义是基础，但需要深入理解:
+  
+  1. 自动转义机制
+     - 默认对所有输出进行 HTML 转义
+     - 防止 <script> 标签注入
+     - 防止事件处理器注入 (onclick, onerror 等)
+  
+  2. 危险的上下文切换
+     <!-- 危险：用户输入不应使用 html 上下文 -->
+     ${userInput @ context='html'}  <!-- ❌ 不安全 -->
+     
+     <!-- 安全：使用默认转义 -->
+     ${userInput}  <!-- ✅ 安全 -->
+     
+     <!-- 如果必须输出 HTML，需要清理 -->
+     ${sanitizedHtml @ context='html'}  <!-- ✅ 已清理的 HTML -->
+  
+  3. 属性注入防护
+     <!-- 危险：直接使用用户输入作为属性 -->
+     <div class="${userInput}">  <!-- ❌ 可能被注入 -->
+     
+     <!-- 安全：验证和清理 -->
+     <div class="${sanitizedClass}">  <!-- ✅ 已验证的类名 -->
+  
+  4. JavaScript 上下文安全
+     <!-- 危险：直接插入到 JavaScript -->
+     <script>
+         var data = "${userInput}";  <!-- ❌ 可能被注入 -->
+     </script>
+     
+     <!-- 安全：使用 JSON 上下文 -->
+     <script>
+         var data = ${userInput @ context='json'};  <!-- ✅ JSON 转义 -->
+     </script>
+-->
+
+<!--
+  33.2 CSRF 防护
+  -------------
+  
+  在表单中包含 CSRF token:
+  
+  <form action="${resource.path}.html" method="post">
+      <input type="hidden" 
+             name=":cq_csrf_token" 
+             value="${sling.getService('com.adobe.granite.csrf.CSRFUtil').getToken(request)}">
+      <!-- 表单字段 -->
+  </form>
+  
+  在 Sling Model 中验证:
+  
+  @Model(adaptables = SlingHttpServletRequest.class)
+  public class FormModel {
+      @Inject
+      private CSRFUtil csrfUtil;
+      
+      public boolean isValidToken() {
+          return csrfUtil.isValidToken(request);
+      }
+  }
+-->
+
+<!--
+  33.3 内容安全策略 (CSP)
+  ---------------------
+  
+  设置 CSP 响应头:
+  
+  <!-- 在 Sling Model 或 Filter 中设置 -->
+  response.setHeader("Content-Security-Policy", 
+      "default-src 'self'; " +
+      "script-src 'self' 'unsafe-inline' https://cdn.example.com; " +
+      "style-src 'self' 'unsafe-inline'; " +
+      "img-src 'self' data: https:; " +
+      "font-src 'self' https://fonts.gstatic.com");
+  
+  在模板中使用 nonce:
+  
+  <script nonce="${request.attributes['csp-nonce']}">
+      // 内联脚本
+  </script>
+  
+  <style nonce="${request.attributes['csp-nonce']}">
+      /* 内联样式 */
+  </style>
+-->
+
+<!--
+  33.4 敏感数据保护
+  ----------------
+  
+  1. 不在模板中输出敏感信息
+     <!-- 危险 -->
+     ${properties.password}  <!-- ❌ 绝对不要 -->
+     ${properties.apiKey}    <!-- ❌ 绝对不要 -->
+     
+     <!-- 安全：使用服务器端处理 -->
+     ${model.processedData}  <!-- ✅ 在 Sling Model 中处理 -->
+  
+  2. 日志中不记录敏感信息
+     <!-- 在 Sling Model 中 -->
+     log.debug("Processing data for user: {}", userId);  <!-- ✅ 只记录 ID -->
+     log.debug("Password: {}", password);  <!-- ❌ 不要记录密码 -->
+  
+  3. 使用 HTTPS
+     - 所有敏感数据传输使用 HTTPS
+     - 设置 HSTS 响应头
+     - 验证 SSL 证书
+-->
+
+<!--
+  34. 模板文件的移动端优化
+  =======================
+-->
+
+<!--
+  34.1 移动端性能优化
+  -----------------
+  
+  1. 图片优化
+     <!-- 使用 WebP 格式 -->
+     <picture>
+         <source srcset="${properties.imageWebP}" type="image/webp">
+         <img src="${properties.imageJpeg}" alt="${properties.altText}">
+     </picture>
+     
+     <!-- 懒加载 -->
+     <img src="${properties.image}" 
+          loading="lazy"
+          decoding="async"
+          alt="${properties.altText}">
+  
+  2. 减少 HTTP 请求
+     <!-- 合并客户端库 -->
+     <sly data-sly-call="${clientlib.css @ categories=['myapp.mobile.base', 'myapp.mobile.components']}"></sly>
+  
+  3. 使用 Service Worker
+     <!-- 注册 Service Worker -->
+     <script>
+         if ('serviceWorker' in navigator) {
+             navigator.serviceWorker.register('/service-worker.js');
+         }
+     </script>
+  
+  4. 优化字体加载
+     <!-- 使用 font-display: swap -->
+     <link rel="preload" 
+           href="${properties.fontUrl}" 
+           as="font" 
+           type="font/woff2" 
+           crossorigin>
+     <style>
+         @font-face {
+             font-family: 'CustomFont';
+             src: url('${properties.fontUrl}') format('woff2');
+             font-display: swap;
+         }
+     </style>
+-->
+
+<!--
+  34.2 移动端交互优化
+  -----------------
+  
+  1. 触摸目标大小
+     <!-- 确保按钮足够大（至少 44x44px） -->
+     <button class="touch-target" 
+             style="min-width: 44px; min-height: 44px;">
+         Click
+     </button>
+  
+  2. 防止意外缩放
+     <!-- 在页面 head 中 -->
+     <meta name="viewport" 
+           content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  
+  3. 优化滚动性能
+     <!-- 使用 CSS will-change -->
+     <div class="scroll-container" style="will-change: transform;">
+         <!-- 内容 -->
+     </div>
+  
+  4. 使用原生滚动
+     <!-- 避免 JavaScript 滚动库 -->
+     <!-- 使用 CSS overflow 属性 -->
+     <div style="overflow-y: auto; -webkit-overflow-scrolling: touch;">
+         <!-- 内容 -->
+     </div>
+-->
+
+<!--
+  35. 模板文件与 GraphQL 集成
+  ==========================
+-->
+
+<!--
+  35.1 GraphQL 查询
+  ----------------
+  
+  在 Sling Model 中使用 GraphQL:
+  
+  @Model(adaptables = Resource.class)
+  public class GraphQLModel {
+      @Inject
+      private GraphQLClient graphQLClient;
+      
+      public String getData() {
+          String query = "query { page(path: \"" + resource.getPath() + "\") { title } }";
+          GraphQLResponse response = graphQLClient.executeQuery(query);
+          return response.getData();
+      }
+  }
+  
+  在模板中使用:
+  
+  <sly data-sly-use.model="${'com.myapp.GraphQLModel'}"></sly>
+  <div>${model.data}</div>
+-->
+
+<!--
+  35.2 GraphQL 数据获取优化
+  -----------------------
+  
+  1. 批量查询
+     - 合并多个查询
+     - 减少网络请求
+     - 使用 DataLoader 模式
+  
+  2. 缓存策略
+     - 缓存查询结果
+     - 设置合适的过期时间
+     - 使用缓存键管理
+  
+  3. 错误处理
+     - 优雅处理 GraphQL 错误
+     - 提供降级内容
+     - 记录错误日志
+-->
+
+<!--
+  36. 模板文件的 A/B 测试支持
+  ==========================
+-->
+
+<!--
+  36.1 A/B 测试集成
+  ---------------
+  
+  在模板中支持 A/B 测试:
+  
+  <sly data-sly-use.testing="${'com.adobe.cq.wcm.core.components.util.Target'}"></sly>
+  <sly data-sly-set.variant="${testing.variant}"></sly>
+  
+  <!-- 变体 A -->
+  <div data-sly-test="${variant == 'variant-a'}" class="variant-a">
+      <!-- 变体 A 内容 -->
+  </div>
+  
+  <!-- 变体 B -->
+  <div data-sly-test="${variant == 'variant-b'}" class="variant-b">
+      <!-- 变体 B 内容 -->
+  </div>
+  
+  <!-- 默认变体 -->
+  <div data-sly-test="${!variant}" class="default">
+      <!-- 默认内容 -->
+  </div>
+-->
+
+<!--
+  36.2 测试数据收集
+  ---------------
+  
+  收集 A/B 测试数据:
+  
+  <div class="test-component" 
+       data-test-id="${properties.testId}"
+       data-variant="${variant}"
+       data-track-conversion="${properties.trackConversion}">
+      <!-- 内容 -->
+  </div>
+  
+  <script>
+      // 发送测试数据到分析平台
+      if (window.dataLayer) {
+          window.dataLayer.push({
+              'event': 'ab_test_view',
+              'test_id': '${properties.testId}',
+              'variant': '${variant}'
+          });
+      }
+  </script>
+-->
+
+<!--
+  37. 模板文件的个性化内容
+  =======================
+-->
+
+<!--
+  37.1 基于用户的个性化
+  -------------------
+  
+  根据用户特征显示不同内容:
+  
+  <sly data-sly-use.personalization="${'com.myapp.PersonalizationModel'}"></sly>
+  
+  <div data-sly-test="${personalization.isPremiumUser}">
+      <!-- 高级用户内容 -->
+  </div>
+  
+  <div data-sly-test="${!personalization.isPremiumUser}">
+      <!-- 普通用户内容 -->
+  </div>
+  
+  在 Sling Model 中:
+  
+  @Model(adaptables = SlingHttpServletRequest.class)
+  public class PersonalizationModel {
+      @Inject
+      private ResourceResolver resourceResolver;
+      
+      public boolean isPremiumUser() {
+          // 检查用户权限或属性
+          return resourceResolver.getUserID().equals("premium-user");
+      }
+  }
+-->
+
+<!--
+  37.2 基于行为的个性化
+  -------------------
+  
+  根据用户行为推荐内容:
+  
+  <sly data-sly-use.recommendation="${'com.myapp.RecommendationModel' @ userId=request.remoteUser}"></sly>
+  
+  <div class="recommended-content">
+      <h2>为您推荐</h2>
+      <div data-sly-list="${recommendation.items}">
+          <div class="recommendation-item">
+              <a href="${item.path}.html">${item.title}</a>
+          </div>
+      </div>
+  </div>
+-->
+
+<!--
+  37.3 个性化性能优化
+  -----------------
+  
+  1. 缓存个性化结果
+     - 缓存用户特定的内容
+     - 使用合适的缓存键
+     - 考虑缓存失效策略
+  
+  2. 延迟加载
+     - 关键内容服务器端渲染
+     - 个性化内容客户端加载
+     - 使用异步请求
+  
+  3. 预计算
+     - 在后台预计算个性化数据
+     - 存储计算结果
+     - 快速响应请求
+-->
+
+<!--
+  38. 模板文件的服务器端渲染优化
+  =============================
+-->
+
+<!--
+  38.1 渲染性能优化
+  ----------------
+  
+  1. 减少数据库查询
+     - 批量加载数据
+     - 使用缓存
+     - 优化查询语句
+  
+  2. 并行处理
+     - 并行执行独立操作
+     - 使用 CompletableFuture
+     - 异步处理非关键内容
+  
+  3. 模板缓存
+     - 缓存编译后的模板
+     - 缓存渲染结果（如果可能）
+     - 使用适当的缓存策略
+  
+  Java 示例:
+  
+  @Model(adaptables = Resource.class)
+  public class OptimizedModel {
+      private List<Item> items;
+      
+      @PostConstruct
+      protected void init() {
+          // 批量加载，而不是在模板中逐个加载
+          items = loadAllItems();
+      }
+      
+      public List<Item> getItems() {
+          return items;
+      }
+  }
+-->
+
+<!--
+  38.2 内存管理
+  -----------
+  
+  1. 避免内存泄漏
+     - 及时释放资源
+     - 避免循环引用
+     - 使用 WeakReference（如果需要）
+  
+  2. 控制对象大小
+     - 避免加载大量数据
+     - 使用分页
+     - 延迟加载
+  
+  3. 监控内存使用
+     - 使用内存分析工具
+     - 监控堆内存
+     - 设置内存限制
+-->
+
+<!--
+  38.3 并发处理
+  -----------
+  
+  模板渲染是线程安全的，但需要注意:
+  
+  1. Sling Model 线程安全
+     - Model 实例不应该有状态
+     - 使用局部变量
+     - 避免共享可变状态
+  
+  2. 资源访问
+     - ResourceResolver 是线程本地的
+     - 不要在请求间共享 ResourceResolver
+     - 正确关闭 ResourceResolver
+  
+  3. 服务访问
+     - OSGi 服务通常是线程安全的
+     - 检查服务文档
+     - 使用同步机制（如果需要）
+-->
+
+<!--
+  39. 模板文件的 CDN 集成
+  ======================
+-->
+
+<!--
+  39.1 CDN 配置
+  -----------
+  
+  1. 静态资源 CDN
+     <!-- 使用 CDN URL -->
+     <link rel="stylesheet" 
+           href="${properties.cdnUrl}/css/styles.css">
+     
+     <script src="${properties.cdnUrl}/js/scripts.js"></script>
+  
+  2. 图片 CDN
+     <!-- 使用图片 CDN -->
+     <img src="${properties.imageCdnUrl}${properties.imagePath}" 
+          alt="${properties.altText}">
+  
+  3. 动态 CDN 路径
+     <sly data-sly-use.cdn="${'com.myapp.CdnUtil'}"></sly>
+     <img src="${cdn.getUrl(properties.imagePath)}" alt="${properties.altText}">
+-->
+
+<!--
+  39.2 CDN 缓存策略
+  ----------------
+  
+  1. 缓存控制头
+     - 在 Sling Model 或 Filter 中设置
+     - Cache-Control: public, max-age=31536000 (静态资源)
+     - Cache-Control: no-cache (动态内容)
+  
+  2. 版本控制
+     - 使用版本号或哈希
+     - 强制更新缓存
+     - 长期缓存策略
+  
+  3. 缓存失效
+     - 基于内容哈希
+     - 基于版本号
+     - 手动失效（如果需要）
+-->
+
+<!--
+  40. 模板文件的实时预览
+  =====================
+-->
+
+<!--
+  40.1 编辑器预览
+  ------------
+  
+  在 AEM 编辑器中预览组件:
+  
+  1. 使用编辑配置
+     - _cq_editConfig.xml 配置预览行为
+     - 支持内联编辑
+     - 实时更新
+  
+  2. 预览模式检测
+     <div data-sly-test="${wcmmode.edit || wcmmode.preview}">
+         <!-- 编辑器专用内容 -->
+         <div class="editor-overlay">
+             <!-- 编辑提示 -->
+         </div>
+     </div>
+  
+  3. 预览数据模拟
+     <!-- 在编辑模式下使用模拟数据 -->
+     <sly data-sly-set.mockData="${wcmmode.edit ? properties.mockData : properties.realData}"></sly>
+     <div>${mockData}</div>
+-->
+
+<!--
+  40.2 开发环境预览
+  ----------------
+  
+  1. 热重载
+     - 文件更改自动刷新
+     - 浏览器自动刷新
+     - 快速迭代
+  
+  2. 预览服务器
+     - 独立的预览环境
+     - 模拟生产环境
+     - 性能测试
+  
+  3. 视觉回归测试
+     - 截图对比
+     - 自动检测变化
+     - 视觉一致性检查
+-->
+
+<!--
+  41. 模板文件的 Web Components 集成
+  =================================
+-->
+
+<!--
+  41.1 自定义元素
+  ------------
+  
+  使用 Web Components 封装组件逻辑:
+  
+  <!-- 定义自定义元素 -->
+  <script>
+      class MyComponent extends HTMLElement {
+          connectedCallback() {
+              this.innerHTML = `
+                  <div class="my-component">
+                      <h2>${properties.title}</h2>
+                      <p>${properties.description}</p>
+                  </div>
+              `;
+          }
+      }
+      customElements.define('my-component', MyComponent);
+  </script>
+  
+  <!-- 使用自定义元素 -->
+  <my-component data-title="${properties.title}" 
+                data-description="${properties.description}">
+  </my-component>
+-->
+
+<!--
+  41.2 Shadow DOM
+  -------------
+  
+  使用 Shadow DOM 封装样式:
+  
+  <script>
+      class ShadowComponent extends HTMLElement {
+          connectedCallback() {
+              const shadow = this.attachShadow({mode: 'open'});
+              shadow.innerHTML = `
+                  <style>
+                      .component {
+                          color: ${properties.color};
+                      }
+                  </style>
+                  <div class="component">
+                      ${properties.content}
+                  </div>
+              `;
+          }
+      }
+      customElements.define('shadow-component', ShadowComponent);
+  </script>
+-->
+
+<!--
+  42. 模板文件的 PWA 支持
+  ======================
+-->
+
+<!--
+  42.1 Service Worker 集成
+  ----------------------
+  
+  注册 Service Worker:
+  
+  <script>
+      if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+              navigator.serviceWorker.register('/service-worker.js')
+                  .then(registration => {
+                      console.log('SW registered:', registration);
+                  })
+                  .catch(error => {
+                      console.log('SW registration failed:', error);
+                  });
+          });
+      }
+  </script>
+-->
+
+<!--
+  42.2 清单文件
+  -----------
+  
+  在页面 head 中引用 Web App Manifest:
+  
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="${properties.themeColor}">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="${properties.appleTouchIcon}">
+-->
+
+<!--
+  42.3 离线支持
+  -----------
+  
+  在 Service Worker 中缓存关键资源:
+  
+  // service-worker.js (示例)
+  const CACHE_NAME = 'myapp-v1';
+  const urlsToCache = [
+      '/',
+      '/css/styles.css',
+      '/js/app.js',
+      '/images/logo.png'
+  ];
+  
+  self.addEventListener('install', event => {
+      event.waitUntil(
+          caches.open(CACHE_NAME)
+              .then(cache => cache.addAll(urlsToCache))
+      );
+  });
+-->
+
+<!--
+  43. 模板文件的数据可视化
+  =======================
+-->
+
+<!--
+  43.1 图表库集成
+  ------------
+  
+  集成图表库（如 Chart.js）:
+  
+  <div class="chart-container">
+      <canvas id="chart-${component.id}"></canvas>
+  </div>
+  
+  <script>
+      const ctx = document.getElementById('chart-${component.id}');
+      const data = ${properties.chartData @ context='json'};
+      new Chart(ctx, {
+          type: '${properties.chartType}',
+          data: data,
+          options: ${properties.chartOptions @ context='json'}
+      });
+  </script>
+-->
+
+<!--
+  43.2 数据表格
+  -----------
+  
+  渲染数据表格:
+  
+  <table class="data-table">
+      <thead>
+          <tr>
+              <th data-sly-list="${properties.columns}">${item.label}</th>
+          </tr>
+      </thead>
+      <tbody>
+          <tr data-sly-list="${properties.rows}">
+              <td data-sly-list="${item}">${item}</td>
+          </tr>
+      </tbody>
+  </table>
+  
+  使用数据表格库（如 DataTables）:
+  
+  <script>
+      $(document).ready(function() {
+          $('#table-${component.id}').DataTable({
+              data: ${properties.tableData @ context='json'},
+              columns: ${properties.columns @ context='json'}
+          });
+      });
+  </script>
+-->
+
+<!--
+  44. 模板文件的表单处理
+  =====================
+-->
+
+<!--
+  44.1 表单渲染
+  -----------
+  
+  渲染表单:
+  
+  <form action="${resource.path}.html" method="post">
+      <input type="hidden" name=":redirect" value="${currentPage.path}.html">
+      <input type="hidden" name=":errorpage" value="${currentPage.path}.html">
+      
+      <div class="form-group">
+          <label for="name">Name:</label>
+          <input type="text" 
+                 id="name" 
+                 name="name" 
+                 value="${properties.name}"
+                 required>
+      </div>
+      
+      <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" 
+                 id="email" 
+                 name="email" 
+                 value="${properties.email}"
+                 required>
+      </div>
+      
+      <button type="submit">Submit</button>
+  </form>
+-->
+
+<!--
+  44.2 表单验证
+  -----------
+  
+  客户端验证:
+  
+  <form id="myForm" 
+        action="${resource.path}.html" 
+        method="post"
+        novalidate>
+      <!-- 表单字段 -->
+      <button type="submit">Submit</button>
+  </form>
+  
+  <script>
+      document.getElementById('myForm').addEventListener('submit', function(e) {
+          if (!this.checkValidity()) {
+              e.preventDefault();
+              e.stopPropagation();
+          }
+          this.classList.add('was-validated');
+      });
+  </script>
+  
+  服务器端验证（在 Sling Model 中）:
+  
+  @Model(adaptables = SlingHttpServletRequest.class)
+  public class FormHandler {
+      public boolean isValid() {
+          String name = request.getParameter("name");
+          String email = request.getParameter("email");
+          
+          return name != null && !name.isEmpty() &&
+                 email != null && email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
+      }
+  }
+-->
+
+<!--
+  44.3 文件上传
+  -----------
+  
+  文件上传表单:
+  
+  <form action="${resource.path}.html" 
+        method="post" 
+        enctype="multipart/form-data">
+      <input type="file" 
+             name="file" 
+             accept="image/*"
+             required>
+      <button type="submit">Upload</button>
+  </form>
+  
+  在 Sling Model 中处理:
+  
+  @Model(adaptables = SlingHttpServletRequest.class)
+  public class FileUploadHandler {
+      public void handleUpload() {
+          Part filePart = request.getPart("file");
+          // 处理文件上传
+      }
+  }
+-->
+
+<!--
+  45. 模板文件的多语言内容管理
+  ===========================
+-->
+
+<!--
+  45.1 语言副本
+  -----------
+  
+  AEM 语言副本结构:
+  
+  /content/my-site/
+      /en/
+          /page
+      /zh/
+          /page
+      /ja/
+          /page
+  
+  在模板中检测语言:
+  
+  <sly data-sly-set.lang="${currentPage.language}"></sly>
+  <html lang="${lang}">
+      <!-- 内容 -->
+  </html>
+-->
+
+<!--
+  45.2 语言切换
+  -----------
+  
+  语言切换链接:
+  
+  <nav class="language-switcher">
+      <a href="/content/my-site/en/page.html" 
+         data-sly-attribute.class="${currentPage.language == 'en' ? 'active' : ''}">
+         English
+      </a>
+      <a href="/content/my-site/zh/page.html"
+         data-sly-attribute.class="${currentPage.language == 'zh' ? 'active' : ''}">
+         中文
+      </a>
+      <a href="/content/my-site/ja/page.html"
+         data-sly-attribute.class="${currentPage.language == 'ja' ? 'active' : ''}">
+         日本語
+      </a>
+  </nav>
+-->
+
+<!--
+  45.3 内容翻译
+  -----------
+  
+  使用翻译服务:
+  
+  <sly data-sly-use.translation="${'com.myapp.TranslationService' @ locale=currentPage.language}"></sly>
+  
+  <h1>${translation.translate(properties.title)}</h1>
+  <p>${translation.translate(properties.description)}</p>
+-->
+
+<!--
+  46. 模板文件的权限控制
+  =====================
+-->
+
+<!--
+  46.1 内容访问控制
+  ---------------
+  
+  检查用户权限:
+  
+  <sly data-sly-use.permission="${'com.myapp.PermissionModel'}"></sly>
+  
+  <div data-sly-test="${permission.canView}">
+      <!-- 只有有权限的用户才能看到 -->
+      ${properties.restrictedContent}
+  </div>
+  
+  在 Sling Model 中:
+  
+  @Model(adaptables = SlingHttpServletRequest.class)
+  public class PermissionModel {
+      @Inject
+      private ResourceResolver resourceResolver;
+      
+      public boolean canView() {
+          return resourceResolver.hasChildren(resource) ||
+                 resourceResolver.hasPermission(resource, "jcr:read");
+      }
+  }
+-->
+
+<!--
+  46.2 编辑权限
+  -----------
+  
+  根据编辑权限显示编辑控件:
+  
+  <div data-sly-test="${wcmmode.edit && permissions.canEdit}">
+      <!-- 编辑控件 -->
+      <div class="edit-controls">
+          <!-- 编辑按钮等 -->
+      </div>
+  </div>
+-->
+
+<!--
+  47. 模板文件的监控和告警
+  =======================
+-->
+
+<!--
+  47.1 性能监控
+  -----------
+  
+  监控模板渲染性能:
+  
+  <div class="component" 
+       data-component-path="${resource.path}"
+       data-render-start="${request.attributes['renderStartTime']}">
+      <!-- 内容 -->
+  </div>
+  
+  <script>
+      window.addEventListener('load', function() {
+          const component = document.querySelector('[data-component-path="${resource.path}"]');
+          const renderStart = parseInt(component.dataset.renderStart);
+          const renderTime = performance.now() - renderStart;
+          
+          // 发送性能指标
+          if (window.performanceObserver) {
+              window.performanceObserver.observe({
+                  component: '${resource.resourceType}',
+                  renderTime: renderTime
+              });
+          }
+      });
+  </script>
+-->
+
+<!--
+  47.2 错误监控
+  -----------
+  
+  监控和报告错误:
+  
+  <script>
+      window.addEventListener('error', function(event) {
+          // 发送错误到监控服务
+          if (window.errorTracker) {
+              window.errorTracker.report({
+                  message: event.message,
+                  source: event.filename,
+                  line: event.lineno,
+                  component: '${resource.resourceType}',
+                  path: '${resource.path}'
+              });
+          }
+      });
+  </script>
+-->
+
+<!--
+  47.3 告警配置
+  -----------
+  
+  配置性能告警阈值:
+  
+  <!-- 在监控系统中配置 -->
+  - 渲染时间 > 1000ms: 警告
+  - 渲染时间 > 3000ms: 严重
+  - 错误率 > 1%: 警告
+  - 错误率 > 5%: 严重
+-->
+
+<!--
+  48. 模板文件的日志记录最佳实践
+  =============================
+-->
+
+<!--
+  48.1 日志级别
+  -----------
+  
+  合理使用日志级别:
+  
+  <!-- 在 Sling Model 中 -->
+  log.trace("Detailed execution trace");      // 最详细
+  log.debug("Debug information");            // 调试信息
+  log.info("General information");           // 一般信息
+  log.warn("Warning message");               // 警告
+  log.error("Error message", exception);     // 错误
+  
+  模板中不直接记录日志，而是在 Sling Model 中记录。
+-->
+
+<!--
+  48.2 结构化日志
+  -------------
+  
+  使用结构化日志格式:
+  
+  log.info("Component rendered: path={}, type={}, duration={}ms", 
+           resource.getPath(), 
+           resource.getResourceType(),
+           duration);
+  
+  使用日志框架（如 Logback）配置结构化输出:
+  
+  <!-- logback.xml -->
+  <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+-->
+
+<!--
+  48.3 日志性能
+  -----------
+  
+  优化日志性能:
+  
+  1. 使用参数化日志
+     // 好的做法
+     log.debug("Processing item: {}", itemId);
+     
+     // 不好的做法
+     log.debug("Processing item: " + itemId);  // 即使不记录也会拼接字符串
+  
+  2. 避免在循环中记录详细日志
+     // 好的做法
+     log.debug("Processing {} items", items.size());
+     for (Item item : items) {
+         // 处理，不记录每条
+     }
+  
+  3. 使用条件日志
+     if (log.isDebugEnabled()) {
+         log.debug("Expensive debug info: {}", expensiveOperation());
+     }
+-->
+
+<!--
+  9. 相关文档
+  ==========
+  
+  - 组件结构: 01-component-structure.html
+  - 资源包含: 02-resource-include.html
+  - 数据传递: 03-data-passing.html
+  - 组件配置: 04-component-content-xml.html
+  - HTL 基础语法: 01-basics/
+  - Use API: 03-use-api/
+  - 高级主题: 04-advanced/
+-->
+

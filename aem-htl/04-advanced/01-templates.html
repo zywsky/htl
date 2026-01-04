@@ -1,0 +1,322 @@
+<!--
+  HTL 高级特性: 模板
+  
+  学习使用 data-sly-template 和 data-sly-call 创建可重用模板
+-->
+
+<!--
+  data-sly-template 指令：
+  - 定义可重用的模板片段
+  - 模板本身不会渲染，需要通过 data-sly-call 调用
+  - 支持参数传递
+-->
+
+<!--
+  基础模板定义：
+  定义一个简单的模板
+-->
+<template data-sly-template.card="${@ title, content}">
+    <div class="card">
+        <h2>${title}</h2>
+        <p>${content}</p>
+    </div>
+</template>
+
+<!--
+  调用模板：
+  使用 data-sly-call 调用模板
+-->
+<div data-sly-call="${card @ title='卡片标题', content='卡片内容'}"></div>
+
+<!--
+  模板参数：
+  定义带默认值的参数
+-->
+<template data-sly-template.productCard="${@ product, showPrice=true, showImage=true}">
+    <article class="product-card">
+        <div data-sly-test="${showImage && product.image}">
+            <img src="${product.image}" alt="${product.name}">
+        </div>
+        <h3>${product.name}</h3>
+        <div data-sly-test="${showPrice}">
+            <p class="price">$${product.price}</p>
+        </div>
+        <p>${product.description}</p>
+    </article>
+</template>
+
+<!-- 调用模板，使用默认值 -->
+<div data-sly-call="${productCard @ product=properties.product}"></div>
+
+<!-- 调用模板，覆盖参数 -->
+<div data-sly-call="${productCard @ product=properties.product, showPrice=false}"></div>
+
+<!--
+  模板中的条件渲染：
+  在模板内部使用条件逻辑
+-->
+<template data-sly-template.conditionalCard="${@ item, type='default'}">
+    <div class="card card-${type}">
+        <div data-sly-test="${item.title}">
+            <h2>${item.title}</h2>
+        </div>
+        <div data-sly-test="${item.content}">
+            <p>${item.content}</p>
+        </div>
+        <div data-sly-test="${type == 'featured' && item.badge}">
+            <span class="badge">${item.badge}</span>
+        </div>
+    </div>
+</template>
+
+<!--
+  模板中的循环：
+  在模板内部使用循环
+-->
+<template data-sly-template.list="${@ items, itemClass='item'}">
+    <ul>
+        <li data-sly-list="${items}"
+            data-sly-attribute.class="${itemClass}">
+            ${item.name}
+        </li>
+    </ul>
+</template>
+
+<!--
+  嵌套模板调用：
+  在一个模板中调用另一个模板
+-->
+<template data-sly-template.productList="${@ products}">
+    <div class="product-list">
+        <div data-sly-list="${products}">
+            <sly data-sly-call="${productCard @ product=item}"></sly>
+        </div>
+    </div>
+</template>
+
+<template data-sly-template.productCard="${@ product}">
+    <article class="product-card">
+        <h3>${product.name}</h3>
+        <p>$${product.price}</p>
+    </article>
+</template>
+
+<!--
+  使用 data-sly-template 组织代码：
+  将复杂的模板分解为多个小模板
+-->
+<template data-sly-template.pageLayout="${@ header, content, footer}">
+    <div class="page-layout">
+        <header>
+            <sly data-sly-call="${header}"></sly>
+        </header>
+        <main>
+            <sly data-sly-call="${content}"></sly>
+        </main>
+        <footer>
+            <sly data-sly-call="${footer}"></sly>
+        </footer>
+    </div>
+</template>
+
+<template data-sly-template.header="${@ title, subtitle}">
+    <h1>${title}</h1>
+    <h2 data-sly-test="${subtitle}">${subtitle}</h2>
+</template>
+
+<template data-sly-template.content="${@ body}">
+    <div class="content">${body}</div>
+</template>
+
+<template data-sly-template.footer="${@ copyright}">
+    <div class="footer">
+        <p>${copyright}</p>
+    </div>
+</template>
+
+<!-- 调用组合模板 -->
+<div data-sly-call="${pageLayout @ 
+    header=header @ title='页面标题',
+    content=content @ body=properties.body,
+    footer=footer @ copyright='© 2024'}">
+</div>
+
+<!--
+  实际应用示例 1：
+  创建可重用的卡片模板
+-->
+<template data-sly-template.card="${@ 
+    title, 
+    content, 
+    image, 
+    link, 
+    linkText='了解更多',
+    type='default'}">
+    <article class="card card-${type}">
+        <div data-sly-test="${image}" class="card-image">
+            <img src="${image}" alt="${title}">
+        </div>
+        <div class="card-content">
+            <h3 data-sly-test="${title}">${title}</h3>
+            <div data-sly-test="${content}">${content}</div>
+        </div>
+        <div data-sly-test="${link}" class="card-actions">
+            <a href="${link}">${linkText}</a>
+        </div>
+    </article>
+</template>
+
+<!-- 使用卡片模板 -->
+<div data-sly-call="${card @ 
+    title=properties.title,
+    content=properties.content,
+    image=properties.image,
+    link=properties.link,
+    type=properties.cardType}">
+</div>
+
+<!--
+  实际应用示例 2：
+  创建按钮模板
+-->
+<template data-sly-template.button="${@ 
+    text, 
+    url, 
+    type='primary', 
+    size='medium',
+    icon='',
+    target='_self'}">
+    <a href="${url}"
+       data-sly-attribute.class="${'btn btn-' + type + ' btn-' + size}"
+       data-sly-attribute.target="${target}">
+        <span data-sly-test="${icon}" class="icon ${icon}"></span>
+        ${text}
+    </a>
+</template>
+
+<!-- 使用按钮模板 -->
+<sly data-sly-call="${button @ 
+    text='点击我',
+    url='/path/to/page',
+    type='primary',
+    icon='arrow-right'}">
+</sly>
+
+<!--
+  实际应用示例 3：
+  创建表单字段模板
+-->
+<template data-sly-template.formField="${@ 
+    label, 
+    name, 
+    type='text', 
+    value='',
+    required=false,
+    placeholder='',
+    error=''}">
+    <div class="form-field">
+        <label>
+            ${label}
+            <span data-sly-test="${required}" class="required">*</span>
+        </label>
+        <input type="${type}"
+               name="${name}"
+               data-sly-attribute.value="${value}"
+               data-sly-attribute.placeholder="${placeholder}"
+               data-sly-attribute.required="${required}"
+               data-sly-attribute.class="${error ? 'error' : ''}">
+        <span data-sly-test="${error}" class="error-message">${error}</span>
+    </div>
+</template>
+
+<!--
+  实际应用示例 4：
+  创建导航菜单模板
+-->
+<template data-sly-template.navItem="${@ item, level=1}">
+    <li class="nav-item level-${level}">
+        <a href="${item.url}"
+           data-sly-attribute.class="${item.active ? 'active' : ''}">
+            ${item.title}
+        </a>
+        <ul data-sly-test="${item.children && item.children.size > 0}"
+            class="submenu">
+            <sly data-sly-list="${item.children}">
+                <sly data-sly-call="${navItem @ item=item, level=level + 1}"></sly>
+            </sly>
+        </ul>
+    </li>
+</template>
+
+<template data-sly-template.navigation="${@ items}">
+    <nav class="navigation">
+        <ul>
+            <sly data-sly-list="${items}">
+                <sly data-sly-call="${navItem @ item=item}"></sly>
+            </sly>
+        </ul>
+    </nav>
+</template>
+
+<!--
+  模板和 Use API 结合：
+  在模板中使用 Use API 对象
+-->
+<sly data-sly-use.helper="${'com.example.TemplateHelper'}"></sly>
+
+<template data-sly-template.enhancedCard="${@ data}">
+    <div class="card">
+        <h3>${helper.formatTitle(data.title)}</h3>
+        <p>${helper.formatContent(data.content)}</p>
+        <div data-sly-test="${helper.isPremium(data)}">
+            <span class="badge">高级内容</span>
+        </div>
+    </div>
+</template>
+
+<!--
+  模板最佳实践：
+  1. 使用有意义的模板名称
+  2. 为参数提供默认值
+  3. 保持模板简洁，复杂逻辑放在 Use API 中
+  4. 使用模板组织代码，提高可维护性
+  5. 文档化模板的参数和用途
+  6. 避免过度嵌套模板
+  7. 考虑模板的可重用性
+-->
+
+<!--
+  模板性能考虑：
+  1. 模板本身不增加渲染成本
+  2. 避免在模板参数中进行复杂计算
+  3. 使用 Use API 预处理数据
+  4. 考虑模板的嵌套深度
+-->
+
+<!--
+  高级技巧：模板作为参数传递
+-->
+<template data-sly-template.layout="${@ headerTemplate, bodyTemplate, footerTemplate}">
+    <div class="layout">
+        <header>
+            <sly data-sly-call="${headerTemplate}"></sly>
+        </header>
+        <main>
+            <sly data-sly-call="${bodyTemplate}"></sly>
+        </main>
+        <footer>
+            <sly data-sly-call="${footerTemplate}"></sly>
+        </footer>
+    </div>
+</template>
+
+<!--
+  模板变量作用域：
+  模板内部定义的变量只在模板内部有效
+-->
+<template data-sly-template.example="${@ data}">
+    <sly data-sly-set.localVar="${data.value * 2}"></sly>
+    <div>${localVar}</div>
+    <!-- localVar 只在模板内部可用 -->
+</template>
+

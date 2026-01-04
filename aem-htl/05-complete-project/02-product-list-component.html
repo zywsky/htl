@@ -1,0 +1,137 @@
+<!--
+  完整项目示例: 产品列表组件
+  
+  展示如何使用 HTL 创建一个完整的产品列表组件
+  包含过滤、排序、分页等功能
+-->
+
+<sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+<sly data-sly-call="${clientlib.css @ categories='myapp.components.product-list'}"></sly>
+
+<!--
+  使用 Sling Model 处理产品数据
+-->
+<sly data-sly-use.productList="${'com.myapp.components.models.ProductListModel'}"></sly>
+
+<!--
+  组件容器
+-->
+<section class="product-list-component ${component.cssClassNames}"
+         data-sly-attribute="${{
+             'id': component.id,
+             'data-component-path': resource.resourceType
+         }}">
+
+    <!--
+      列表标题
+    -->
+    <header class="product-list-header">
+        <h2 data-sly-test="${productList.title}">${productList.title}</h2>
+        <p data-sly-test="${productList.description}" 
+           class="description">${productList.description}</p>
+    </header>
+
+    <!--
+      过滤和排序控件
+    -->
+    <div data-sly-test="${productList.showFilters}" 
+         class="product-list-controls">
+        <div class="filters">
+            <select class="filter-category">
+                <option>所有分类</option>
+                <option data-sly-list="${productList.categories}">${item.name}</option>
+            </select>
+        </div>
+        <div class="sort">
+            <select class="sort-options">
+                <option value="price-asc">价格: 低到高</option>
+                <option value="price-desc">价格: 高到低</option>
+                <option value="name-asc">名称: A-Z</option>
+                <option value="name-desc">名称: Z-A</option>
+            </select>
+        </div>
+    </div>
+
+    <!--
+      产品列表
+    -->
+    <div class="product-list-grid">
+        <article data-sly-list="${productList.products}"
+                 class="product-item"
+                 data-sly-attribute="${{
+                     'data-product-id': item.id,
+                     'data-product-category': item.category,
+                     'class': 'product-item ' + (item.isOnSale ? 'on-sale' : '')
+                 }}">
+            
+            <!-- 产品图片 -->
+            <div class="product-image">
+                <a href="${item.url}">
+                    <img src="${item.imageUrl}"
+                         alt="${item.name}"
+                         loading="lazy">
+                    <span data-sly-test="${item.isOnSale}" 
+                          class="sale-badge">特价</span>
+                </a>
+            </div>
+
+            <!-- 产品信息 -->
+            <div class="product-info">
+                <h3 class="product-name">
+                    <a href="${item.url}">${item.name}</a>
+                </h3>
+                <p data-sly-test="${item.shortDescription}" 
+                   class="product-description">
+                    ${item.shortDescription}
+                </p>
+                <div class="product-price">
+                    <span class="current-price">$${item.formattedPrice}</span>
+                    <span data-sly-test="${item.originalPrice}" 
+                          class="original-price">$${item.originalPrice}</span>
+                </div>
+                <div class="product-rating" 
+                     data-sly-test="${item.rating}">
+                    <span class="rating-stars">${item.ratingStars}</span>
+                    <span class="rating-count">(${item.reviewCount})</span>
+                </div>
+            </div>
+
+            <!-- 产品操作 -->
+            <div class="product-actions">
+                <a href="${item.url}" 
+                   class="btn btn-primary">查看详情</a>
+                <button class="btn btn-secondary add-to-cart" 
+                        data-product-id="${item.id}">
+                    加入购物车
+                </button>
+            </div>
+        </article>
+    </div>
+
+    <!--
+      空状态
+    -->
+    <div data-sly-test="${!productList.hasProducts}" 
+         class="product-list-empty">
+        <p>暂无产品</p>
+    </div>
+
+    <!--
+      分页
+    -->
+    <nav data-sly-test="${productList.showPagination && productList.hasMorePages}" 
+         class="product-list-pagination">
+        <a data-sly-test="${productList.hasPreviousPage}"
+           href="${productList.previousPageUrl}"
+           class="pagination-link prev">上一页</a>
+        <span class="pagination-info">
+            第 ${productList.currentPage} 页，共 ${productList.totalPages} 页
+        </span>
+        <a data-sly-test="${productList.hasNextPage}"
+           href="${productList.nextPageUrl}"
+           class="pagination-link next">下一页</a>
+    </nav>
+</section>
+
+<sly data-sly-call="${clientlib.js @ categories='myapp.components.product-list', async=true}"></sly>
+

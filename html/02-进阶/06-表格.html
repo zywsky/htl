@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>06-表格</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .comment { color: #5c6370; }
+        .tag { color: #e06c75; }
+        .attribute { color: #d19a66; }
+        .keyword { color: #61afef; }
+        .demo-box {
+            border: 2px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            background: #ecf0f1;
+            border-radius: 5px;
+        }
+        .tip {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .demo-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .demo-table th,
+        .demo-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .demo-table th {
+            background-color: #34495e;
+            color: white;
+        }
+        .demo-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 HTML 表格</h1>
+
+        <h2>一、表格基础</h2>
+        <p>HTML表格用于以行和列的形式展示数据。表格由table标签创建，包含行（tr）和单元格（td或th）。</p>
+
+        <h3>1. 基本表格结构</h3>
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;table&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">&lt;!-- tr：table row（表格行） --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">&lt;!-- th：table header（表头单元格，加粗居中） --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th&gt;</span>姓名<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th&gt;</span>年龄<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th&gt;</span>城市<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">&lt;!-- td：table data（数据单元格） --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>张三<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>25<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>北京<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>李四<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>30<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>上海<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+<span class="tag">&lt;/table&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <table class="demo-table">
+                <tr>
+                    <th>姓名</th>
+                    <th>年龄</th>
+                    <th>城市</th>
+                </tr>
+                <tr>
+                    <td>张三</td>
+                    <td>25</td>
+                    <td>北京</td>
+                </tr>
+                <tr>
+                    <td>李四</td>
+                    <td>30</td>
+                    <td>上海</td>
+                </tr>
+            </table>
+        </div>
+
+        <h2>二、表格的语义化结构</h2>
+        <p>为了更好的语义化和结构，HTML表格可以使用thead、tbody、tfoot等标签。</p>
+
+        <h3>1. 完整的表格结构</h3>
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;table&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">&lt;!-- thead：表格头部（表头） --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;thead&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th&gt;</span>产品<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th&gt;</span>价格<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th&gt;</span>数量<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/thead&gt;</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">&lt;!-- tbody：表格主体（数据行） --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tbody&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>商品A<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>100元<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>5<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>商品B<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>200元<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>3<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tbody&gt;</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">&lt;!-- tfoot：表格底部（汇总行） --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tfoot&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td</span> <span class="attribute">colspan</span>=<span class="keyword">"3"</span><span class="tag">&gt;</span>总计：1100元<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tfoot&gt;</span><br>
+<span class="tag">&lt;/table&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <table class="demo-table">
+                <thead>
+                    <tr>
+                        <th>产品</th>
+                        <th>价格</th>
+                        <th>数量</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>商品A</td>
+                        <td>100元</td>
+                        <td>5</td>
+                    </tr>
+                    <tr>
+                        <td>商品B</td>
+                        <td>200元</td>
+                        <td>3</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" style="text-align: center; font-weight: bold;">总计：1100元</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <h2>三、表格的重要属性</h2>
+
+        <h3>1. colspan（跨列）</h3>
+        <p>colspan属性让一个单元格横跨多列。</p>
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;table&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th</span> <span class="attribute">colspan</span>=<span class="keyword">"2"</span><span class="tag">&gt;</span>姓名和年龄<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th&gt;</span>城市<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>张三<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>25<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>北京<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+<span class="tag">&lt;/table&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <table class="demo-table">
+                <tr>
+                    <th colspan="2">姓名和年龄</th>
+                    <th>城市</th>
+                </tr>
+                <tr>
+                    <td>张三</td>
+                    <td>25</td>
+                    <td>北京</td>
+                </tr>
+            </table>
+        </div>
+
+        <h3>2. rowspan（跨行）</h3>
+        <p>rowspan属性让一个单元格横跨多行。</p>
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;table&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th</span> <span class="attribute">rowspan</span>=<span class="keyword">"2"</span><span class="tag">&gt;</span>姓名<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th&gt;</span>年龄<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th&gt;</span>城市<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>25<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>北京<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>李四<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>30<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>上海<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+<span class="tag">&lt;/table&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <table class="demo-table">
+                <tr>
+                    <th rowspan="2">姓名</th>
+                    <th>年龄</th>
+                    <th>城市</th>
+                </tr>
+                <tr>
+                    <td>25</td>
+                    <td>北京</td>
+                </tr>
+                <tr>
+                    <td>李四</td>
+                    <td>30</td>
+                    <td>上海</td>
+                </tr>
+            </table>
+        </div>
+
+        <h3>3. scope 属性（表头关联）</h3>
+        <p>scope属性用于说明表头单元格的作用范围，有助于屏幕阅读器理解表格结构。</p>
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;table&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">&lt;!-- scope="col"：表示列的表头 --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th</span> <span class="attribute">scope</span>=<span class="keyword">"col"</span><span class="tag">&gt;</span>姓名<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th</span> <span class="attribute">scope</span>=<span class="keyword">"col"</span><span class="tag">&gt;</span>年龄<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th</span> <span class="attribute">scope</span>=<span class="keyword">"col"</span><span class="tag">&gt;</span>城市<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th</span> <span class="attribute">scope</span>=<span class="keyword">"row"</span><span class="tag">&gt;</span>第一行<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>张三<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>25<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>北京<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+<span class="tag">&lt;/table&gt;</span>
+            </code>
+        </div>
+
+        <h2>四、表格标题（caption）</h2>
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;table&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">&lt;!-- caption：表格标题，必须在table标签内的最前面 --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;caption&gt;</span>员工信息表<span class="tag">&lt;/caption&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;thead&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th&gt;</span>姓名<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th&gt;</span>部门<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th&gt;</span>薪资<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/thead&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tbody&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>张三<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>技术部<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>10000元<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tbody&gt;</span><br>
+<span class="tag">&lt;/table&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <table class="demo-table" style="caption-side: top;">
+                <caption style="font-weight: bold; margin-bottom: 10px;">员工信息表</caption>
+                <thead>
+                    <tr>
+                        <th>姓名</th>
+                        <th>部门</th>
+                        <th>薪资</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>张三</td>
+                        <td>技术部</td>
+                        <td>10000元</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>五、表格样式属性（已废弃，了解即可）</h2>
+        <div class="warning">
+            <strong>⚠️ 注意：</strong>
+            以下属性在HTML5中已废弃，应该使用CSS来控制表格样式。
+        </div>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- border：边框宽度（已废弃） --&gt;</span><br>
+<span class="tag">&lt;table</span> <span class="attribute">border</span>=<span class="keyword">"1"</span><span class="tag">&gt;</span><br>
+<span class="comment">&lt;!-- 应该使用CSS：border: 1px solid #000; --&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- cellpadding：单元格内边距（已废弃） --&gt;</span><br>
+<span class="tag">&lt;table</span> <span class="attribute">cellpadding</span>=<span class="keyword">"10"</span><span class="tag">&gt;</span><br>
+<span class="comment">&lt;!-- 应该使用CSS：padding: 10px; --&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- cellspacing：单元格间距（已废弃） --&gt;</span><br>
+<span class="tag">&lt;table</span> <span class="attribute">cellspacing</span>=<span class="keyword">"5"</span><span class="tag">&gt;</span><br>
+<span class="comment">&lt;!-- 应该使用CSS：border-spacing: 5px; --&gt;</span>
+            </code>
+        </div>
+
+        <h2>六、colgroup 和 col 标签</h2>
+        <p>用于对列进行分组和样式设置。</p>
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;table&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;colgroup&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">&lt;!-- col：定义列的属性 --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;col</span> <span class="attribute">span</span>=<span class="keyword">"2"</span> <span class="attribute">style</span>=<span class="keyword">"background-color: #f0f0f0;"</span><span class="tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;col</span> <span class="attribute">style</span>=<span class="keyword">"background-color: #e0e0e0;"</span><span class="tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/colgroup&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th&gt;</span>列1<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th&gt;</span>列2<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th&gt;</span>列3<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+<span class="tag">&lt;/table&gt;</span>
+            </code>
+        </div>
+
+        <div class="tip">
+            <strong>💡 最佳实践：</strong>
+            <ul>
+                <li><strong>使用语义化结构</strong>：使用thead、tbody、tfoot组织表格</li>
+                <li><strong>使用caption</strong>：为表格添加标题</li>
+                <li><strong>使用scope属性</strong>：提高无障碍访问性</li>
+                <li><strong>避免用于布局</strong>：表格应该用于展示数据，不是页面布局</li>
+                <li><strong>使用CSS控制样式</strong>：不要使用已废弃的HTML属性</li>
+                <li><strong>响应式设计</strong>：对于移动端，考虑使用其他方式展示数据</li>
+            </ul>
+        </div>
+
+        <h2>七、复杂表格示例</h2>
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;table&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;caption&gt;</span>销售报表（2024年第一季度）<span class="tag">&lt;/caption&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;thead&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th</span> <span class="attribute">scope</span>=<span class="keyword">"col"</span><span class="tag">&gt;</span>月份<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th</span> <span class="attribute">scope</span>=<span class="keyword">"col"</span><span class="tag">&gt;</span>销售额<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th</span> <span class="attribute">scope</span>=<span class="keyword">"col"</span><span class="tag">&gt;</span>增长率<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/thead&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tbody&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th</span> <span class="attribute">scope</span>=<span class="keyword">"row"</span><span class="tag">&gt;</span>1月<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>100,000元<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>--<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th</span> <span class="attribute">scope</span>=<span class="keyword">"row"</span><span class="tag">&gt;</span>2月<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>120,000元<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>+20%<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;th</span> <span class="attribute">scope</span>=<span class="keyword">"row"</span><span class="tag">&gt;</span>3月<span class="tag">&lt;/th&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>150,000元<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td&gt;</span>+25%<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tbody&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tfoot&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;td</span> <span class="attribute">colspan</span>=<span class="keyword">"3"</span><span class="tag">&gt;</span>总计：370,000元<span class="tag">&lt;/td&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tr&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/tfoot&gt;</span><br>
+<span class="tag">&lt;/table&gt;</span>
+            </code>
+        </div>
+
+        <h2>✅ 本节总结</h2>
+        <p>你已经学会了：</p>
+        <ul>
+            <li>表格的基本结构（table, tr, td, th）</li>
+            <li>表格的语义化结构（thead, tbody, tfoot）</li>
+            <li>colspan和rowspan的使用（跨列、跨行）</li>
+            <li>scope属性的使用（无障碍访问）</li>
+            <li>caption标签的使用（表格标题）</li>
+            <li>colgroup和col标签的使用</li>
+            <li>复杂表格的构建方法</li>
+            <li>表格的最佳实践和注意事项</li>
+        </ul>
+
+        <p style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #ecf0f1;">
+            <strong>下一步：</strong>学习 <a href="07-表单基础.html">07-表单基础.html</a>
+        </p>
+    </div>
+</body>
+</html>
+
+

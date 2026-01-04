@@ -1,0 +1,235 @@
+<!--
+  HTL 基础: 属性操作
+  
+  学习使用 data-sly-attribute 和相关指令操作 HTML 属性
+-->
+
+<!--
+  data-sly-attribute 指令：
+  - 用于动态设置元素的属性
+  - 可以设置单个属性或多个属性
+  - 如果值为 null 或空，属性不会被设置
+-->
+
+<!-- 设置单个属性 -->
+<div data-sly-attribute.class="${properties.cssClass}">
+    内容
+</div>
+<!-- 如果 properties.cssClass 为 "highlight"，结果: <div class="highlight">内容</div> -->
+
+<!--
+  条件属性：
+  只在条件满足时设置属性
+-->
+<div data-sly-attribute.class="${properties.isActive ? 'active' : ''}">
+    内容
+</div>
+
+<!--
+  设置多个属性：
+  使用对象语法
+-->
+<div data-sly-attribute="${{
+    'class': properties.cssClass,
+    'id': properties.elementId,
+    'data-type': properties.type
+}}">
+    内容
+</div>
+
+<!--
+  属性值的条件判断：
+  根据条件设置不同的属性值
+-->
+<div data-sly-attribute.class="${properties.status == 'active' ? 'active' : 'inactive'}">
+    状态: ${properties.status}
+</div>
+
+<!--
+  data-sly-attribute 的特殊行为：
+  - 如果值为 null、undefined 或空字符串，属性不会被设置
+  - 如果值为 false，属性会被移除（如果之前存在）
+-->
+
+<!-- 条件移除属性 -->
+<div data-sly-attribute.disabled="${properties.isDisabled}">
+    按钮
+</div>
+<!-- 如果 properties.isDisabled 为 false，disabled 属性不会出现 -->
+
+<!--
+  合并类名：
+  组合固定类名和动态类名
+-->
+<div class="base-class" 
+     data-sly-attribute.class="${'base-class ' + (properties.cssClass || '')}">
+    内容
+</div>
+
+<!-- 更好的方式：使用数组或模板字符串 -->
+<div data-sly-attribute.class="${['base-class', properties.cssClass].filter(Boolean).join(' ')}">
+    内容
+</div>
+
+<!--
+  设置 data 属性：
+  常用于存储自定义数据
+-->
+<div data-sly-attribute="${{
+    'data-id': properties.id,
+    'data-type': properties.type,
+    'data-status': properties.status
+}}">
+    内容
+</div>
+
+<!--
+  动态 ID：
+  根据内容生成唯一的 ID
+-->
+<div data-sly-attribute.id="${'item-' + properties.id}">
+    ${properties.name}
+</div>
+
+<!--
+  aria 属性：
+  用于无障碍访问
+-->
+<button data-sly-attribute="${{
+    'aria-label': properties.ariaLabel || properties.label,
+    'aria-expanded': properties.isExpanded
+}}">
+    ${properties.label}
+</button>
+
+<!--
+  在循环中使用属性：
+  为每个循环项设置动态属性
+-->
+<ul>
+    <li data-sly-list="${properties.items}"
+        data-sly-attribute="${{
+            'id': 'item-' + itemList.index,
+            'class': itemList.odd ? 'odd' : 'even',
+            'data-item-id': item.id
+        }}">
+        ${item.name}
+    </li>
+</ul>
+
+<!--
+  链接属性：
+  动态设置 href、target 等
+-->
+<a data-sly-attribute="${{
+    'href': properties.linkUrl,
+    'target': properties.openInNewTab ? '_blank' : '_self',
+    'rel': properties.openInNewTab ? 'noopener noreferrer' : ''
+}}">
+    ${properties.linkText}
+</a>
+
+<!--
+  图片属性：
+  设置 src、alt、title 等
+-->
+<img data-sly-attribute="${{
+    'src': properties.imagePath,
+    'alt': properties.altText || properties.title,
+    'title': properties.title,
+    'width': properties.width,
+    'height': properties.height
+}}" />
+
+<!--
+  data-sly-element 指令：
+  用于动态设置 HTML 元素标签名
+-->
+<sly data-sly-element="${properties.tagName || 'div'}"
+     class="${properties.cssClass}">
+    内容
+</sly>
+<!-- 如果 properties.tagName 为 'article'，结果: <article class="...">内容</article> -->
+
+<!--
+  data-sly-text 指令：
+  用于设置元素的文本内容（不包括子元素）
+-->
+<div data-sly-text="${properties.title}">
+    这个内容会被替换
+</div>
+<!-- 结果只包含 properties.title 的值，不会包含 "这个内容会被替换" -->
+
+<!--
+  data-sly-unescape 指令：
+  用于显示 HTML 内容（需要谨慎使用，确保内容安全）
+-->
+<div data-sly-unescape="${properties.htmlContent}">
+    如果 properties.htmlContent 包含 HTML，会被直接插入
+</div>
+<!-- 警告：只在确定内容安全时使用，否则可能导致 XSS 攻击 -->
+
+<!--
+  属性优先级：
+  如果同时使用静态属性和 data-sly-attribute，data-sly-attribute 会覆盖静态属性
+-->
+<div class="static-class"
+     data-sly-attribute.class="${properties.cssClass}">
+    内容
+</div>
+<!-- 如果 properties.cssClass 为 "dynamic-class"，最终类名是 "dynamic-class" -->
+
+<!--
+  最佳实践：
+  1. 优先使用 data-sly-attribute 而不是在表达式中拼接字符串
+  2. 对于类名，考虑使用数组和 filter 来处理空值
+  3. 确保属性值的安全性
+  4. 谨慎使用 data-sly-unescape，只在必要时使用
+-->
+
+<!--
+  实际应用示例：
+  创建一个可配置的卡片组件
+-->
+<article class="card"
+         data-sly-attribute="${{
+             'id': properties.cardId,
+             'class': 'card ' + (properties.cardClass || ''),
+             'data-type': properties.cardType,
+             'data-priority': properties.priority
+         }}">
+    <div class="card-header"
+         data-sly-attribute.class="${'card-header ' + (properties.headerClass || '')}">
+        <h2 data-sly-text="${properties.title}"></h2>
+        <span data-sly-test="${properties.badge}"
+              data-sly-attribute.class="${'badge badge-' + properties.badgeType}">
+            ${properties.badge}
+        </span>
+    </div>
+    <div class="card-body">
+        <div data-sly-unescape="${properties.content}"></div>
+    </div>
+    <div data-sly-test="${properties.footer}"
+         class="card-footer">
+        ${properties.footer}
+    </div>
+</article>
+
+<!--
+  表单属性示例：
+  动态设置表单元素的属性
+-->
+<form>
+    <input type="text"
+           data-sly-attribute="${{
+               'name': properties.fieldName,
+               'id': properties.fieldId,
+               'value': properties.value,
+               'placeholder': properties.placeholder,
+               'required': properties.isRequired,
+               'disabled': properties.isDisabled,
+               'readonly': properties.isReadonly,
+               'maxlength': properties.maxLength
+           }}" />
+</form>
+

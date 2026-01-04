@@ -1,0 +1,434 @@
+/* ============================================
+   响应式设计样式表
+   ============================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f5f5;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+header h1 {
+    margin-bottom: 10px;
+}
+
+.section {
+    background-color: white;
+    padding: 30px;
+    margin-bottom: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+h2 {
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #4CAF50;
+}
+
+h3 {
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.code-note {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-left: 4px solid #2196F3;
+    font-size: 14px;
+    color: #666;
+}
+
+/* ============================================
+   1. 视口单位
+   ============================================ */
+.viewport-demo {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.vw-demo {
+    width: 50vw;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.vh-demo {
+    height: 30vh;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* ============================================
+   2. 媒体查询基础
+   ============================================ */
+.screen-size {
+    background-color: #e3f2fd;
+    padding: 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+#screen-width {
+    color: #2196F3;
+    font-size: 1.2em;
+}
+
+.responsive-box {
+    padding: 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: #f44336;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+/* 平板 */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .responsive-box {
+        background-color: #2196F3;
+        font-size: 16px;
+    }
+}
+
+/* 电脑 */
+@media (min-width: 1025px) {
+    .responsive-box {
+        background-color: #4CAF50;
+        font-size: 18px;
+    }
+}
+
+.responsive-box ul {
+    margin-top: 15px;
+    padding-left: 20px;
+}
+
+.responsive-box li {
+    margin: 5px 0;
+}
+
+/* ============================================
+   3. 响应式Grid
+   ============================================ */
+.responsive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.responsive-grid .grid-item {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+/* ============================================
+   4. 响应式Flexbox
+   ============================================ */
+.responsive-flex {
+    display: flex;
+    flex-direction: column; /* 移动设备：垂直 */
+    gap: 15px;
+}
+
+.responsive-flex .flex-item {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* 桌面设备：水平 */
+@media (min-width: 768px) {
+    .responsive-flex {
+        flex-direction: row;
+    }
+    
+    .responsive-flex .flex-item {
+        flex: 1;
+    }
+}
+
+/* ============================================
+   5. 响应式导航栏
+   ============================================ */
+.responsive-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #333;
+    padding: 15px 20px;
+    border-radius: 8px;
+    position: relative;
+}
+
+.nav-logo {
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 20px;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.nav-links a:hover {
+    background-color: #555;
+}
+
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+/* 移动设备：折叠菜单 */
+@media (max-width: 767px) {
+    .menu-toggle {
+        display: block;
+    }
+    
+    .nav-links {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: #333;
+        padding: 20px;
+        border-radius: 0 0 8px 8px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    
+    .nav-links.active {
+        display: flex;
+    }
+    
+    .nav-links li {
+        width: 100%;
+    }
+    
+    .nav-links a {
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* ============================================
+   6. 响应式卡片
+   ============================================ */
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 25px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.card h3 {
+    color: #2196F3;
+    margin-bottom: 10px;
+    border: none;
+}
+
+.card p {
+    color: #666;
+    line-height: 1.6;
+}
+
+/* ============================================
+   7. 响应式图片
+   ============================================ */
+.image-demo {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.image-demo img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* ============================================
+   8. 响应式显示/隐藏
+   ============================================ */
+.visibility-demo {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.mobile-only,
+.tablet-only,
+.desktop-only {
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+    color: white;
+}
+
+.mobile-only {
+    background-color: #f44336;
+    display: block;
+}
+
+.tablet-only {
+    background-color: #2196F3;
+    display: none;
+}
+
+.desktop-only {
+    background-color: #4CAF50;
+    display: none;
+}
+
+/* 平板 */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .mobile-only {
+        display: none;
+    }
+    
+    .tablet-only {
+        display: block;
+    }
+}
+
+/* 桌面 */
+@media (min-width: 1025px) {
+    .mobile-only,
+    .tablet-only {
+        display: none;
+    }
+    
+    .desktop-only {
+        display: block;
+    }
+}
+
+/* ============================================
+   9. 响应式字体
+   ============================================ */
+.font-demo {
+    background-color: #f9f9f9;
+    padding: 30px;
+    border-radius: 8px;
+}
+
+.responsive-heading {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.responsive-text {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.8;
+}
+
+/* 平板 */
+@media (min-width: 768px) {
+    .responsive-heading {
+        font-size: 32px;
+    }
+    
+    .responsive-text {
+        font-size: 16px;
+    }
+}
+
+/* 桌面 */
+@media (min-width: 1024px) {
+    .responsive-heading {
+        font-size: 40px;
+    }
+    
+    .responsive-text {
+        font-size: 18px;
+    }
+}
+
+/* ============================================
+   页脚
+   ============================================ */
+footer {
+    text-align: center;
+    padding: 20px;
+    margin-top: 40px;
+    color: #666;
+    border-top: 1px solid #ddd;
+}
+

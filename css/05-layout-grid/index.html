@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid布局详解</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Grid布局详解</h1>
+        <p>强大的二维布局系统</p>
+    </header>
+
+    <main>
+        <!-- 基础Grid -->
+        <section class="section">
+            <h2>1. 基础Grid布局</h2>
+            <div class="grid-basic">
+                <div class="grid-item">1</div>
+                <div class="grid-item">2</div>
+                <div class="grid-item">3</div>
+                <div class="grid-item">4</div>
+                <div class="grid-item">5</div>
+                <div class="grid-item">6</div>
+            </div>
+            <p class="code-note">grid-template-columns: repeat(3, 1fr); （3列等宽）</p>
+        </section>
+
+        <!-- grid-template-columns -->
+        <section class="section">
+            <h2>2. grid-template-columns（定义列）</h2>
+            <div class="demo-group">
+                <div>
+                    <h3>固定宽度</h3>
+                    <div class="grid-fixed">
+                        <div class="grid-item">200px</div>
+                        <div class="grid-item">200px</div>
+                        <div class="grid-item">200px</div>
+                    </div>
+                </div>
+                <div>
+                    <h3>比例分配（fr）</h3>
+                    <div class="grid-fraction">
+                        <div class="grid-item">1fr</div>
+                        <div class="grid-item">2fr</div>
+                        <div class="grid-item">1fr</div>
+                    </div>
+                </div>
+                <div>
+                    <h3>混合单位</h3>
+                    <div class="grid-mixed">
+                        <div class="grid-item">200px</div>
+                        <div class="grid-item">1fr</div>
+                        <div class="grid-item">auto</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- gap -->
+        <section class="section">
+            <h2>3. gap（间距）</h2>
+            <div class="grid-gap">
+                <div class="grid-item">1</div>
+                <div class="grid-item">2</div>
+                <div class="grid-item">3</div>
+                <div class="grid-item">4</div>
+                <div class="grid-item">5</div>
+                <div class="grid-item">6</div>
+            </div>
+            <p class="code-note">gap: 20px; （行列间距都是20px）</p>
+        </section>
+
+        <!-- grid-column / grid-row -->
+        <section class="section">
+            <h2>4. grid-column / grid-row（跨越行列）</h2>
+            <div class="grid-span">
+                <div class="grid-item span-col">跨越2列</div>
+                <div class="grid-item">普通</div>
+                <div class="grid-item span-row">跨越2行</div>
+                <div class="grid-item">普通</div>
+                <div class="grid-item">普通</div>
+                <div class="grid-item span-both">跨越2列2行</div>
+                <div class="grid-item">普通</div>
+            </div>
+        </section>
+
+        <!-- grid-template-areas -->
+        <section class="section">
+            <h2>5. grid-template-areas（命名区域）</h2>
+            <div class="grid-areas">
+                <div class="area-header">Header</div>
+                <div class="area-sidebar">Sidebar</div>
+                <div class="area-main">Main Content</div>
+                <div class="area-footer">Footer</div>
+            </div>
+        </section>
+
+        <!-- justify-items / align-items -->
+        <section class="section">
+            <h2>6. justify-items / align-items（对齐）</h2>
+            <div class="demo-group">
+                <div>
+                    <h3>start（左对齐）</h3>
+                    <div class="grid-align justify-start">
+                        <div class="grid-item small">1</div>
+                        <div class="grid-item small">2</div>
+                        <div class="grid-item small">3</div>
+                    </div>
+                </div>
+                <div>
+                    <h3>center（居中）</h3>
+                    <div class="grid-align justify-center">
+                        <div class="grid-item small">1</div>
+                        <div class="grid-item small">2</div>
+                        <div class="grid-item small">3</div>
+                    </div>
+                </div>
+                <div>
+                    <h3>end（右对齐）</h3>
+                    <div class="grid-align justify-end">
+                        <div class="grid-item small">1</div>
+                        <div class="grid-item small">2</div>
+                        <div class="grid-item small">3</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 响应式网格 -->
+        <section class="section">
+            <h2>7. 响应式网格</h2>
+            <div class="grid-responsive">
+                <div class="grid-item">1</div>
+                <div class="grid-item">2</div>
+                <div class="grid-item">3</div>
+                <div class="grid-item">4</div>
+                <div class="grid-item">5</div>
+                <div class="grid-item">6</div>
+            </div>
+            <p class="code-note">grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));</p>
+            <p class="code-note">调整浏览器窗口大小，观察网格如何自动适应</p>
+        </section>
+
+        <!-- 实际应用：卡片网格 -->
+        <section class="section">
+            <h2>8. 实际应用：卡片网格</h2>
+            <div class="card-grid">
+                <div class="card">卡片 1</div>
+                <div class="card">卡片 2</div>
+                <div class="card">卡片 3</div>
+                <div class="card">卡片 4</div>
+                <div class="card">卡片 5</div>
+                <div class="card">卡片 6</div>
+            </div>
+        </section>
+
+        <!-- 实际应用：页面布局 -->
+        <section class="section">
+            <h2>9. 实际应用：经典页面布局</h2>
+            <div class="page-layout">
+                <header class="layout-header">Header</header>
+                <aside class="layout-sidebar">Sidebar</aside>
+                <main class="layout-main">Main Content<br>这里是主要内容区域</main>
+                <footer class="layout-footer">Footer</footer>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>下一章：响应式设计</p>
+    </footer>
+</body>
+</html>
+

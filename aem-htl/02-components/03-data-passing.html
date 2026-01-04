@@ -1,0 +1,292 @@
+<!--
+  AEM 组件 HTL: 数据传递
+  
+  学习在组件之间传递数据和参数
+-->
+
+<!--
+  数据传递方式：
+  1. 通过 properties (JCR 属性)
+  2. 通过 data-sly-resource 参数传递
+  3. 通过 Use API 共享数据
+  4. 通过 request attributes
+-->
+
+<!--
+  方式 1: 通过 properties 传递
+  子组件可以直接访问父组件的 properties
+  这是最常用的方式
+-->
+<div class="parent-component">
+    <sly data-sly-resource="${'child' @ resourceType='myapp/components/child'}"></sly>
+</div>
+
+<!-- 子组件可以访问 properties -->
+<!-- 在 child.html 中 -->
+<div class="child-component">
+    <p>${properties.message}</p>
+</div>
+
+<!--
+  方式 2: 通过 data-sly-resource 参数传递
+  使用 @ 符号传递命名参数
+-->
+<div class="parent-component">
+    <div data-sly-resource="${'child' @ 
+        resourceType='myapp/components/child',
+        title=properties.title,
+        description=properties.description,
+        imagePath=properties.imagePath}">
+    </div>
+</div>
+
+<!--
+  在子组件中访问传递的参数：
+  参数会覆盖 properties 中的同名属性
+-->
+<div class="child-component">
+    <h2>${properties.title}</h2>
+    <p>${properties.description}</p>
+    <img src="${properties.imagePath}" alt="${properties.title}">
+</div>
+
+<!--
+  传递对象参数：
+  传递复杂的数据结构
+-->
+<div class="parent-component">
+    <sly data-sly-set.childData="${{
+        'title': properties.title,
+        'items': properties.items,
+        'config': {
+            'showImage': properties.showImage,
+            'imageSize': properties.imageSize
+        }
+    }}"></sly>
+    <div data-sly-resource="${'child' @ resourceType='myapp/components/child', data=childData}"></div>
+</div>
+
+<!--
+  方式 3: 使用 request attributes
+  通过 request 对象传递数据（在 Use API 中设置）
+-->
+<!-- 在父组件的 Use API 中 -->
+<!-- request.setAttribute("sharedData", data); -->
+
+<!-- 在子组件中访问 -->
+<div class="child-component">
+    <sly data-sly-use.shared="${'com.example.SharedDataUse' @ request=request}"></sly>
+    <p>${shared.data}</p>
+</div>
+
+<!--
+  方式 4: 通过 resource path 传递
+  子组件可以从指定路径读取数据
+-->
+<div class="parent-component">
+    <div data-sly-resource="${'child' @ 
+        resourceType='myapp/components/child',
+        dataPath=resource.path + '/data'}">
+    </div>
+</div>
+
+<!--
+  传递计算后的值：
+  在传递前进行计算
+-->
+<div class="parent-component">
+    <sly data-sly-set.computedValue="${properties.price * (1 - properties.discount / 100)}"></sly>
+    <div data-sly-resource="${'child' @ 
+        resourceType='myapp/components/child',
+        finalPrice=computedValue}">
+    </div>
+</div>
+
+<!--
+  条件传递参数：
+  只在条件满足时传递参数
+-->
+<div class="parent-component">
+    <sly data-sly-set.shouldShowImage="${properties.showImage && properties.imagePath}"></sly>
+    <div data-sly-resource="${'child' @ 
+        resourceType='myapp/components/child',
+        showImage=shouldShowImage,
+        imagePath=properties.imagePath}">
+    </div>
+</div>
+
+<!--
+  传递数组和集合：
+  传递列表数据
+-->
+<div class="parent-component">
+    <div data-sly-resource="${'child' @ 
+        resourceType='myapp/components/list',
+        items=properties.items}">
+    </div>
+</div>
+
+<!-- 在子组件中遍历传递的数组 -->
+<div class="list-component">
+    <ul>
+        <li data-sly-list="${properties.items}">
+            ${item.name} - $${item.price}
+        </li>
+    </ul>
+</div>
+
+<!--
+  实际应用示例 1：
+  卡片列表组件传递数据给卡片组件
+-->
+<div class="card-list-component">
+    <h2>${properties.title}</h2>
+    <div class="cards">
+        <div data-sly-list="${properties.cards}">
+            <div data-sly-resource="${'card-' + itemList.index @ 
+                resourceType='myapp/components/card',
+                title=item.title,
+                description=item.description,
+                imagePath=item.imagePath,
+                linkUrl=item.linkUrl}">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--
+  实际应用示例 2：
+  传递配置对象给子组件
+-->
+<div class="configurable-component">
+    <sly data-sly-set.componentConfig="${{
+        'theme': properties.theme || 'default',
+        'layout': properties.layout || 'grid',
+        'columns': properties.columns || 3,
+        'showTitle': properties.showTitle != null ? properties.showTitle : true,
+        'showDescription': properties.showDescription != null ? properties.showDescription : true
+    }}"></sly>
+    
+    <div data-sly-resource="${'content' @ 
+        resourceType='foundation/components/parsys',
+        config=componentConfig}">
+    </div>
+</div>
+
+<!--
+  实际应用示例 3：
+  多级数据传递
+-->
+<!-- 祖父组件 -->
+<div class="grandparent-component">
+    <sly data-sly-set.grandparentData="${{
+        'siteName': currentPage.title,
+        'sitePath': currentPage.path
+    }}"></sly>
+    
+    <div data-sly-resource="${'parent' @ 
+        resourceType='myapp/components/parent',
+        grandparentData=grandparentData}">
+    </div>
+</div>
+
+<!-- 父组件 -->
+<div class="parent-component">
+    <sly data-sly-set.parentData="${{
+        'parentTitle': properties.title,
+        'grandparentData': properties.grandparentData
+    }}"></sly>
+    
+    <div data-sly-resource="${'child' @ 
+        resourceType='myapp/components/child',
+        parentData=parentData}">
+    </div>
+</div>
+
+<!--
+  实际应用示例 4：
+  使用 Use API 预处理数据后传递
+-->
+<div class="data-processing-component">
+    <sly data-sly-use.processor="${'com.example.DataProcessor' @ 
+        rawData=properties.data}"></sly>
+    
+    <sly data-sly-set.processedData="${processor.getProcessedData()}"></sly>
+    
+    <div data-sly-resource="${'display' @ 
+        resourceType='myapp/components/display',
+        data=processedData}">
+    </div>
+</div>
+
+<!--
+  实际应用示例 5：
+  传递回调函数（通过 Use API）
+-->
+<div class="interactive-component">
+    <sly data-sly-use.handler="${'com.example.ActionHandler' @ 
+        actionType=properties.actionType}"></sly>
+    
+    <div data-sly-resource="${'action-button' @ 
+        resourceType='myapp/components/button',
+        handler=handler,
+        label=properties.buttonLabel}">
+    </div>
+</div>
+
+<!--
+  数据传递最佳实践：
+  1. 优先使用 properties，这是最直接的方式
+  2. 使用参数传递覆盖或补充数据
+  3. 对于复杂数据，使用 Use API 预处理
+  4. 避免传递过大的数据对象
+  5. 使用有意义的参数名称
+  6. 文档化组件接受的数据结构
+  7. 验证传递的数据的有效性
+-->
+
+<!--
+  性能考虑：
+  1. 避免传递大量不必要的数据
+  2. 使用 Use API 缓存计算结果
+  3. 考虑数据的序列化成本
+  4. 评估数据传递的深度和复杂度
+-->
+
+<!--
+  数据验证示例：
+  在传递前验证数据
+-->
+<div class="validated-component">
+    <sly data-sly-set.isValid="${properties.title && properties.title.length > 0}"></sly>
+    
+    <div data-sly-test="${isValid}"
+         data-sly-resource="${'child' @ 
+            resourceType='myapp/components/child',
+            title=properties.title,
+            isValid=true}">
+    </div>
+    
+    <div data-sly-test="${!isValid}"
+         class="error-message">
+        请提供有效的标题
+    </div>
+</div>
+
+<!--
+  数据转换示例：
+  在传递前转换数据格式
+-->
+<div class="transform-component">
+    <sly data-sly-set.transformedData="${{
+        'displayName': properties.name ? properties.name.toUpperCase() : 'UNKNOWN',
+        'formattedDate': properties.date ? properties.date.toString() : 'N/A',
+        'numericValue': properties.value ? parseInt(properties.value) : 0
+    }}"></sly>
+    
+    <div data-sly-resource="${'display' @ 
+        resourceType='myapp/components/display',
+        data=transformedData}">
+    </div>
+</div>
+

@@ -1,0 +1,328 @@
+<!--
+  HTL Use API: Sling Models
+  
+  深入学习 Sling Models 与 HTL 的集成
+-->
+
+<!--
+  Sling Models 是 AEM 推荐的 Use API 实现方式
+  
+  优势：
+  - 基于注解的依赖注入
+  - 类型安全
+  - 易于测试
+  - 支持多种适配器
+  - 支持 OSGi 服务注入
+-->
+
+<!--
+  基础 Sling Model 使用：
+-->
+<sly data-sly-use.model="${'com.example.BasicModel'}"></sly>
+<div>${model.value}</div>
+
+<!--
+  对应的 Sling Model Java 代码示例：
+  
+  @Model(adaptables = Resource.class)
+  public interface BasicModel {
+      @Inject
+      String getValue();
+  }
+-->
+
+<!--
+  从 Resource 适配 Sling Model：
+  默认情况下，Sling Model 从当前 resource 适配
+-->
+<sly data-sly-use.model="${'com.example.ResourceModel'}"></sly>
+<div>
+    <p>路径: ${model.path}</p>
+    <p>名称: ${model.name}</p>
+</div>
+
+<!--
+  从 Request 适配 Sling Model：
+  如果需要访问请求参数
+-->
+<sly data-sly-use.model="${'com.example.RequestModel' @ request=request}"></sly>
+<div>
+    <p>查询参数: ${model.queryParam}</p>
+</div>
+
+<!--
+  传递参数给 Sling Model：
+  通过 @ 符号传递
+-->
+<sly data-sly-use.model="${'com.example.ParameterizedModel' @ 
+    param1='value1',
+    param2=properties.value}"></sly>
+<div>${model.result}</div>
+
+<!--
+  对应的 Sling Model 接收参数：
+  
+  @Model(adaptables = Resource.class)
+  public interface ParameterizedModel {
+      @Inject @Optional
+      String getParam1();
+      
+      @Inject @Optional
+      String getParam2();
+      
+      default String getResult() {
+          return getParam1() + " - " + getParam2();
+      }
+  }
+-->
+
+<!--
+  使用 @Optional 注解：
+  处理可选参数
+-->
+<sly data-sly-use.model="${'com.example.OptionalModel' @ 
+    required=properties.required,
+    optional=properties.optional}"></sly>
+
+<!--
+  注入 JCR 属性：
+  自动从 resource 属性注入
+-->
+<sly data-sly-use.model="${'com.example.PropertiesModel'}"></sly>
+<div>
+    <p>标题: ${model.title}</p>
+    <p>描述: ${model.description}</p>
+</div>
+
+<!--
+  对应的 Sling Model：
+  
+  @Model(adaptables = Resource.class)
+  public interface PropertiesModel {
+      @Inject @Optional
+      String getTitle();
+      
+      @Inject @Optional
+      String getDescription();
+  }
+-->
+
+<!--
+  注入当前页面：
+  访问页面信息
+-->
+<sly data-sly-use.model="${'com.example.PageModel'}"></sly>
+<div>
+    <p>页面标题: ${model.pageTitle}</p>
+    <p>页面路径: ${model.pagePath}</p>
+</div>
+
+<!--
+  注入 OSGi 服务：
+  在 Sling Model 中注入服务
+-->
+<sly data-sly-use.service="${'com.example.ServiceModel'}"></sly>
+<div>
+    <!-- ServiceModel 内部注入了 OSGi 服务 -->
+    <p>服务数据: ${service.data}</p>
+</div>
+
+<!--
+  对应的 Sling Model 注入服务：
+  
+  @Model(adaptables = Resource.class)
+  public interface ServiceModel {
+      @Inject
+      private MyService myService;
+      
+      default String getData() {
+          return myService.getData();
+      }
+  }
+-->
+
+<!--
+  使用 @PostConstruct：
+  初始化后处理
+-->
+<sly data-sly-use.model="${'com.example.InitializedModel'}"></sly>
+<div>${model.initializedData}</div>
+
+<!--
+  注入子资源：
+  处理子节点
+-->
+<sly data-sly-use.model="${'com.example.ChildrenModel'}"></sly>
+<div>
+    <ul>
+        <li data-sly-list="${model.children}">
+            ${item.name}
+        </li>
+    </ul>
+</div>
+
+<!--
+  注入请求参数：
+  从请求中获取参数
+-->
+<sly data-sly-use.form="${'com.example.FormModel' @ request=request}"></sly>
+<form>
+    <input name="username" value="${form.username}">
+    <input name="email" value="${form.email}">
+</form>
+
+<!--
+  使用 @Via 注解：
+  指定注入路径
+-->
+<sly data-sly-use.model="${'com.example.ViaModel'}"></sly>
+<div>${model.value}</div>
+
+<!--
+  实际应用示例 1：
+  产品详情组件
+-->
+<sly data-sly-use.product="${'com.example.ProductModel' @ 
+    productId=properties.productId}"></sly>
+<article class="product-detail">
+    <div class="product-images">
+        <img data-sly-list="${product.images}"
+             src="${item.url}"
+             alt="${item.alt}">
+    </div>
+    <div class="product-info">
+        <h1>${product.name}</h1>
+        <p class="price">$${product.formattedPrice}</p>
+        <p data-sly-test="${product.isOnSale}" class="sale">
+            节省 $${product.discountAmount}
+        </p>
+        <div class="description">
+            ${product.description}
+        </div>
+        <div class="specifications">
+            <dl>
+                <dt data-sly-list="${product.specifications}">
+                    ${item.name}:
+                    <dd>${item.value}</dd>
+                </dt>
+            </dl>
+        </div>
+    </div>
+</article>
+
+<!--
+  实际应用示例 2：
+  内容列表组件
+-->
+<sly data-sly-use.list="${'com.example.ContentListModel' @ 
+    rootPath=properties.rootPath,
+    contentType=properties.contentType,
+    limit=properties.limit}"></sly>
+<div class="content-list">
+    <h2>${list.title}</h2>
+    <div class="items">
+        <article data-sly-list="${list.items}">
+            <h3><a href="${item.url}">${item.title}</a></h3>
+            <p data-sly-test="${item.excerpt}">${item.excerpt}</p>
+            <div class="meta">
+                <span>${item.author}</span>
+                <span>${item.date}</span>
+            </div>
+        </article>
+    </div>
+    <div data-sly-test="${list.hasMore}">
+        <a href="${list.moreUrl}">查看更多</a>
+    </div>
+</div>
+
+<!--
+  实际应用示例 3：
+  搜索组件
+-->
+<sly data-sly-use.search="${'com.example.SearchModel' @ request=request}"></sly>
+<div class="search-component">
+    <form action="${search.actionUrl}" method="get">
+        <input type="search"
+               name="q"
+               value="${search.query}"
+               placeholder="搜索...">
+        <button type="submit">搜索</button>
+    </form>
+    <div data-sly-test="${search.hasResults}">
+        <p>找到 ${search.resultCount} 个结果</p>
+        <ul>
+            <li data-sly-list="${search.results}">
+                <h3><a href="${item.url}">${item.title}</a></h3>
+                <p>${item.snippet}</p>
+            </li>
+        </ul>
+    </div>
+    <div data-sly-test="${!search.hasResults && search.query}">
+        <p>没有找到结果</p>
+    </div>
+</div>
+
+<!--
+  实际应用示例 4：
+  用户配置组件
+-->
+<sly data-sly-use.user="${'com.example.UserModel' @ request=request}"></sly>
+<div class="user-profile">
+    <div data-sly-test="${user.isLoggedIn}">
+        <div class="avatar">
+            <img src="${user.avatarUrl}" alt="${user.displayName}">
+        </div>
+        <div class="info">
+            <h3>${user.displayName}</h3>
+            <p>${user.email}</p>
+            <div data-sly-test="${user.isAdmin}">
+                <span class="badge">管理员</span>
+            </div>
+        </div>
+    </div>
+    <div data-sly-test="${!user.isLoggedIn}">
+        <a href="${user.loginUrl}">登录</a>
+    </div>
+</div>
+
+<!--
+  实际应用示例 5：
+  配置驱动的组件
+-->
+<sly data-sly-use.config="${'com.example.ConfigModel' @ 
+    configPath=properties.configPath}"></sly>
+<div class="configurable-component"
+     data-sly-attribute.class="${config.theme}">
+    <div data-sly-test="${config.showHeader}">
+        <header>
+            <h1>${config.title}</h1>
+        </header>
+    </div>
+    <main>
+        <div data-sly-resource="${'content' @ resourceType='foundation/components/parsys'}"></div>
+    </main>
+    <div data-sly-test="${config.showFooter}">
+        <footer>${config.footerText}</footer>
+    </div>
+</div>
+
+<!--
+  Sling Models 最佳实践：
+  1. 使用接口定义 Model，实现类使用 @Model 注解
+  2. 使用 @Inject 注入依赖
+  3. 使用 @Optional 处理可选字段
+  4. 使用 @PostConstruct 进行初始化
+  5. 提供默认方法实现
+  6. 使用适配器模式支持多种数据类型
+  7. 编写单元测试
+  8. 文档化 Model 的用途和属性
+-->
+
+<!--
+  性能优化：
+  1. 使用懒加载
+  2. 缓存计算结果
+  3. 避免在 Model 中进行重量级操作
+  4. 考虑使用 @Cacheable 注解
+-->
+

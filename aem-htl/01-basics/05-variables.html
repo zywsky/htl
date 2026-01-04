@@ -1,0 +1,204 @@
+<!--
+  HTL 基础: 变量
+  
+  学习在 HTL 中定义和使用变量
+-->
+
+<!--
+  data-sly-set 指令：
+  - 用于定义局部变量
+  - 变量只在当前元素及其子元素中可用
+  - 可以提高代码可读性和性能（避免重复计算）
+-->
+
+<!-- 定义简单变量 -->
+<sly data-sly-set.title="${properties.title || '默认标题'}"></sly>
+<h1>${title}</h1>
+
+<!--
+  变量作用域：
+  变量只在定义它的元素及其子元素中可用
+-->
+<div data-sly-set.userName="${properties.author}">
+    <p>作者: ${userName}</p>
+    <!-- 这里可以使用 userName -->
+</div>
+<!-- 这里不能使用 userName，超出作用域 -->
+
+<!--
+  使用变量简化表达式：
+  避免重复的复杂表达式
+-->
+<sly data-sly-set.isActive="${properties.status == 'active' && properties.isVisible}"></sly>
+<div data-sly-test="${isActive}">
+    活跃内容
+</div>
+<button data-sly-attribute.disabled="${!isActive}">
+    提交
+</button>
+
+<!--
+  变量命名最佳实践：
+  - 使用有意义的变量名
+  - 使用 camelCase 命名
+  - 避免与 HTL 内置变量冲突（properties, currentPage, resource 等）
+-->
+
+<!--
+  定义多个变量：
+  使用对象语法
+-->
+<sly data-sly-set.config="${
+    {
+        'title': properties.title || '默认标题',
+        'author': properties.author || '匿名',
+        'date': properties.publishDate
+    }
+}"></sly>
+<h1>${config.title}</h1>
+<p>作者: ${config.author}</p>
+<p>日期: ${config.date}</p>
+
+<!--
+  在变量中进行计算：
+  预处理数据，提高性能
+-->
+<sly data-sly-set.productInfo="${{
+    'name': properties.productName,
+    'price': properties.price,
+    'discount': properties.discount || 0,
+    'finalPrice': properties.price * (1 - (properties.discount || 0) / 100)
+}}"></sly>
+<div class="product">
+    <h3>${productInfo.name}</h3>
+    <p>原价: $${productInfo.price}</p>
+    <p data-sly-test="${productInfo.discount > 0}">
+        折扣: ${productInfo.discount}%
+    </p>
+    <p class="final-price">最终价格: $${productInfo.finalPrice}</p>
+</div>
+
+<!--
+  变量和条件结合：
+  在条件中定义变量
+-->
+<div data-sly-set.hasItems="${properties.items && properties.items.size > 0}"
+     data-sly-test="${hasItems}">
+    <ul>
+        <li data-sly-list="${properties.items}">
+            ${item.name}
+        </li>
+    </ul>
+</div>
+
+<!--
+  变量和循环结合：
+  在循环中使用变量
+-->
+<ul>
+    <li data-sly-list="${properties.products}">
+        <sly data-sly-set.productData="${{
+            'name': item.name,
+            'price': item.price,
+            'isOnSale': item.price < 100,
+            'displayPrice': item.price < 100 ? '$' + item.price + ' (特价)' : '$' + item.price
+        }}"></sly>
+        <div class="product-item">
+            <h4>${productData.name}</h4>
+            <p class="${productData.isOnSale ? 'sale' : ''}">
+                ${productData.displayPrice}
+            </p>
+        </div>
+    </li>
+</ul>
+
+<!--
+  变量覆盖：
+  可以在子作用域中重新定义同名变量
+-->
+<div data-sly-set.message="${'父级消息'}">
+    <p>${message}</p> <!-- 显示: 父级消息 -->
+    <div data-sly-set.message="${'子级消息'}">
+        <p>${message}</p> <!-- 显示: 子级消息 -->
+    </div>
+    <p>${message}</p> <!-- 显示: 父级消息 -->
+</div>
+
+<!--
+  变量和 Use API 结合：
+  使用 Use API 对象的值定义变量
+-->
+<sly data-sly-use.helper="${'com.example.Helper' @ param1=properties.value1}"></sly>
+<sly data-sly-set.processedData="${helper.getData()}"></sly>
+<div>${processedData}</div>
+
+<!--
+  性能优化：
+  使用变量缓存复杂计算结果
+-->
+<sly data-sly-set.expensiveCalculation="${helper.complexCalculation(properties.data)}"></sly>
+<!-- 多次使用 expensiveCalculation 而不是重复调用 helper.complexCalculation() -->
+<div>结果1: ${expensiveCalculation}</div>
+<div>结果2: ${expensiveCalculation}</div>
+<div>结果3: ${expensiveCalculation}</div>
+
+<!--
+  变量和模板结合：
+  在模板中使用变量传递数据
+-->
+<template data-sly-template.productCard="${@ product}">
+    <sly data-sly-set.displayPrice="${'$' + product.price}"></sly>
+    <div class="card">
+        <h3>${product.name}</h3>
+        <p>${displayPrice}</p>
+    </div>
+</template>
+
+<!-- 调用模板 -->
+<div data-sly-call="${productCard @ product=properties.currentProduct}"></div>
+
+<!--
+  实际应用示例：
+  创建一个内容卡片组件
+-->
+<sly data-sly-set.cardConfig="${{
+    'title': properties.title || '无标题',
+    'content': properties.content || '',
+    'author': properties.author || '匿名',
+    'publishDate': properties.publishDate,
+    'hasImage': properties.imagePath && properties.imagePath != '',
+    'imageAlt': properties.imageAlt || properties.title,
+    'linkUrl': properties.linkUrl,
+    'linkText': properties.linkText || '阅读更多',
+    'cssClass': 'card ' + (properties.cardType || 'default')
+}}"></sly>
+
+<article class="${cardConfig.cssClass}">
+    <div data-sly-test="${cardConfig.hasImage}" class="card-image">
+        <img src="${cardConfig.imagePath}" alt="${cardConfig.imageAlt}">
+    </div>
+    <div class="card-content">
+        <h2>${cardConfig.title}</h2>
+        <div data-sly-test="${cardConfig.content}">
+            <p>${cardConfig.content}</p>
+        </div>
+        <div class="card-meta">
+            <span>作者: ${cardConfig.author}</span>
+            <span data-sly-test="${cardConfig.publishDate}">
+                发布时间: ${cardConfig.publishDate}
+            </span>
+        </div>
+        <div data-sly-test="${cardConfig.linkUrl}">
+            <a href="${cardConfig.linkUrl}">${cardConfig.linkText}</a>
+        </div>
+    </div>
+</article>
+
+<!--
+  变量作用域最佳实践：
+  1. 在需要的最外层定义变量
+  2. 避免在循环内部定义不必要的变量
+  3. 使用有意义的变量名
+  4. 考虑变量的生命周期和性能影响
+-->
+

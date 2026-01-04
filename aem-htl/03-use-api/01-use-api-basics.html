@@ -1,0 +1,257 @@
+<!--
+  HTL Use API: 基础
+  
+  学习使用 Java Use API 在 HTL 中访问 Java 对象和方法
+-->
+
+<!--
+  data-sly-use 指令：
+  - 用于实例化 Java 对象（Use API 对象）
+  - 提供业务逻辑和数据处理能力
+  - 返回的对象可以在模板中使用
+-->
+
+<!--
+  基础用法：
+  使用 Java 类创建 Use API 对象
+-->
+<sly data-sly-use.bean="${'com.example.MyUseBean'}"></sly>
+<div>${bean.message}</div>
+
+<!--
+  Use API 对象必须实现以下接口之一：
+  - Use: 简单接口，只需要一个 init() 方法
+  - WCMUse: 提供 WCM 相关功能（已废弃，推荐使用 WCMUsePojo）
+  - WCMUsePojo: 提供 WCM 功能，推荐使用
+  - SlingModel: 使用 Sling Models（推荐方式）
+-->
+
+<!--
+  使用 WCMUsePojo：
+  基础示例
+-->
+<sly data-sly-use.model="${'com.example.MyComponentModel'}"></sly>
+<div class="component">
+    <h1>${model.title}</h1>
+    <p>${model.description}</p>
+</div>
+
+<!--
+  传递参数给 Use API：
+  使用 @ 符号传递参数
+-->
+<sly data-sly-use.model="${'com.example.ProductModel' @ 
+    productId=properties.productId,
+    showPrice=true}"></sly>
+<div class="product">
+    <h2>${model.productName}</h2>
+    <p data-sly-test="${model.showPrice}">价格: $${model.price}</p>
+</div>
+
+<!--
+  传递多个参数：
+  支持多种数据类型
+-->
+<sly data-sly-use.processor="${'com.example.DataProcessor' @ 
+    data=properties.data,
+    limit=10,
+    enabled=true,
+    config={
+        'option1': 'value1',
+        'option2': 'value2'
+    }}"></sly>
+
+<!--
+  访问当前资源和页面：
+  Use API 对象可以自动访问 resource, request, response 等
+-->
+<sly data-sly-use.model="${'com.example.ResourceModel'}"></sly>
+<div>
+    <p>资源路径: ${model.resourcePath}</p>
+    <p>页面标题: ${model.pageTitle}</p>
+</div>
+
+<!--
+  使用 Sling Models（推荐方式）：
+  Sling Models 是 AEM 推荐的 Use API 实现方式
+-->
+<sly data-sly-use.model="${'com.example.MySlingModel'}"></sly>
+<div class="component">
+    <h1>${model.title}</h1>
+    <p>${model.content}</p>
+</div>
+
+<!--
+  Sling Model 示例 Java 代码（参考）：
+  
+  @Model(adaptables = Resource.class)
+  public class MySlingModel {
+      @Inject
+      private String title;
+      
+      @Inject
+      private String content;
+      
+      public String getTitle() {
+          return title;
+      }
+      
+      public String getContent() {
+          return content;
+      }
+  }
+-->
+
+<!--
+  在 Use API 中处理业务逻辑：
+  将复杂逻辑从模板移到 Java 代码中
+-->
+<sly data-sly-use.calculator="${'com.example.PriceCalculator' @ 
+    basePrice=properties.price,
+    discount=properties.discount}"></sly>
+<div class="pricing">
+    <p>原价: $${calculator.originalPrice}</p>
+    <p>折扣: ${calculator.discountPercent}%</p>
+    <p>最终价格: $${calculator.finalPrice}</p>
+</div>
+
+<!--
+  使用 Use API 处理集合数据：
+  在 Java 中处理列表和数组
+-->
+<sly data-sly-use.processor="${'com.example.ListProcessor' @ 
+    items=properties.items}"></sly>
+<div class="list">
+    <ul>
+        <li data-sly-list="${processor.processedItems}">
+            ${item.name} - ${item.value}
+        </li>
+    </ul>
+</div>
+
+<!--
+  条件 Use API：
+  只在需要时创建 Use API 对象
+-->
+<sly data-sly-test="${properties.useAdvancedFeatures}"
+     data-sly-use.advanced="${'com.example.AdvancedProcessor' @ data=properties.data}">
+</sly>
+<div data-sly-test="${properties.useAdvancedFeatures}">
+    ${advanced.result}
+</div>
+
+<!--
+  使用多个 Use API 对象：
+  可以在同一个模板中使用多个 Use API
+-->
+<sly data-sly-use.config="${'com.example.ConfigModel'}"></sly>
+<sly data-sly-use.data="${'com.example.DataModel' @ config=config}"></sly>
+<sly data-sly-use.formatter="${'com.example.FormatterModel'}"></sly>
+
+<div class="component">
+    <h1>${formatter.formatTitle(data.title)}</h1>
+    <p>${formatter.formatContent(data.content)}</p>
+</div>
+
+<!--
+  Use API 中的依赖注入：
+  Sling Models 支持依赖注入
+-->
+<sly data-sly-use.service="${'com.example.ServiceModel'}"></sly>
+<div>
+    <!-- ServiceModel 可以注入其他服务 -->
+    <p>服务状态: ${service.status}</p>
+    <p>服务数据: ${service.data}</p>
+</div>
+
+<!--
+  实际应用示例 1：
+  产品组件使用 Use API
+-->
+<sly data-sly-use.product="${'com.example.ProductModel' @ 
+    productId=properties.productId}"></sly>
+<article class="product-component">
+    <img src="${product.imageUrl}" alt="${product.name}">
+    <h2>${product.name}</h2>
+    <p class="price">$${product.formattedPrice}</p>
+    <p data-sly-test="${product.isOnSale}" class="sale-badge">
+        特价中！
+    </p>
+    <div class="description">
+        ${product.description}
+    </div>
+    <a href="${product.detailUrl}">查看详情</a>
+</article>
+
+<!--
+  实际应用示例 2：
+  导航组件使用 Use API
+-->
+<sly data-sly-use.navigation="${'com.example.NavigationModel' @ 
+    rootPath=currentPage.path,
+    depth=2}"></sly>
+<nav class="navigation">
+    <ul>
+        <li data-sly-list="${navigation.menuItems}"
+            data-sly-attribute.class="${item.active ? 'active' : ''}">
+            <a href="${item.url}">${item.title}</a>
+            <ul data-sly-test="${item.children && item.children.size > 0}">
+                <li data-sly-list="${item.children}">
+                    <a href="${item.url}">${item.title}</a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+</nav>
+
+<!--
+  实际应用示例 3：
+  表单组件使用 Use API
+-->
+<sly data-sly-use.form="${'com.example.FormModel' @ 
+    formId=properties.formId}"></sly>
+<form action="${form.actionUrl}" method="${form.method}">
+    <div data-sly-list="${form.fields}">
+        <label>${item.label}</label>
+        <input type="${item.type}"
+               name="${item.name}"
+               data-sly-attribute.required="${item.required}"
+               data-sly-attribute.value="${item.value}">
+    </div>
+    <button type="submit">${form.submitLabel}</button>
+</form>
+
+<!--
+  Use API 最佳实践：
+  1. 使用 Sling Models 而不是 WCMUse
+  2. 将业务逻辑放在 Use API 中，而不是模板中
+  3. 使用依赖注入获取服务
+  4. 缓存计算结果，避免重复计算
+  5. 提供清晰的方法名称
+  6. 处理异常情况
+  7. 编写单元测试
+-->
+
+<!--
+  错误处理示例：
+  在 Use API 中处理错误情况
+-->
+<sly data-sly-use.model="${'com.example.SafeModel' @ data=properties.data}"></sly>
+<div data-sly-test="${model.isValid}">
+    ${model.result}
+</div>
+<div data-sly-test="${!model.isValid}" class="error">
+    ${model.errorMessage}
+</div>
+
+<!--
+  性能优化示例：
+  使用 Use API 缓存数据
+-->
+<sly data-sly-use.cache="${'com.example.CachedModel' @ 
+    key=properties.cacheKey}"></sly>
+<div>
+    <!-- CachedModel 内部缓存数据，避免重复计算 -->
+    ${cache.data}
+</div>
+

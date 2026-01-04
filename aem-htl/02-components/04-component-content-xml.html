@@ -1,0 +1,2444 @@
+<!--
+  AEM 组件结构分析: .content.xml 文件详解
+  
+  本文档详细分析 AEM 组件中的 .content.xml 文件，
+  包括其结构、属性、配置选项和使用场景
+-->
+
+<!--
+  .content.xml 文件概述
+  ====================
+  
+  .content.xml 是 AEM 组件的核心定义文件，位于组件目录的根目录下。
+  它定义了组件的基本属性、元数据、继承关系和使用限制。
+  
+  文件位置: /apps/{project}/components/{component-name}/.content.xml
+  节点类型: cq:Component
+-->
+
+<!--
+  基本文件结构
+  ============
+-->
+
+<!--
+  1. XML 声明和命名空间
+  --------------------
+-->
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          xmlns:sling="http://sling.apache.org/jcr/sling/1.0"
+          xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          jcr:primaryType="cq:Component"
+          <!-- 其他属性 -->
+/>
+
+<!--
+  命名空间说明:
+  - jcr: Java Content Repository 命名空间（JCR 标准）
+  - sling: Apache Sling 框架命名空间（Sling 框架）
+  - cq: Adobe CQ/AEM 特定命名空间（AEM 平台扩展）
+  
+  jcr:primaryType="cq:Component" 表示这是一个 AEM 组件节点
+  
+  命名空间前缀详解:
+  
+  1. jcr: (Java Content Repository)
+     - JCR 规范定义的标准命名空间
+     - 用于 JCR 节点和属性的标准操作
+     - 示例: jcr:primaryType, jcr:title, jcr:description, jcr:mixinTypes
+     - 属于 JCR API 2.0 规范（JSR-283）
+  
+  2. sling: (Apache Sling)
+     - Apache Sling 框架定义的命名空间
+     - 用于资源解析和脚本查找
+     - 示例: sling:resourceType, sling:resourceSuperType
+     - Sling 是构建在 JCR 之上的 Web 框架
+  
+  3. cq: (Adobe CQ/AEM)
+     - Adobe 在 Sling 之上构建的 AEM 平台扩展
+     - 用于 AEM 特定的组件、页面和内容功能
+     - 示例: cq:Component, cq:Page, cq:isContainer, cq:noDecoration
+     - "cq" 最初代表 "Communiqué"（Adobe CQ 的前身）
+     - 现在代表 AEM 平台特定的扩展
+  
+  命名空间 URI 映射:
+  - 在 XML 文档中，命名空间通过 xmlns 属性声明
+  - 前缀只是别名，真正的命名空间是 URI
+  - jcr: -> http://www.jcp.org/jcr/1.0
+  - sling: -> http://sling.apache.org/jcr/sling/1.0
+  - cq: -> http://www.day.com/jcr/cq/1.0 (Adobe Day Software)
+  
+  为什么使用命名空间？
+  - 避免属性名冲突（不同框架可以定义同名属性）
+  - 明确属性的来源和用途
+  - 提供类型安全和语义清晰
+  - 符合 XML/JCR 标准规范
+-->
+
+<!--
+  2. 核心属性详解
+  ==============
+-->
+
+<!--
+  2.1 必需属性
+  -----------
+-->
+
+<!-- jcr:primaryType: 节点类型（必需） -->
+<jcr:root jcr:primaryType="cq:Component"/>
+
+<!--
+  jcr:primaryType
+  - 类型: String
+  - 必需: 是
+  - 值: "cq:Component"
+  - 说明: 定义此节点为 AEM 组件类型
+-->
+
+<!--
+  2.2 元数据属性
+  ------------
+-->
+
+<!-- jcr:title: 组件显示名称 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"/>
+
+<!--
+  jcr:title
+  - 类型: String
+  - 必需: 否（推荐）
+  - 说明: 在组件浏览器中显示的组件名称
+  - 示例: "Hero Component", "Text", "Image Gallery"
+-->
+
+<!-- jcr:description: 组件描述 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          jcr:description="A hero banner component with image and text overlay"/>
+
+<!--
+  jcr:description
+  - 类型: String
+  - 必需: 否
+  - 说明: 组件的详细描述，帮助作者理解组件用途
+  - 示例: "Display a large hero image with text overlay and call-to-action button"
+-->
+
+<!--
+  2.3 组件标识和继承
+  ----------------
+-->
+
+<!-- sling:resourceType: 组件资源类型（通常自动设置） -->
+<!--
+  sling:resourceType
+  - 类型: String
+  - 必需: 否（通常由路径自动推断）
+  - 说明: 组件的资源类型标识符
+  - 默认值: 通常等于组件的相对路径（如 "myapp/components/hero"）
+  - 注意: 在 .content.xml 中通常不需要显式设置
+-->
+
+<!-- sling:resourceSuperType: 组件继承 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          sling:resourceSuperType="myapp/components/base"/>
+
+<!--
+  sling:resourceSuperType
+  - 类型: String
+  - 必需: 否
+  - 说明: 指定父组件路径，实现组件继承
+  - 作用: 继承父组件的脚本、对话框、配置等
+  - 示例: "myapp/components/base"
+  - 详情: 见组件继承机制文档
+-->
+
+<!--
+  2.4 组件分组和分类
+  ----------------
+-->
+
+<!-- componentGroup: 组件分组 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          componentGroup="MyApp - Content"/>
+
+<!--
+  componentGroup
+  - 类型: String
+  - 必需: 否（推荐）
+  - 说明: 在组件浏览器中将组件分组显示
+  - 格式: 通常使用 "ProjectName - Category" 格式
+  - 示例: 
+    - "MyApp - Content"
+    - "MyApp - Layout"
+    - "MyApp - Navigation"
+  - 效果: 在组件浏览器中创建分组文件夹
+  
+  特殊值: .hidden
+  - 如果 componentGroup 设置为 ".hidden"，组件将不会在组件浏览器中显示
+  - 这是 AEM 的保留值，用于隐藏内部组件或基础组件
+  - 隐藏的组件仍然可以通过编程方式使用（如 data-sly-resource）
+  - 隐藏的组件仍然可以被其他组件继承（sling:resourceSuperType）
+  - 使用场景:
+    * 基础组件（只用于继承，不直接使用）
+    * 内部工具组件（仅供系统使用）
+    * 已废弃但需要保留的组件（向后兼容）
+-->
+
+<!-- componentGroup=".hidden": 隐藏组件 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Base Component"
+          componentGroup=".hidden"
+          sling:resourceSuperType="core/wcm/components/container/v1/container"/>
+
+<!--
+  使用 .hidden 的典型场景:
+  
+  1. 基础组件（Base Components）
+     - 只作为其他组件的父组件
+     - 不希望在组件浏览器中显示
+     - 示例: base, container-base, layout-base
+  
+  2. 内部工具组件
+     - 仅供系统内部使用
+     - 不应被作者直接使用
+     - 示例: wrapper, helper, utility
+  
+  3. 已废弃组件
+     - 保留用于向后兼容
+     - 不推荐新项目使用
+     - 示例: legacy-component, deprecated-component
+  
+  注意事项:
+  - .hidden 是 AEM 的保留值，不要用于其他目的
+  - 隐藏的组件仍然可以通过路径直接访问
+  - 隐藏的组件仍然可以正常渲染
+  - 如果组件需要隐藏，但又要显示在某个分组中，不要使用 .hidden
+-->
+
+<!--
+  2.5 容器组件标识
+  --------------
+-->
+
+<!-- cq:isContainer: 是否为容器组件 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Container Component"
+          cq:isContainer="{Boolean}true"/>
+
+<!--
+  cq:isContainer
+  - 类型: Boolean
+  - 必需: 否
+  - 默认值: false
+  - 说明: 标识组件是否为容器组件（可包含其他组件）
+  - true: 容器组件，可以使用 Parsys 或其他容器机制
+  - false: 普通组件，不可包含其他组件
+  - 示例: 
+    - Container/Section 组件: true
+    - Text/Image 组件: false
+-->
+
+<!--
+  2.6 组件使用限制
+  --------------
+-->
+
+<!-- allowParents: 允许的父组件列表 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          allowParents="[myapp/components/page,myapp/components/section]"/>
+
+<!--
+  allowParents
+  - 类型: String[] (字符串数组)
+  - 必需: 否
+  - 格式: 使用方括号 [] 包裹，多个路径用逗号分隔
+  - 说明: 限制当前组件只能被哪些父组件包含
+  - 作用时机: 在 AEM 编辑器中拖放组件时检查
+  - 示例: 
+    - allowParents="[myapp/components/page]"
+    - allowParents="[myapp/components/page,myapp/components/section]"
+  - 详情: 见 allowParents 详细文档
+-->
+
+<!-- allowedChildren: 允许的子组件列表 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Container Component"
+          allowedChildren="[myapp/components/card,myapp/components/text]"/>
+
+<!--
+  allowedChildren
+  - 类型: String[] (字符串数组)
+  - 必需: 否
+  - 格式: 使用方括号 [] 包裹，多个路径用逗号分隔
+  - 说明: 限制当前容器组件只能包含哪些子组件
+  - 作用时机: 在 AEM 编辑器中拖放组件到容器时检查
+  - 位置: 通常通过模板策略（Policy）配置，但也可以直接在组件 .content.xml 中设置
+  - 示例: 
+    - allowedChildren="[myapp/components/card]"
+    - allowedChildren="[myapp/components/card,myapp/components/text,myapp/components/image]"
+  - 注意: 在现代 AEM（Editable Templates）中，推荐使用模板策略（Policy）配置
+  
+  allowedChildren 与 allowParents 的区别:
+  
+  1. 位置不同:
+     - allowParents: 设置在子组件上（限制子组件只能被哪些父组件包含）
+     - allowedChildren: 设置在父组件上（限制父组件只能包含哪些子组件）
+  
+  2. 作用方向不同:
+     - allowParents: 向下限制（子组件限制自己被谁包含）
+     - allowedChildren: 向上限制（父组件限制自己能包含谁）
+  
+  3. 使用场景:
+     - allowParents: 当子组件需要限制自己的使用位置时使用
+     - allowedChildren: 当父容器需要限制可以包含的组件类型时使用
+  
+  4. 配置方式:
+     - allowParents: 通常在组件 .content.xml 中直接配置
+     - allowedChildren: 
+       * 可以直接在组件 .content.xml 中配置（较少见）
+       * 更常见的是通过模板策略（Policy）配置（推荐方式）
+  
+  5. 优先级:
+     - 两者都生效，组件必须同时满足:
+       * 子组件的 allowParents 包含父容器类型
+       * 父容器的 allowedChildren 包含子组件类型
+     - 如果两个限制冲突，组件无法被添加
+  
+  实际应用示例对比:
+  
+  示例 1: 只有 allowParents（子组件限制）
+  ------------------------------------
+  Card 组件配置:
+  <jcr:root jcr:primaryType="cq:Component"
+            jcr:title="Card"
+            allowParents="[myapp/components/container]"/>
+  
+  结果: Card 只能放在 Container 中，但 Container 可以包含任何组件
+  
+  示例 2: 只有 allowedChildren（父组件限制）
+  ----------------------------------------
+  Container 组件配置:
+  <jcr:root jcr:primaryType="cq:Component"
+            jcr:title="Container"
+            cq:isContainer="true"
+            allowedChildren="[myapp/components/card]"/>
+  
+  结果: Container 只能包含 Card，但 Card 可以放在任何容器中
+  
+  示例 3: 两者结合（双向限制）
+  ---------------------------
+  Container 组件配置:
+  <jcr:root jcr:primaryType="cq:Component"
+            jcr:title="Card Container"
+            cq:isContainer="true"
+            allowedChildren="[myapp/components/card]"/>
+  
+  Card 组件配置:
+  <jcr:root jcr:primaryType="cq:Component"
+            jcr:title="Card"
+            allowParents="[myapp/components/container]"/>
+  
+  结果: Container 只能包含 Card，Card 只能放在 Container 中（封闭组合）
+  
+  配置建议:
+  - 在现代 AEM（Editable Templates）中，推荐使用模板策略（Policy）配置 allowedChildren
+  - allowParents 可以在组件 .content.xml 中直接配置
+  - 两者可以组合使用，实现灵活的组件限制策略
+-->
+
+<!--
+  2.7 其他常用属性
+  --------------
+-->
+
+<!-- cq:noDecoration: 是否禁用装饰器 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          cq:noDecoration="{Boolean}false"/>
+
+<!--
+  cq:noDecoration
+  - 类型: Boolean
+  - 必需: 否
+  - 默认值: false
+  - 说明: 是否禁用 AEM 的组件装饰器（编辑模式下的边框和工具栏）
+  - true: 禁用装饰器，组件渲染时不添加编辑相关 HTML
+  - false: 启用装饰器（默认）
+  - 使用场景: 需要完全控制组件 HTML 输出的情况
+-->
+
+<!-- cellName: 布局单元格名称（用于响应式网格） -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          cellName="hero"/>
+
+<!--
+  cellName
+  - 类型: String
+  - 必需: 否
+  - 说明: 在响应式网格布局中使用的单元格名称
+  - 使用场景: 响应式网格布局系统
+-->
+
+<!--
+  3. 完整配置示例
+  ==============
+-->
+
+<!--
+  示例 1: 基础组件配置
+  ------------------
+-->
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          xmlns:sling="http://sling.apache.org/jcr/sling/1.0"
+          xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          jcr:primaryType="cq:Component"
+          jcr:title="Text Component"
+          jcr:description="A simple text component for displaying content"
+          componentGroup="MyApp - Content"
+          cq:isContainer="{Boolean}false"/>
+
+<!--
+  示例 2: 继承组件配置
+  ------------------
+-->
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          xmlns:sling="http://www.jcp.org/jcr/sling/1.0"
+          xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          jcr:description="Hero banner component with image and text overlay"
+          sling:resourceSuperType="myapp/components/base"
+          componentGroup="MyApp - Content"
+          cq:isContainer="{Boolean}false"/>
+
+<!--
+  示例 3: 容器组件配置
+  ------------------
+-->
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          xmlns:sling="http://www.jcp.org/jcr/sling/1.0"
+          xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          jcr:primaryType="cq:Component"
+          jcr:title="Section Container"
+          jcr:description="A container component for grouping other components"
+          componentGroup="MyApp - Layout"
+          cq:isContainer="{Boolean}true"/>
+
+<!--
+  示例 4: 带使用限制的组件配置
+  --------------------------
+-->
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          xmlns:sling="http://www.jcp.org/jcr/sling/1.0"
+          xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          jcr:primaryType="cq:Component"
+          jcr:title="Header Component"
+          jcr:description="Page header component"
+          componentGroup="MyApp - Layout"
+          allowParents="[myapp/components/page]"
+          cq:isContainer="{Boolean}false"/>
+
+<!--
+  示例 5: 完整配置（包含所有常用属性）
+  -----------------------------------
+-->
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          xmlns:sling="http://www.jcp.org/jcr/sling/1.0"
+          xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          jcr:description="A hero banner component with image, text, and CTA button"
+          sling:resourceSuperType="myapp/components/base"
+          componentGroup="MyApp - Content"
+          cq:isContainer="{Boolean}false"
+          cq:noDecoration="{Boolean}false"
+          allowParents="[myapp/components/page,myapp/components/section]"/>
+
+<!--
+  4. 属性参考表（完整版）
+  =====================
+-->
+
+<!--
+  | 属性名 | 类型 | 必需 | 默认值 | 说明 | 版本支持 |
+  |--------|------|------|--------|------|---------|
+  | jcr:primaryType | String | 是 | - | 必须为 "cq:Component" | 所有版本 |
+  | jcr:title | String | 否（推荐） | - | 组件显示名称 | 所有版本 |
+  | jcr:description | String | 否 | - | 组件描述 | 所有版本 |
+  | sling:resourceType | String | 否 | 路径推断 | 组件资源类型（通常不需要） | 所有版本 |
+  | sling:resourceSuperType | String | 否 | - | 父组件路径（继承） | 所有版本 |
+  | componentGroup | String | 否（推荐） | - | 组件分组（特殊值: ".hidden" 隐藏组件） | 所有版本 |
+  | cq:isContainer | Boolean | 否 | false | 是否为容器组件 | 所有版本 |
+  | allowParents | String[] | 否 | - | 允许的父组件列表（子组件上设置） | AEM 6.1+ |
+  | allowedChildren | String[] | 否 | - | 允许的子组件列表（父组件上设置，通常通过 Policy 配置） | AEM 6.3+ |
+  | cq:noDecoration | Boolean | 否 | false | 是否禁用装饰器 | 所有版本 |
+  | cellName | String | 否 | - | 响应式网格单元格名称 | 所有版本 |
+  | dialogPath | String | 否 | _cq_dialog | 自定义对话框路径 | 所有版本 |
+  | thumbnailPath | String | 否 | thumbnail.png | 组件缩略图路径 | 所有版本 |
+  | icon | String | 否 | - | Granite UI 图标名称 | AEM 6.3+ |
+  | cq:isTemplate | Boolean | 否 | false | 是否为模板组件（已废弃） | AEM 6.0-6.2 |
+  | cq:designDialogPath | String | 否 | _cq_design_dialog | 自定义设计对话框路径 | 所有版本 |
+  | cq:templatePath | String | 否 | _cq_template | 组件模板路径（Editable Templates） | AEM 6.3+ |
+  | cq:emptyText | String | 否 | - | 组件为空时显示的占位文本 | 所有版本 |
+  | cq:inherit | Boolean | 否 | false | 是否继承父组件内容 | 所有版本 |
+  | jcr:mixinTypes | String[] | 否 | - | JCR Mixin 类型（扩展节点类型） | 所有版本 |
+  
+  注意: 
+  - 以上是 AEM 系统识别的主要属性
+  - 您还可以添加任何自定义属性（自定义名称）
+  - 自定义属性可以通过 HTL 和 Java 代码访问
+  - 但自定义属性不会影响 AEM 的系统行为
+-->
+
+<!--
+  5. 最佳实践
+  ==========
+-->
+
+<!--
+  5.1 命名规范
+  ----------
+  - 使用描述性的 jcr:title
+  - componentGroup 使用 "Project - Category" 格式
+  - 保持属性值简洁明确
+-->
+
+<!--
+  5.2 属性使用建议
+  --------------
+  - 总是设置 jcr:title（必需）
+  - 推荐设置 jcr:description（帮助作者理解组件）
+  - 使用 componentGroup 组织组件（推荐）
+  - 只在需要时设置 allowParents（避免过度限制）
+  - 合理使用 sling:resourceSuperType（代码复用）
+-->
+
+<!--
+  5.3 常见错误
+  ----------
+  - 忘记设置 jcr:primaryType="cq:Component"
+  - componentGroup 命名不一致
+  - allowParents 格式错误（忘记方括号）
+  - cq:isContainer 设置错误（容器组件忘记设为 true）
+-->
+
+<!--
+  6. 在 CRX/DE Lite 中查看
+  ======================
+  
+  访问: http://localhost:4502/crx/de/index.jsp
+  导航到: /apps/{project}/components/{component-name}
+  
+  可以查看:
+  - 所有属性的当前值
+  - 属性的数据类型
+  - 属性的继承关系
+-->
+
+<!--
+  7. React 迁移映射
+  ================
+  
+  AEM .content.xml          →  React 组件结构
+  ────────────────────────────────────────────────
+  jcr:title                 →  组件文档/注释中的名称
+  jcr:description           →  组件文档说明
+  componentGroup            →  组件分类/目录结构
+  sling:resourceSuperType   →  组件继承/组合
+  cq:isContainer            →  容器组件标识
+  allowParents              →  TypeScript 类型约束
+-->
+
+<!--
+  8. 高级属性详解
+  ==============
+-->
+
+<!--
+  8.1 对话框路径配置
+  ----------------
+-->
+
+<!-- dialogPath: 自定义对话框路径 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          dialogPath="myapp/components/hero/custom-dialog"/>
+
+<!--
+  dialogPath
+  - 类型: String
+  - 必需: 否
+  - 说明: 指定自定义对话框路径（相对于组件路径）
+  - 默认: 如果未设置，使用 _cq_dialog/.content.xml
+  - 使用场景: 需要为不同环境使用不同对话框
+  - 注意: 路径相对于组件根目录
+-->
+
+<!--
+  8.2 图标和缩略图
+  --------------
+-->
+
+<!-- thumbnailPath: 组件缩略图路径 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          thumbnailPath="myapp/components/hero/thumbnail.png"/>
+
+<!--
+  thumbnailPath
+  - 类型: String
+  - 必需: 否
+  - 说明: 组件缩略图的相对路径
+  - 默认: 如果未设置，查找组件目录下的 thumbnail.png
+  - 格式: 相对路径（如 "thumbnail.png" 或 "images/thumb.png"）
+  - 尺寸建议: 319x319 像素（用于组件浏览器）
+-->
+
+<!-- icon: 组件图标（Granite UI 图标） -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          icon="image"/>
+
+<!--
+  icon
+  - 类型: String
+  - 必需: 否
+  - 说明: Granite UI 图标名称（用于组件浏览器和工具栏）
+  - 示例: "image", "text", "layout", "navigation"
+  - 参考: Coral/Granite UI 图标库
+  - 优先级: 如果同时设置了 icon 和 thumbnailPath，优先使用 icon
+-->
+
+<!--
+  8.3 组件路径和资源类型
+  --------------------
+-->
+
+<!-- sling:resourceType: 显式指定资源类型 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          sling:resourceType="myapp/components/hero"/>
+
+<!--
+  sling:resourceType（在 .content.xml 中）
+  - 类型: String
+  - 必需: 否（通常不需要）
+  - 说明: 显式指定组件的资源类型
+  - 默认行为: 通常由组件路径自动推断
+  - 使用场景: 
+    - 组件路径与资源类型不一致时
+    - 需要别名或重定向时
+  - 注意: 在大多数情况下不需要设置
+-->
+
+<!--
+  8.4 组件可见性和权限
+  ------------------
+-->
+
+<!-- cq:isTemplate: 是否为模板组件（已废弃） -->
+<!--
+  cq:isTemplate
+  - 类型: Boolean
+  - 状态: 已废弃（AEM 6.3+）
+  - 说明: 旧版 AEM 中标识模板组件
+  - 替代方案: 使用 Editable Templates
+-->
+
+<!--
+  8.6 设计对话框路径
+  ----------------
+-->
+
+<!-- cq:designDialogPath: 自定义设计对话框路径 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          cq:designDialogPath="myapp/components/hero/custom-design-dialog"/>
+
+<!--
+  cq:designDialogPath
+  - 类型: String
+  - 必需: 否
+  - 说明: 指定自定义设计对话框路径（相对于组件路径）
+  - 默认: 如果未设置，使用 _cq_design_dialog/.content.xml
+  - 使用场景: 需要为不同环境使用不同设计对话框
+  - 注意: 路径相对于组件根目录
+  - 版本: 所有 AEM 版本支持
+-->
+
+<!--
+  8.7 组件模板路径（Editable Templates）
+  -------------------------------------
+-->
+
+<!-- cq:templatePath: 组件模板路径 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          cq:templatePath="myapp/components/hero/_cq_template"/>
+
+<!--
+  cq:templatePath
+  - 类型: String
+  - 必需: 否
+  - 说明: 指定组件模板路径（用于 Editable Templates）
+  - 默认: 如果未设置，使用 _cq_template/.content.xml
+  - 使用场景: Editable Templates 中定义组件模板
+  - 版本: AEM 6.3+（Editable Templates 功能）
+  - 注意: 仅在 Editable Templates 场景中使用
+-->
+
+<!--
+  8.8 组件空文本
+  -------------
+-->
+
+<!-- cq:emptyText: 组件为空时显示的占位文本 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          cq:emptyText="Drag components here"/>
+
+<!--
+  cq:emptyText
+  - 类型: String
+  - 必需: 否
+  - 说明: 当组件为空时显示的占位文本（编辑模式下）
+  - 使用场景: 容器组件或可编辑区域
+  - 示例: "Drag components here", "Click to edit", "Add content"
+  - 版本: 所有 AEM 版本支持
+  - 注意: 通常用于容器组件，提示作者可以添加内容
+-->
+
+<!--
+  8.9 组件继承标志
+  --------------
+-->
+
+<!-- cq:inherit: 是否继承父组件内容 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          cq:inherit="{Boolean}true"/>
+
+<!--
+  cq:inherit
+  - 类型: Boolean
+  - 必需: 否
+  - 默认值: false
+  - 说明: 是否继承父组件的内容和属性
+  - true: 继承父组件的内容
+  - false: 不继承（默认）
+  - 使用场景: 需要从父组件继承内容的特殊场景
+  - 版本: 所有 AEM 版本支持
+  - 注意: 与 sling:resourceSuperType 不同，这是内容继承而非脚本继承
+-->
+
+<!--
+  8.10 JCR Mixin 类型
+  -----------------
+-->
+
+<!-- jcr:mixinTypes: JCR Mixin 类型 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          jcr:mixinTypes="[mix:versionable,mix:lockable]"/>
+
+<!--
+  jcr:mixinTypes
+  - 类型: String[] (字符串数组)
+  - 必需: 否
+  - 说明: JCR Mixin 类型数组，用于扩展节点的类型能力和行为
+  - 格式: 使用方括号 [] 包裹，多个类型用逗号分隔
+  - 示例: jcr:mixinTypes="[mix:versionable,mix:lockable]"
+  
+  Mixin 是什么？
+  -------------
+  
+  Mixin 是 JCR 规范中的概念，允许在运行时为节点添加额外的类型能力。
+  与 jcr:primaryType（主要类型）不同，Mixin 类型是"可选的额外能力"。
+  
+  类比理解:
+  - jcr:primaryType = "人"（主要身份）
+  - jcr:mixinTypes = ["会开车", "会游泳"]（额外能力）
+  - 节点可以有多个 Mixin 类型，但只能有一个 primaryType
+  
+  Mixin 与 PrimaryType 的区别:
+  
+  1. PrimaryType (jcr:primaryType)
+     - 定义节点的"本质身份"
+     - 每个节点必须有且只有一个
+     - 决定节点的基本结构和行为
+     - 不能更改（需要删除节点重建）
+     - 示例: cq:Component, nt:file, cq:Page
+  
+  2. MixinType (jcr:mixinTypes)
+     - 添加"可选能力"
+     - 节点可以有零个、一个或多个
+     - 动态添加和移除
+     - 可以运行时更改
+     - 示例: mix:versionable, mix:lockable
+  
+  常见的 JCR Mixin 类型:
+  -------------------
+  
+  1. mix:versionable
+     - 启用版本控制功能
+     - 允许创建节点的版本历史
+     - 可以恢复旧版本
+     - 属性: jcr:versionHistory, jcr:baseVersion, jcr:isCheckedOut
+     - 使用场景: 需要版本控制的组件配置
+  
+  2. mix:lockable
+     - 启用节点锁定功能
+     - 防止并发修改
+     - 属性: jcr:lockOwner, jcr:lockIsDeep
+     - 使用场景: 编辑时需要锁定
+  
+  3. mix:referenceable
+     - 启用节点引用功能
+     - 为节点分配 UUID（唯一标识符）
+     - 属性: jcr:uuid
+     - 使用场景: 需要被其他节点引用的组件
+  
+  4. mix:title
+     - 启用标题属性支持
+     - 属性: jcr:title
+     - 使用场景: 需要标题的节点（通常已由 cq:Component 提供）
+  
+  5. mix:created
+     - 启用创建时间追踪
+     - 属性: jcr:created, jcr:createdBy
+     - 使用场景: 需要追踪创建信息
+  
+  6. mix:lastModified
+     - 启用最后修改时间追踪
+     - 属性: jcr:lastModified, jcr:lastModifiedBy
+     - 使用场景: 需要追踪修改信息
+  
+  AEM 特定的 Mixin 类型:
+  --------------------
+  
+  1. cq:ReplicationStatus
+     - 启用复制状态追踪
+     - 属性: cq:lastReplicated, cq:lastReplicatedBy, cq:lastReplicationAction
+     - 使用场景: 需要追踪内容复制状态
+  
+  2. cq:Taggable
+     - 启用标签功能
+     - 属性: cq:tags
+     - 使用场景: 需要为组件添加标签
+  
+  在 .content.xml 中使用示例:
+  -------------------------
+  
+  <!-- 示例 1: 启用版本控制 -->
+  <jcr:root jcr:primaryType="cq:Component"
+            jcr:mixinTypes="[mix:versionable]"
+            jcr:title="Versioned Component"/>
+  
+  <!-- 示例 2: 启用版本控制和锁定 -->
+  <jcr:root jcr:primaryType="cq:Component"
+            jcr:mixinTypes="[mix:versionable,mix:lockable]"
+            jcr:title="Versioned and Lockable Component"/>
+  
+  <!-- 示例 3: 启用引用功能（分配 UUID） -->
+  <jcr:root jcr:primaryType="cq:Component"
+            jcr:mixinTypes="[mix:referenceable]"
+            jcr:title="Referenceable Component"/>
+  
+  <!-- 示例 4: 启用版本控制和复制状态 -->
+  <jcr:root jcr:primaryType="cq:Component"
+            jcr:mixinTypes="[mix:versionable,cq:ReplicationStatus]"
+            jcr:title="Tracked Component"/>
+  
+  实际使用场景:
+  -----------
+  
+  1. 版本控制组件配置
+     - 需要追踪组件配置的历史变更
+     - 可以回滚到之前的配置版本
+     - 使用: jcr:mixinTypes="[mix:versionable]"
+  
+  2. 组件锁定
+     - 编辑时防止其他人同时修改
+     - 使用: jcr:mixinTypes="[mix:lockable]"
+  
+  3. 组件引用
+     - 其他节点需要引用这个组件节点
+     - 需要 UUID 作为唯一标识
+     - 使用: jcr:mixinTypes="[mix:referenceable]"
+  
+  4. 复制状态追踪
+     - 需要知道组件配置是否已复制到发布环境
+     - 使用: jcr:mixinTypes="[cq:ReplicationStatus]"
+  
+  编程方式操作 Mixin:
+  ----------------
+  
+  Java 代码示例:
+  
+  // 添加 Mixin 类型
+  Node componentNode = ...;
+  if (!componentNode.isNodeType("mix:versionable")) {
+      componentNode.addMixin("mix:versionable");
+      componentNode.getSession().save();
+  }
+  
+  // 移除 Mixin 类型
+  if (componentNode.isNodeType("mix:versionable")) {
+      componentNode.removeMixin("mix:versionable");
+      componentNode.getSession().save();
+  }
+  
+  // 检查是否有 Mixin 类型
+  boolean isVersionable = componentNode.isNodeType("mix:versionable");
+  
+  // 获取所有 Mixin 类型
+  String[] mixinTypes = componentNode.getMixinNodeTypes();
+  
+  注意事项:
+  -------
+  
+  1. 不是所有 Mixin 类型都可以添加到所有节点类型
+     - 需要检查节点类型定义中声明的允许 Mixin
+     - 尝试添加不允许的 Mixin 会抛出异常
+  
+  2. Mixin 类型一旦添加，相关的属性会自动创建
+     - 例如: mix:versionable 会自动创建 jcr:versionHistory 属性
+  
+  3. 移除 Mixin 类型会移除相关属性
+     - 确保在移除前备份重要数据
+  
+  4. 对于组件 .content.xml，大多数情况下不需要设置 Mixin
+     - cq:Component 类型已经提供了大部分功能
+     - Mixin 主要用于内容节点（/content 下的节点）
+  
+  5. 版本兼容性
+     - 所有 JCR Mixin 类型在所有 AEM 版本中支持
+     - AEM 特定的 Mixin 类型取决于版本
+  
+  何时使用 Mixin？
+  --------------
+  
+  在组件 .content.xml 中使用 Mixin 的常见场景:
+  
+  ✓ 需要版本控制组件配置（较少见，通常不需要）
+  ✓ 需要锁定组件节点（较少见）
+  ✓ 需要引用组件节点（通过编程方式）
+  
+  ✗ 大多数情况下，组件 .content.xml 不需要设置 Mixin
+  ✗ Mixin 主要用于内容节点（/content 下的节点），而非组件定义节点
+  
+  总结:
+  ----
+  
+  - Mixin 是 JCR 规范中的概念，用于为节点添加可选能力
+  - 通过 jcr:mixinTypes 属性设置（数组格式）
+  - 与 jcr:primaryType 不同，Mixin 是可选的、可动态添加的
+  - 对于组件 .content.xml，大多数情况下不需要设置 Mixin
+  - 如果需要，常见的用途是版本控制和引用功能
+-->
+
+<!--
+  8.5 响应式网格相关
+  ----------------
+-->
+
+<!--
+  8.11 自定义属性
+  --------------
+  
+  AEM 允许在 .content.xml 中添加任何自定义属性。
+  这些属性不会影响 AEM 的系统行为，但可以通过代码访问。
+-->
+
+<!-- 自定义属性示例 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          customProperty="customValue"
+          myApp:version="1.0.0"
+          myApp:category="marketing"/>
+
+<!--
+  自定义属性说明:
+  - 可以添加任何名称的属性（遵循 XML 属性命名规范）
+  - 可以使用命名空间前缀（如 myApp:version）
+  - 可以通过 HTL 访问: ${properties.customProperty}
+  - 可以通过 Java 访问: properties.get("customProperty", String.class)
+  - 不会影响 AEM 系统行为（如组件浏览器、编辑器等）
+  
+  使用场景:
+  - 存储组件元数据（版本、作者、分类等）
+  - 存储配置信息（供自定义代码使用）
+  - 标记组件（用于查询、筛选等）
+  - 集成第三方系统（存储外部系统 ID 等）
+  
+  注意事项:
+  - 避免使用 AEM 保留的属性名（jcr:*, sling:*, cq:*）
+  - 使用命名空间前缀避免命名冲突
+  - 自定义属性不会自动继承到子组件
+  - 建议在文档中说明自定义属性的用途
+-->
+
+<!-- cellName: 响应式网格单元格名称 -->
+<jcr:root jcr:primaryType="cq:Component"
+          jcr:title="Hero Component"
+          cellName="hero"/>
+
+<!--
+  cellName（详细说明）
+  - 类型: String
+  - 必需: 否
+  - 说明: 在响应式网格布局系统中使用的单元格标识符
+  - 使用场景: 响应式网格布局（Responsive Grid）
+  - 关联: 与布局容器的单元格定义配合使用
+  - 示例值: "hero", "sidebar", "content", "footer"
+-->
+
+<!--
+  9. 属性的运行时行为
+  ==================
+-->
+
+<!--
+  9.1 属性读取机制
+  --------------
+  
+  AEM 读取组件属性的顺序:
+  
+  1. 组件实例节点的属性（/content/page/jcr:content/hero）
+  2. 组件定义节点的属性（/apps/myapp/components/hero/.content.xml）
+  3. 父组件定义的属性（如果设置了 sling:resourceSuperType）
+  4. 默认值（如果属性未定义）
+-->
+
+<!--
+  9.2 属性继承规则
+  --------------
+  
+  sling:resourceSuperType 的继承行为:
+  
+  - 脚本（.html, .jsp）: 子组件优先，不存在时使用父组件
+  - 对话框（_cq_dialog）: 子组件优先，不存在时使用父组件
+  - 属性: 子组件属性覆盖父组件属性（不合并）
+  - componentGroup: 继承父组件的值（如果子组件未设置）
+-->
+
+<!--
+  9.3 属性验证
+  ----------
+  
+  AEM 在以下时机验证属性:
+  
+  1. 组件节点创建/更新时（.content.xml 保存时）
+  2. 组件渲染时（检查必需的属性）
+  3. 编辑器加载时（验证组件配置）
+  
+  常见验证错误:
+  - jcr:primaryType 不是 "cq:Component"
+  - allowParents 格式错误（不是数组格式）
+  - sling:resourceSuperType 指向不存在的组件
+-->
+
+<!--
+  10. 编程方式操作组件属性
+  =======================
+-->
+
+<!--
+  10.1 Java 代码读取组件属性
+  ------------------------
+-->
+
+<!--
+// 通过 ResourceResolver 读取组件配置
+ResourceResolver resolver = ...;
+Resource componentResource = resolver.resolve("/apps/myapp/components/hero");
+
+// 读取 ValueMap（包含所有属性）
+ValueMap properties = componentResource.getValueMap();
+
+// 读取单个属性
+String title = properties.get("jcr:title", String.class);
+String componentGroup = properties.get("componentGroup", String.class);
+String resourceSuperType = properties.get("sling:resourceSuperType", String.class);
+Boolean isContainer = properties.get("cq:isContainer", false);
+String[] allowParents = properties.get("allowParents", String[].class);
+
+// 或者通过 Node API 读取
+Node componentNode = componentResource.adaptTo(Node.class);
+if (componentNode != null && componentNode.hasProperty("jcr:title")) {
+    String title = componentNode.getProperty("jcr:title").getString();
+}
+-->
+
+<!--
+  10.2 Groovy 脚本读取组件属性
+  --------------------------
+-->
+
+<!--
+// 在 Groovy Console 中执行
+// 访问: http://localhost:4502/groovyconsole
+
+def componentPath = "/apps/myapp/components/hero"
+def componentResource = resourceResolver.resolve(componentPath)
+
+if (componentResource) {
+    def props = componentResource.getValueMap()
+    
+    println "组件标题: ${props.get('jcr:title', '')}"
+    println "组件描述: ${props.get('jcr:description', '')}"
+    println "组件分组: ${props.get('componentGroup', '')}"
+    println "资源超类型: ${props.get('sling:resourceSuperType', '')}"
+    println "是否容器: ${props.get('cq:isContainer', false)}"
+    
+    def allowParents = props.get('allowParents', String[])
+    if (allowParents) {
+        println "允许的父组件: ${allowParents.join(', ')}"
+    }
+}
+-->
+
+<!--
+  10.3 通过 Sling Model 访问
+  ------------------------
+-->
+
+<!--
+// 创建 Sling Model 访问组件配置
+@Model(adaptables = Resource.class)
+public interface ComponentConfig {
+    
+    @ValueMapValue(injectionStrategy = InjectionStrategy.OPTIONAL)
+    String getTitle();
+    
+    @ValueMapValue(injectionStrategy = InjectionStrategy.OPTIONAL)
+    String getDescription();
+    
+    @ValueMapValue(injectionStrategy = InjectionStrategy.OPTIONAL)
+    String getComponentGroup();
+    
+    @ValueMapValue(injectionStrategy = InjectionStrategy.OPTIONAL)
+    Boolean isContainer();
+    
+    @ValueMapValue(injectionStrategy = InjectionStrategy.OPTIONAL)
+    String[] getAllowParents();
+}
+
+// 使用
+Resource componentResource = resolver.resolve("/apps/myapp/components/hero");
+ComponentConfig config = componentResource.adaptTo(ComponentConfig.class);
+String title = config.getTitle();
+-->
+
+<!--
+  11. 调试和故障排查
+  =================
+-->
+
+<!--
+  11.1 常见问题诊断
+  ----------------
+-->
+
+<!--
+  问题 1: 组件在组件浏览器中不显示
+  
+  检查项:
+  - jcr:primaryType 是否为 "cq:Component"
+  - componentGroup 是否正确设置（注意: 如果是 ".hidden" 则不会显示）
+  - 组件路径是否正确（/apps/{project}/components/{name}）
+  - 是否有读取权限
+  - 组件浏览器过滤器是否隐藏了该分组
+  
+  调试方法:
+  1. 在 CRX/DE Lite 中查看组件节点，检查 componentGroup 值
+  2. 如果 componentGroup 是 ".hidden"，这是正常的（组件被隐藏）
+  3. 检查组件浏览器过滤器设置
+  4. 查看错误日志
+  
+  常见原因:
+  - componentGroup 设置为 ".hidden"（这是预期的隐藏行为）
+  - componentGroup 未设置且没有继承父组件的值
+  - 组件浏览器过滤器排除了该分组
+  - 权限问题（用户没有读取权限）
+-->
+
+<!--
+  问题 2: 组件继承不工作
+  
+  检查项:
+  - sling:resourceSuperType 路径是否正确
+  - 父组件是否存在
+  - 是否有循环引用
+  - 父组件的脚本是否存在
+  
+  调试方法:
+  1. 验证父组件路径
+  2. 检查父组件是否有对应的脚本文件
+  3. 查看脚本查找日志（DEBUG 级别）
+-->
+
+<!--
+  问题 3: allowParents 限制不生效
+  
+  检查项:
+  - allowParents 格式是否正确（数组格式）
+  - 父组件的 resourceType 是否匹配
+  - 是否使用了模板策略（Policy）覆盖
+  - AEM 版本是否支持此功能
+  
+  调试方法:
+  1. 在浏览器控制台查看拖放错误信息
+  2. 检查组件配置中的 allowParents 值
+  3. 验证父容器的 resourceType
+-->
+
+<!--
+  11.2 调试工具和技巧
+  ------------------
+-->
+
+<!--
+  使用 CRX/DE Lite:
+  - 访问: http://localhost:4502/crx/de/index.jsp
+  - 导航到组件路径
+  - 查看所有属性值
+  - 检查属性类型是否正确
+  
+  使用组件浏览器:
+  - 检查组件是否显示
+  - 查看组件图标和描述
+  - 测试组件拖放功能
+  
+  启用调试日志:
+  - 设置日志级别为 DEBUG
+  - 查看组件解析日志
+  - 查看脚本查找日志
+-->
+
+<!--
+  12. 性能考虑
+  ===========
+-->
+
+<!--
+  12.1 属性读取性能
+  ----------------
+  
+  - 组件属性缓存在 ResourceResolver 中
+  - 首次访问时从 JCR 读取，后续访问从缓存读取
+  - 大量属性不会显著影响性能
+  
+  优化建议:
+  - 避免在运行时频繁读取组件配置
+  - 使用 Sling Model 缓存配置值
+  - 批量读取多个组件配置时使用 ResourceResolver 缓存
+-->
+
+<!--
+  12.2 组件查找性能
+  ----------------
+  
+  - Sling 使用 ResourceResolver 缓存组件定义
+  - 组件路径解析是 O(1) 操作（直接路径查找）
+  - 继承查找可能有递归开销（如果继承链很深）
+  
+  优化建议:
+  - 避免过深的继承链（建议不超过 3-4 层）
+  - 避免循环继承引用
+  - 使用直接路径引用而非复杂继承
+-->
+
+<!--
+  13. 版本兼容性
+  =============
+-->
+
+<!--
+  AEM 6.0+
+  - 所有基础属性都支持
+  - allowParents 在 AEM 6.1+ 中完全支持
+  
+  AEM 6.3+ (Editable Templates)
+  - 推荐使用模板策略（Policy）代替 allowParents
+  - 支持更多组件配置选项
+  
+  AEM 6.4+
+  - 增强的组件浏览器功能
+  - 更好的组件分组支持
+  
+  AEM 6.5+
+  - 改进的组件继承机制
+  - 性能优化
+  
+  AEM as a Cloud Service
+  - 所有属性都支持
+  - 推荐使用 Editable Templates 和 Policy
+-->
+
+<!--
+  14. 最佳实践（详细版）
+  =====================
+-->
+
+<!--
+  14.1 命名和结构
+  --------------
+  
+  组件命名:
+  - 使用有意义的名称（如 "hero-banner" 而非 "comp1"）
+  - 使用小写字母和连字符（kebab-case）
+  - 避免使用特殊字符和空格
+  
+  组件分组:
+  - 使用一致的命名格式（"Project - Category"）
+  - 创建清晰的分类层次
+  - 避免过多的分组层级
+  
+  示例分组结构:
+  - "MyApp - Content"（内容组件）
+  - "MyApp - Layout"（布局组件）
+  - "MyApp - Navigation"（导航组件）
+  - "MyApp - Forms"（表单组件）
+-->
+
+<!--
+  14.2 属性配置建议
+  ----------------
+  
+  必需属性:
+  - 总是设置 jcr:primaryType="cq:Component"
+  - 总是设置 jcr:title（用户体验）
+  
+  推荐属性:
+  - jcr:description（帮助作者理解组件）
+  - componentGroup（组织组件）
+  - thumbnailPath 或 icon（视觉识别）
+  
+  可选属性（按需使用）:
+  - sling:resourceSuperType（需要继承时）
+  - allowParents（需要限制使用时）
+  - cq:isContainer（容器组件）
+  - cq:noDecoration（特殊渲染需求）
+-->
+
+<!--
+  14.3 继承设计建议
+  ----------------
+  
+  继承层次:
+  - 创建基础组件（base, container）
+  - 在基础组件上构建具体组件
+  - 避免过深的继承链（最多 3-4 层）
+  
+  继承内容:
+  - 在父组件中定义通用功能
+  - 在子组件中覆盖特定功能
+  - 使用清晰的职责分离
+  
+  示例结构:
+  base (基础组件)
+    ├── content-base (内容基础组件)
+    │     ├── text (文本组件)
+    │     └── image (图片组件)
+    └── layout-base (布局基础组件)
+          ├── container (容器组件)
+          └── section (区块组件)
+-->
+
+<!--
+  14.4 使用限制设计
+  ----------------
+  
+  allowParents 使用原则:
+  - 只在必要时使用（避免过度限制）
+  - 使用清晰的组件路径
+  - 考虑模板策略（Policy）作为替代方案
+  
+  使用场景:
+  - Header/Footer 只能放在 Page 组件中
+  - 特定组件只能放在特定容器中
+  - 确保页面结构合理性
+  
+  避免:
+  - 过度限制导致组件无法使用
+  - 使用通配符（不支持）
+  - 在组件库级别过度限制
+  
+  allowedChildren 使用原则:
+  - 推荐通过模板策略（Policy）配置，而非直接在组件 .content.xml 中设置
+  - 用于限制容器组件的子组件类型
+  - 可以配合 allowParents 实现双向限制
+  
+  使用场景:
+  - Container 只能包含特定类型的组件（如 Card）
+  - Section 只能包含内容组件，不能包含布局组件
+  - 确保容器结构的合理性
+  
+  配置方式对比:
+  
+  方式 1: 直接在组件 .content.xml 中配置（较少使用）
+  <jcr:root jcr:primaryType="cq:Component"
+            allowedChildren="[myapp/components/card]"/>
+  
+  方式 2: 通过模板策略（Policy）配置（推荐，AEM 6.3+）
+  路径: /content/{site}/templates/{template}/policies/{component}/policy.json
+  内容:
+  {
+    "allowedChildren": [
+      "myapp/components/card",
+      "myapp/components/text"
+    ]
+  }
+  
+  优势:
+  - 可以根据不同的模板设置不同的策略
+  - 更灵活，不需要修改组件定义
+  - 符合 Editable Templates 的最佳实践
+-->
+
+<!--
+  15. 实际应用案例
+  ===============
+-->
+
+<!--
+  案例 1: 基础内容组件
+  ------------------
+  
+  需求: 创建一个可重用的文本组件
+  
+  配置:
+  - jcr:title: "Text"
+  - jcr:description: "Display text content"
+  - componentGroup: "MyApp - Content"
+  - cq:isContainer: false
+  
+  特点:
+  - 简单直接
+  - 无继承
+  - 无使用限制
+-->
+
+<!--
+  案例 2: 继承组件
+  --------------
+  
+  需求: 创建 Hero 组件，继承基础组件功能
+  
+  配置:
+  - jcr:title: "Hero Banner"
+  - sling:resourceSuperType: "myapp/components/base"
+  - componentGroup: "MyApp - Content"
+  
+  特点:
+  - 继承基础组件的脚本和对话框
+  - 可以覆盖父组件功能
+  - 代码复用
+-->
+
+<!--
+  案例 3: 容器组件
+  --------------
+  
+  需求: 创建可包含其他组件的容器
+  
+  配置:
+  - jcr:title: "Section Container"
+  - cq:isContainer: true
+  - componentGroup: "MyApp - Layout"
+  
+  特点:
+  - 可以包含其他组件
+  - 需要 _cq_childEditConfig 配置
+  - 通常在 HTL 中使用 Parsys
+-->
+
+<!--
+  案例 4: 受限组件
+  --------------
+  
+  需求: Header 组件只能放在页面根组件中
+  
+  配置:
+  - jcr:title: "Page Header"
+  - allowParents: "[myapp/components/page]"
+  - componentGroup: "MyApp - Layout"
+  
+  特点:
+  - 限制使用位置
+  - 确保页面结构正确
+  - 防止误用
+-->
+
+<!--
+  案例 5: 隐藏的基础组件
+  -------------------
+  
+  需求: 创建基础组件，只用于继承，不在组件浏览器中显示
+  
+  配置:
+  - jcr:title: "Base Component"
+  - componentGroup: ".hidden"
+  - sling:resourceSuperType: "core/wcm/components/container/v1/container"
+  
+  特点:
+  - 不在组件浏览器中显示
+  - 可以被其他组件继承
+  - 可以通过编程方式使用
+  - 适合作为基础组件或工具组件
+-->
+
+<!--
+  案例 6: allowParents 和 allowedChildren 对比
+  ------------------------------------------
+  
+  场景: 创建一个卡片容器组件，只允许包含卡片组件，而卡片组件只能放在容器中
+  
+  容器组件配置 (Container):
+  - jcr:title: "Card Container"
+  - cq:isContainer: true
+  - allowedChildren: "[myapp/components/card]"
+  
+  卡片组件配置 (Card):
+  - jcr:title: "Card"
+  - allowParents: "[myapp/components/container]"
+  
+  结果:
+  - Card 组件只能放在 Container 组件中（allowParents 限制）
+  - Container 组件只能包含 Card 组件（allowedChildren 限制）
+  - 两者互相匹配，形成一个封闭的组件组合
+  
+  工作原理:
+  1. 当作者尝试将 Card 拖放到 Container 中时:
+     - 检查 Card 的 allowParents 是否包含 Container 的类型 ✓
+     - 检查 Container 的 allowedChildren 是否包含 Card 的类型 ✓
+     - 两者都满足，允许添加
+  
+  2. 当作者尝试将其他组件拖放到 Container 中时:
+     - 检查其他组件的 allowParents（可能没有限制）✓
+     - 检查 Container 的 allowedChildren 是否包含其他组件的类型 ✗
+     - 不满足，禁止添加
+  
+  3. 当作者尝试将 Card 拖放到其他容器中时:
+     - 检查 Card 的 allowParents 是否包含其他容器的类型 ✗
+     - 不满足，禁止添加
+  
+  总结:
+  - allowParents: 子组件主动限制自己只能被哪些父组件包含
+  - allowedChildren: 父组件主动限制自己只能包含哪些子组件
+  - 两者可以组合使用，实现双向限制
+-->
+
+<!--
+  16. 属性完整性说明
+  ================
+-->
+
+<!--
+  16.1 AEM 系统识别的属性
+  ---------------------
+  
+  以上列出的属性是 AEM 系统识别和使用的属性。
+  这些属性会影响组件的系统行为（如组件浏览器、编辑器、渲染等）。
+  
+  系统属性分类:
+  
+  1. JCR 标准属性
+     - jcr:primaryType (必需)
+     - jcr:title
+     - jcr:description
+     - jcr:mixinTypes
+  
+  2. Sling 框架属性
+     - sling:resourceType
+     - sling:resourceSuperType
+  
+  3. AEM/CQ 组件属性
+     - componentGroup
+     - cq:isContainer
+     - cq:noDecoration
+     - cq:isTemplate (已废弃)
+     - cq:designDialogPath
+     - cq:templatePath
+     - cq:emptyText
+     - cq:inherit
+     - allowParents
+     - dialogPath
+     - thumbnailPath
+     - icon
+     - cellName
+  
+  4. 自定义属性
+     - 任何其他属性名称
+     - 可以通过代码访问
+     - 不影响系统行为
+-->
+
+<!--
+  16.2 属性列表是否完整？
+  ---------------------
+  
+  重要说明:
+  
+  - 本文档包含了 AEM 系统识别的主要属性
+  - 某些属性可能在不同 AEM 版本中有变化
+  - 某些属性可能仅用于特定场景（如 Editable Templates）
+  - AEM 允许添加任何自定义属性
+  
+  如何确认是否有遗漏的属性？
+  
+  1. 查看 AEM 官方文档
+     - Adobe Experience Manager 官方文档
+       * 网址: https://experienceleague.adobe.com/docs/experience-manager.html
+       * 组件开发文档: https://experienceleague.adobe.com/docs/experience-manager-65/developing/components/components-basics.html
+       * 组件配置参考: https://experienceleague.adobe.com/docs/experience-manager-65/developing/components/components-config.html
+       * 搜索关键词: "cq:Component properties", "component configuration", ".content.xml"
+     
+     - AEM Core Components 源代码
+       * GitHub 仓库: https://github.com/adobe/aem-core-wcm-components
+       * https://www.aemcomponents.dev/content/core-components-examples/library/core-content/form-container.html#tabs-79b9fca536-item-fd5f6d47e3-tab
+       * 查看组件定义: 在仓库中搜索 `.content.xml` 文件
+       * 查看组件属性: 查看各个组件的 `.content.xml` 文件内容
+       * 示例路径: 
+         - core/src/main/content/jcr_root/apps/core/wcm/components/{component}/.content.xml
+         - 例如: core/src/main/content/jcr_root/apps/core/wcm/components/title/v1/title/.content.xml
+       * 在线查看: 在 GitHub 上直接浏览文件内容
+       * 本地克隆: git clone https://github.com/adobe/aem-core-wcm-components.git
+  
+  2. 查看现有组件
+     - 使用 CRX/DE Lite 浏览现有组件
+       * 访问: http://localhost:4502/crx/de/index.jsp
+       * 导航到: /libs/core/wcm/components
+       * 查看各个组件的 .content.xml 节点
+       * 查看属性列表和值
+     
+     - 查看 AEM 核心组件
+       * 路径: /libs/core/wcm/components
+       * 示例组件:
+         - /libs/core/wcm/components/title/v1/title
+         - /libs/core/wcm/components/text/v1/text
+         - /libs/core/wcm/components/image/v1/image
+         - /libs/core/wcm/components/container/v1/container
+       * 在 CRX/DE Lite 中查看这些组件的属性
+     
+     - 查看项目中的组件
+       * 路径: /apps/{project}/components
+       * 在 CRX/DE Lite 中浏览项目组件
+       * 对比不同组件的配置
+  
+  3. 使用代码查询
+     - 通过 JCR 查询查找所有 cq:Component 节点
+       * 使用 Query Builder: http://localhost:4502/libs/cq/search/content/querydebug.html
+       * 查询类型: "cq:Component"
+       * 查看所有组件节点的属性
+     
+     - 使用 Groovy Console 查询
+       * 访问: http://localhost:4502/groovyconsole
+       * 执行查询脚本:
+         def queryManager = session.workspace.queryManager
+         def query = queryManager.createQuery(
+             "SELECT * FROM [cq:Component]",
+             "JCR-SQL2"
+         )
+         def results = query.execute()
+         results.nodes.each { node ->
+             println "Component: ${node.path}"
+             node.properties.each { prop ->
+                 println "  ${prop.name}: ${prop.value}"
+             }
+         }
+     
+     - 分析它们的属性
+       * 收集所有组件使用的属性
+       * 统计属性使用频率
+       * 识别未文档化的属性
+  
+  4. 测试验证
+     - 添加属性并测试系统行为
+       * 在组件 .content.xml 中添加新属性
+       * 保存并观察系统行为
+       * 检查属性是否被识别和使用
+     
+     - 查看日志确认属性是否被识别
+       * 启用 DEBUG 日志级别
+       * 查看组件解析日志
+       * 检查是否有属性相关的警告或错误
+  
+  5. 其他资源
+     - AEM 社区论坛
+       * 网址: https://experienceleaguecommunities.adobe.com/t5/adobe-experience-manager/ct-p/aem
+       * 搜索相关问题
+       * 查看社区专家的回答
+     
+     - Stack Overflow
+       * 搜索: "AEM cq:Component properties"
+       * 标签: aem, adobe-experience-manager
+     
+     - AEM 开发者文档
+       * 网址: https://helpx.adobe.com/experience-manager/6-5/sites/developing/using/components.html
+       * 组件开发指南
+       * API 参考文档
+  
+  注意:
+  - 某些属性可能是 AEM 内部使用的（不建议直接使用）
+  - 某些属性可能仅在特定版本中存在
+  - 某些属性可能需要特定的配置才能生效
+-->
+
+<!--
+  16.3 自定义属性的最佳实践
+  -----------------------
+  
+  如果需要添加自定义属性:
+  
+  1. 使用命名空间前缀
+     - 避免与系统属性冲突
+     - 示例: myApp:version, myApp:category
+  
+  2. 文档化自定义属性
+     - 在组件文档中说明用途
+     - 记录属性的类型和可能的值
+  
+  3. 考虑使用子节点
+     - 对于复杂数据，考虑使用子节点而非属性
+     - 示例: myApp:metadata/version
+  
+  4. 避免过度使用
+     - 只添加必要的自定义属性
+     - 过多的自定义属性会使组件配置复杂
+  
+  5. 版本兼容性
+     - 考虑自定义属性在不同 AEM 版本中的兼容性
+     - 使用适当的属性类型（String, Boolean, etc.）
+-->
+
+<!--
+  17. 与其他组件配置文件的集成
+  ===========================
+-->
+
+<!--
+  17.1 与对话框配置的关系
+  ---------------------
+  
+  .content.xml 中的属性可以影响对话框的行为:
+  
+  1. dialogPath: 自定义对话框路径
+     - 如果设置了 dialogPath，AEM 会使用指定的路径而非默认的 _cq_dialog
+     - 示例: dialogPath="myapp/components/hero/custom-dialog"
+  
+  2. 组件属性可以通过对话框读取
+     - 对话框字段的 name 属性对应组件实例的属性
+     - 组件定义中的属性作为默认值
+  
+  3. 继承关系影响对话框查找
+     - 如果组件设置了 sling:resourceSuperType，对话框也会继承
+     - 子组件对话框会覆盖父组件对话框
+-->
+
+<!--
+  17.2 与编辑配置的关系
+  -------------------
+  
+  _cq_editConfig.xml 与 .content.xml 的配合:
+  
+  1. cq:dialogMode: 对话框模式
+     - 在 _cq_editConfig.xml 中配置对话框打开方式
+     - 与 .content.xml 中的 dialogPath 配合使用
+  
+  2. 组件标识
+     - .content.xml 中的 jcr:title 显示在编辑工具栏
+     - componentGroup 影响组件在浏览器中的显示
+  
+  3. 容器组件配置
+     - .content.xml 中的 cq:isContainer 标识容器组件
+     - _cq_editConfig.xml 中的 cq:dropTargets 配置拖放目标
+-->
+
+<!--
+  17.3 与组件模板的关系
+  -------------------
+  
+  _cq_template 与 .content.xml 的关系:
+  
+  1. cq:templatePath: 指定组件模板路径
+     - 如果设置了 cq:templatePath，AEM 会使用指定的路径
+     - 默认使用 _cq_template 文件夹
+  
+  2. 模板继承
+     - 如果组件设置了 sling:resourceSuperType，模板也会继承
+     - 子组件模板会覆盖父组件模板
+  
+  3. Editable Templates
+     - 在 Editable Templates 中，组件模板定义初始内容结构
+     - .content.xml 定义组件的基本属性
+-->
+
+<!--
+  17.4 与 HTML 标签配置的关系
+  -------------------------
+  
+  _cq_htmlTag 与 .content.xml 的关系:
+  
+  1. 组件标识
+     - .content.xml 中的 jcr:title 用于组件识别
+     - componentGroup 不影响 HTML 标签配置
+  
+  2. 配置查找
+     - HTML 标签配置通过组件路径查找
+     - 继承关系（sling:resourceSuperType）影响查找顺序
+  
+  3. 独立配置
+     - HTML 标签配置独立于 .content.xml
+     - 两者可以独立设置和修改
+-->
+
+<!--
+  18. 底层机制深度分析
+  ===================
+-->
+
+<!--
+  18.1 组件节点类型定义
+  -------------------
+  
+  cq:Component 节点类型定义:
+  
+  - 基础类型: nt:base（JCR 标准）
+  - 继承: cq:Component 扩展了 nt:base
+  - 属性定义: 在节点类型定义中声明允许的属性
+  
+  查看节点类型定义:
+  - CRX/DE Lite: 查看节点类型定义
+  - 路径: /system/jcr:system/jcr:nodeTypes/cq:Component
+  - 或通过 Java API: NodeTypeManager.getNodeType("cq:Component")
+  
+  节点类型限制:
+  - 属性类型限制（String, Boolean, Long 等）
+  - 必需属性定义
+  - 默认值定义
+  - 属性约束（如枚举值）
+-->
+
+<!--
+  18.2 属性值类型系统
+  ------------------
+  
+  JCR 属性类型:
+  
+  1. String: 字符串类型
+     - 示例: jcr:title, jcr:description
+     - 格式: 普通字符串
+  
+  2. Boolean: 布尔类型
+     - 示例: cq:isContainer, cq:noDecoration
+     - 格式: {Boolean}true 或 {Boolean}false
+     - XML 中必须使用 {Boolean} 前缀
+  
+  3. String[]: 字符串数组
+     - 示例: allowParents, jcr:mixinTypes
+     - 格式: [value1,value2,value3]
+     - 多个值用逗号分隔，用方括号包裹
+  
+  4. Long: 长整型（较少用于组件属性）
+     - 用于数值属性
+     - 格式: {Long}123
+  
+  5. Date: 日期类型（较少用于组件属性）
+     - 用于日期属性
+     - 格式: ISO 8601 格式
+  
+  类型转换:
+  - AEM 会自动进行类型转换（如字符串到布尔值）
+  - 但建议使用正确的类型格式
+  - 错误的类型可能导致验证错误
+-->
+
+<!--
+  18.3 属性查找和解析机制
+  ---------------------
+  
+  Sling Resource Resolution 中的属性查找:
+  
+  1. 直接属性查找
+     - Resource.getValueMap() 返回所有属性
+     - 包括直接定义的属性和继承的属性
+     - 使用缓存提高性能
+  
+  2. 属性继承查找
+     - 如果设置了 sling:resourceSuperType，会查找父组件属性
+     - 子组件属性覆盖父组件属性（不合并）
+     - 递归向上查找继承链
+  
+  3. 属性合并规则
+     - 字符串属性: 子组件覆盖父组件
+     - 数组属性: 子组件覆盖父组件（不合并数组元素）
+     - 布尔属性: 子组件覆盖父组件
+  
+  代码示例:
+  
+  Resource componentResource = resolver.resolve("/apps/myapp/components/hero");
+  ValueMap props = componentResource.getValueMap();
+  
+  // 属性查找顺序:
+  // 1. 当前节点属性
+  // 2. 父组件属性（如果设置了 sling:resourceSuperType）
+  // 3. 默认值（如果属性未定义）
+  
+  String title = props.get("jcr:title", "Default Title");
+-->
+
+<!--
+  18.4 组件注册机制
+  ----------------
+  
+  AEM 如何识别和注册组件:
+  
+  1. 组件路径扫描
+     - AEM 在启动时扫描 /apps 下的组件
+     - 识别所有 jcr:primaryType="cq:Component" 的节点
+     - 缓存组件定义以提高性能
+  
+  2. 组件浏览器构建
+     - 根据 componentGroup 分组组件
+     - 使用 jcr:title 作为显示名称
+     - 使用 thumbnailPath 或 icon 作为图标
+  
+  3. 组件解析缓存
+     - ResourceResolver 缓存组件定义
+     - 减少 JCR 查询次数
+     - 提高渲染性能
+  
+  组件注册时机:
+  - AEM 启动时
+  - 组件定义更新后（需要刷新缓存）
+  - 通过 OSGi 服务动态注册（高级用法）
+-->
+
+<!--
+  19. 测试和验证策略
+  ================
+-->
+
+<!--
+  19.1 单元测试组件配置
+  -------------------
+  
+  Java 单元测试示例:
+  
+  @ExtendWith(AemContextExtension.class)
+  class ComponentContentXmlTest {
+      
+      @RegisterExtension
+      AemContext context = new AemContext();
+      
+      @Test
+      void testComponentDefinition() {
+          // 创建组件定义
+          context.create().resource("/apps/myapp/components/hero",
+              "jcr:primaryType", "cq:Component",
+              "jcr:title", "Hero Component",
+              "componentGroup", "MyApp - Content",
+              "cq:isContainer", false);
+          
+          // 获取组件资源
+          Resource componentResource = context.resourceResolver()
+              .resolve("/apps/myapp/components/hero");
+          
+          // 验证属性
+          ValueMap props = componentResource.getValueMap();
+          assertEquals("cq:Component", props.get("jcr:primaryType", String.class));
+          assertEquals("Hero Component", props.get("jcr:title", String.class));
+          assertEquals("MyApp - Content", props.get("componentGroup", String.class));
+          assertEquals(false, props.get("cq:isContainer", false));
+      }
+      
+      @Test
+      void testComponentInheritance() {
+          // 创建父组件
+          context.create().resource("/apps/myapp/components/base",
+              "jcr:primaryType", "cq:Component",
+              "jcr:title", "Base Component");
+          
+          // 创建子组件
+          context.create().resource("/apps/myapp/components/hero",
+              "jcr:primaryType", "cq:Component",
+              "jcr:title", "Hero Component",
+              "sling:resourceSuperType", "myapp/components/base");
+          
+          // 验证继承关系
+          Resource heroResource = context.resourceResolver()
+              .resolve("/apps/myapp/components/hero");
+          String superType = heroResource.getValueMap()
+              .get("sling:resourceSuperType", String.class);
+          assertEquals("myapp/components/base", superType);
+      }
+      
+      @Test
+      void testAllowParentsValidation() {
+          // 创建组件并设置 allowParents
+          context.create().resource("/apps/myapp/components/header",
+              "jcr:primaryType", "cq:Component",
+              "jcr:title", "Header",
+              "allowParents", new String[]{"myapp/components/page"});
+          
+          // 验证 allowParents
+          Resource headerResource = context.resourceResolver()
+              .resolve("/apps/myapp/components/header");
+          String[] allowParents = headerResource.getValueMap()
+              .get("allowParents", String[].class);
+          assertNotNull(allowParents);
+          assertEquals(1, allowParents.length);
+          assertEquals("myapp/components/page", allowParents[0]);
+      }
+  }
+-->
+
+<!--
+  19.2 集成测试
+  -----------
+  
+  测试组件在实际环境中的行为:
+  
+  @ExtendWith(AemContextExtension.class)
+  class ComponentIntegrationTest {
+      
+      @RegisterExtension
+      AemContext context = new AemContext();
+      
+      @Test
+      void testComponentRendering() {
+          // 创建组件定义
+          context.create().resource("/apps/myapp/components/hero",
+              "jcr:primaryType", "cq:Component",
+              "jcr:title", "Hero Component");
+          
+          // 创建组件实例
+          context.create().resource("/content/test/jcr:content/hero",
+              "jcr:primaryType", "nt:unstructured",
+              "sling:resourceType", "myapp/components/hero",
+              "title", "Test Title");
+          
+          // 渲染组件（需要实际的渲染服务）
+          // 验证组件是否正确渲染
+          // 验证属性是否正确应用
+      }
+      
+      @Test
+      void testComponentBrowserDisplay() {
+          // 创建多个组件，测试组件浏览器显示
+          // 验证 componentGroup 分组
+          // 验证 jcr:title 显示
+          // 验证图标显示
+      }
+  }
+-->
+
+<!--
+  19.3 配置验证工具
+  ----------------
+  
+  创建配置验证工具:
+  
+  public class ComponentConfigValidator {
+      
+      public ValidationResult validate(Resource componentResource) {
+          ValidationResult result = new ValidationResult();
+          ValueMap props = componentResource.getValueMap();
+          
+          // 验证必需属性
+          if (!"cq:Component".equals(props.get("jcr:primaryType", String.class))) {
+              result.addError("jcr:primaryType must be 'cq:Component'");
+          }
+          
+          // 验证推荐属性
+          if (!props.containsKey("jcr:title")) {
+              result.addWarning("jcr:title is recommended but not set");
+          }
+          
+          // 验证属性格式
+          String[] allowParents = props.get("allowParents", String[].class);
+          if (allowParents != null) {
+              for (String parent : allowParents) {
+                  if (parent == null || parent.isEmpty()) {
+                      result.addError("allowParents contains empty value");
+                  }
+              }
+          }
+          
+          // 验证继承关系
+          String superType = props.get("sling:resourceSuperType", String.class);
+          if (superType != null) {
+              Resource superResource = componentResource.getResourceResolver()
+                  .resolve("/apps/" + superType);
+              if (superResource == null) {
+                  result.addError("sling:resourceSuperType points to non-existent component: " + superType);
+              }
+          }
+          
+          return result;
+      }
+  }
+  
+  使用示例:
+  
+  Resource componentResource = resolver.resolve("/apps/myapp/components/hero");
+  ComponentConfigValidator validator = new ComponentConfigValidator();
+  ValidationResult result = validator.validate(componentResource);
+  
+  if (result.hasErrors()) {
+      // 处理错误
+      result.getErrors().forEach(error -> log.error(error));
+  }
+  
+  if (result.hasWarnings()) {
+      // 处理警告
+      result.getWarnings().forEach(warning -> log.warn(warning));
+  }
+-->
+
+<!--
+  20. 部署和版本控制
+  ================
+-->
+
+<!--
+  20.1 版本控制策略
+  ---------------
+  
+  组件配置文件的版本控制:
+  
+  1. 文件跟踪
+     - .content.xml 应该纳入版本控制
+     - 使用 Git 或其他版本控制系统
+     - 跟踪所有配置变更
+  
+  2. 变更管理
+     - 使用有意义的提交消息
+     - 记录变更原因和影响
+     - 标记重大变更（如属性删除）
+  
+  3. 分支策略
+     - 使用功能分支开发新组件
+     - 主分支保持稳定
+     - 代码审查后再合并
+  
+  示例 Git 工作流:
+  
+  # 创建功能分支
+  git checkout -b feature/new-hero-component
+  
+  # 创建组件文件
+  # ... 编辑 .content.xml ...
+  
+  # 提交变更
+  git add apps/myapp/components/hero/.content.xml
+  git commit -m "Add hero component configuration
+  
+  - Add jcr:title and jcr:description
+  - Set componentGroup to 'MyApp - Content'
+  - Configure allowParents restriction"
+  
+  # 合并到主分支
+  git checkout main
+  git merge feature/new-hero-component
+-->
+
+<!--
+  20.2 部署最佳实践
+  ----------------
+  
+  组件配置部署:
+  
+  1. 打包策略
+     - 将组件配置包含在组件包中
+     - 使用 Maven 或 Gradle 构建
+     - 创建可安装的包（.zip 或 .jar）
+  
+  2. 部署顺序
+     - 先部署组件定义（.content.xml）
+     - 再部署组件脚本和模板
+     - 最后部署组件对话框和配置
+  
+  3. 环境管理
+     - 开发环境: 直接修改文件
+     - 测试环境: 通过包安装
+     - 生产环境: 通过包安装（经过测试）
+  
+  4. 回滚策略
+     - 保留旧版本配置
+     - 准备回滚脚本
+     - 测试回滚流程
+  
+  Maven 打包示例:
+  
+  <build>
+      <plugins>
+          <plugin>
+              <groupId>com.day.jcr.vault</groupId>
+              <artifactId>content-package-maven-plugin</artifactId>
+              <configuration>
+                  <filters>
+                      <filter>
+                          <root>/apps/myapp/components</root>
+                      </filter>
+                  </filters>
+              </configuration>
+          </plugin>
+      </plugins>
+  </build>
+-->
+
+<!--
+  20.3 配置迁移策略
+  ----------------
+  
+  组件配置迁移场景:
+  
+  1. 属性重命名
+     - 创建迁移脚本
+     - 更新所有组件实例
+     - 更新组件定义
+  
+  2. 属性类型变更
+     - 数据转换脚本
+     - 验证转换结果
+     - 逐步迁移
+  
+  3. 属性删除
+     - 评估影响范围
+     - 通知相关团队
+     - 逐步移除
+  
+  迁移脚本示例（Groovy）:
+  
+  // 批量更新组件配置
+  def componentPath = "/apps/myapp/components"
+  def componentResource = resourceResolver.resolve(componentPath)
+  
+  componentResource.listChildren().each { component ->
+      def node = component.adaptTo(Node.class)
+      if (node && node.hasProperty("oldPropertyName")) {
+          def oldValue = node.getProperty("oldPropertyName").getString()
+          node.setProperty("newPropertyName", oldValue)
+          node.getProperty("oldPropertyName").remove()
+          session.save()
+          println "Updated: ${component.path}"
+      }
+  }
+-->
+
+<!--
+  21. 性能优化深度分析
+  ===================
+-->
+
+<!--
+  21.1 属性读取性能优化
+  -------------------
+  
+  性能优化策略:
+  
+  1. 缓存策略
+     - ResourceResolver 自动缓存组件定义
+     - 避免频繁创建新的 ResourceResolver
+     - 重用 ResourceResolver 实例
+  
+  2. 批量读取
+     - 一次性读取多个组件配置
+     - 使用 ResourceResolver.getChildren() 批量获取
+     - 减少 JCR 查询次数
+  
+  3. 延迟加载
+     - 只在需要时读取属性
+     - 使用懒加载模式
+     - 避免预加载所有属性
+  
+  性能对比示例:
+  
+  // 低效: 多次单独查询
+  for (String componentPath : componentPaths) {
+      Resource component = resolver.resolve(componentPath);
+      ValueMap props = component.getValueMap();
+      // 处理属性
+  }
+  
+  // 高效: 批量读取
+  Resource componentsRoot = resolver.resolve("/apps/myapp/components");
+  componentsRoot.listChildren().forEachRemaining(component -> {
+      ValueMap props = component.getValueMap();
+      // 处理属性
+  });
+-->
+
+<!--
+  21.2 组件查找性能优化
+  -------------------
+  
+  优化组件查找:
+  
+  1. 直接路径访问
+     - 使用完整路径而非查询
+     - 路径查找是 O(1) 操作
+     - 查询是 O(n) 操作
+  
+  2. 避免深度继承
+     - 限制继承链深度（建议不超过 3-4 层）
+     - 减少递归查找开销
+     - 使用直接引用替代深层继承
+  
+  3. 缓存查找结果
+     - 缓存组件定义查找结果
+     - 使用内存缓存（如 Caffeine）
+     - 设置合理的缓存过期时间
+  
+  性能监控:
+  
+  // 监控组件查找时间
+  long startTime = System.currentTimeMillis();
+  Resource component = resolver.resolve("/apps/myapp/components/hero");
+  long duration = System.currentTimeMillis() - startTime;
+  
+  if (duration > 100) {  // 超过 100ms
+      log.warn("Slow component resolution: {}ms for {}", duration, component.getPath());
+  }
+-->
+
+<!--
+  22. 安全考虑
+  ===========
+-->
+
+<!--
+  22.1 配置安全
+  -----------
+  
+  安全最佳实践:
+  
+  1. 权限控制
+     - 限制 .content.xml 的写入权限
+     - 只有管理员可以修改组件定义
+     - 使用 ACL 控制访问
+  
+  2. 配置验证
+     - 验证属性值的合法性
+     - 防止恶意配置
+     - 检查属性类型和格式
+  
+  3. 敏感信息
+     - 不要在 .content.xml 中存储敏感信息
+     - 使用配置文件或环境变量
+     - 加密敏感配置（如需要）
+  
+  ACL 配置示例:
+  
+  // 设置组件定义节点的权限
+  // 只有 administrators 组可以修改
+  // 所有用户只能读取
+  
+  AccessControlManager acm = session.getAccessControlManager();
+  Principal adminPrincipal = new PrincipalImpl("administrators");
+  
+  AccessControlList acl = acm.getAccessControlList("/apps/myapp/components/hero");
+  Privilege[] privileges = new Privilege[]{
+      acm.privilegeFromName(Privilege.JCR_READ),
+      acm.privilegeFromName(Privilege.JCR_WRITE)
+  };
+  acl.addAccessControlEntry(adminPrincipal, privileges);
+  acm.setPolicy("/apps/myapp/components/hero", acl);
+  session.save();
+-->
+
+<!--
+  22.2 输入验证
+  -----------
+  
+  配置输入验证:
+  
+  1. 属性值验证
+     - 验证字符串长度
+     - 验证数组格式
+     - 验证路径格式
+  
+  2. 路径验证
+     - 验证 sling:resourceSuperType 路径
+     - 防止路径遍历攻击
+     - 验证路径在允许的范围内
+  
+  3. 类型验证
+     - 验证属性类型匹配
+     - 防止类型混淆攻击
+     - 使用白名单验证
+  
+  验证工具示例:
+  
+  public class ComponentConfigSecurityValidator {
+      
+      private static final Set<String> ALLOWED_PATHS = Set.of(
+          "/apps/myapp/components",
+          "/apps/other-app/components"
+      );
+      
+      public boolean validateSuperType(String superType) {
+          // 验证路径格式
+          if (superType == null || superType.isEmpty()) {
+              return false;
+          }
+          
+          // 防止路径遍历
+          if (superType.contains("..") || superType.contains("/")) {
+              return false;
+          }
+          
+          // 验证路径在允许的范围内
+          String fullPath = "/apps/" + superType;
+          return ALLOWED_PATHS.stream()
+              .anyMatch(allowed -> fullPath.startsWith(allowed));
+      }
+      
+      public boolean validateAllowParents(String[] allowParents) {
+          if (allowParents == null) {
+              return true;  // 可选属性
+          }
+          
+          for (String parent : allowParents) {
+              if (!validateSuperType(parent)) {
+                  return false;
+              }
+          }
+          
+          return true;
+      }
+  }
+-->
+
+<!--
+  23. 相关文档
+  ==========
+  
+  - 组件结构: 01-component-structure.html
+  - 组件模板（HTL）: 05-component-htl-template.html
+  - 组件对话框: 09-component-dialog.html
+  - 编辑配置: 06-component-edit-config.html
+  - 组件模板: 07-component-template.html
+  - HTML 标签配置: 08-component-html-tag.html
+  - 组件继承: 04-advanced/04-component-dependency-resolution.md (3.2节)
+  - allowParents 详解: 04-advanced/04-component-dependency-resolution.md (第5节)
+  - AEM 官方文档: https://experienceleague.adobe.com/docs/experience-manager.html
+  - Core Components: https://github.com/adobe/aem-core-wcm-components
+-->
+

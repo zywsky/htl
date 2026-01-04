@@ -1,0 +1,315 @@
+/* ============================================
+   Flexbox布局样式表
+   ============================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f5f5;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+header h1 {
+    margin-bottom: 10px;
+}
+
+.section {
+    background-color: white;
+    padding: 30px;
+    margin-bottom: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+h2 {
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #4CAF50;
+}
+
+h3 {
+    color: #555;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.code-note {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-left: 4px solid #2196F3;
+    font-size: 14px;
+    color: #666;
+}
+
+/* ============================================
+   基础Flexbox容器和项目
+   ============================================ */
+.flex-container {
+    display: flex;
+    background-color: #e3f2fd;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    min-height: 80px;
+}
+
+.flex-item {
+    background-color: #2196F3;
+    color: white;
+    padding: 20px;
+    margin: 5px;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+    min-width: 80px;
+}
+
+/* ============================================
+   flex-direction 示例
+   ============================================ */
+.flex-row {
+    flex-direction: row;
+}
+
+.flex-row-reverse {
+    flex-direction: row-reverse;
+}
+
+.flex-column {
+    flex-direction: column;
+    min-height: 200px;
+}
+
+.flex-column-reverse {
+    flex-direction: column-reverse;
+    min-height: 200px;
+}
+
+/* ============================================
+   justify-content 示例
+   ============================================ */
+.justify-start {
+    justify-content: flex-start;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.justify-end {
+    justify-content: flex-end;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.justify-around {
+    justify-content: space-around;
+}
+
+.justify-evenly {
+    justify-content: space-evenly;
+}
+
+/* ============================================
+   align-items 示例
+   ============================================ */
+.tall {
+    min-height: 150px;
+}
+
+.align-start {
+    align-items: flex-start;
+}
+
+.align-center {
+    align-items: center;
+}
+
+.align-end {
+    align-items: flex-end;
+}
+
+.align-stretch {
+    align-items: stretch;
+}
+
+.tall-item {
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ============================================
+   flex-wrap 示例
+   ============================================ */
+.flex-nowrap {
+    flex-wrap: nowrap;
+}
+
+.flex-wrap {
+    flex-wrap: wrap;
+}
+
+.wide {
+    min-width: 200px;
+}
+
+/* ============================================
+   flex-grow 示例
+   ============================================ */
+.grow-1 {
+    flex-grow: 1;
+}
+
+.grow-2 {
+    flex-grow: 2;
+    background-color: #4CAF50;
+}
+
+/* ============================================
+   flex 简写示例
+   ============================================ */
+.flex-1 {
+    flex: 1; /* 等同于 flex: 1 1 0% */
+}
+
+.flex-none {
+    flex: none; /* 等同于 flex: 0 0 auto */
+    background-color: #FF9800;
+    min-width: 150px;
+}
+
+/* ============================================
+   实际应用：完全居中
+   ============================================ */
+.centered-container {
+    display: flex;
+    justify-content: center; /* 水平居中 */
+    align-items: center;     /* 垂直居中 */
+    height: 200px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+}
+
+.centered-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* ============================================
+   实际应用：导航栏
+   ============================================ */
+.navbar {
+    display: flex;
+    justify-content: space-between; /* 两端对齐 */
+    align-items: center;            /* 垂直居中 */
+    background-color: #333;
+    padding: 15px 30px;
+    border-radius: 5px;
+}
+
+.logo {
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.nav-links a:hover {
+    background-color: #555;
+}
+
+/* ============================================
+   实际应用：响应式卡片布局
+   ============================================ */
+.card-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.card {
+    flex: 1 1 250px; /* 最小宽度250px，自动填充 */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* ============================================
+   演示组样式
+   ============================================ */
+.demo-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.demo-group > div {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+/* ============================================
+   页脚
+   ============================================ */
+footer {
+    text-align: center;
+    padding: 20px;
+    margin-top: 40px;
+    color: #666;
+    border-top: 1px solid #ddd;
+}
+

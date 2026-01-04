@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>00-HTML实体与特殊字符</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .comment { color: #5c6370; }
+        .tag { color: #e06c75; }
+        .attribute { color: #d19a66; }
+        .keyword { color: #61afef; }
+        .demo-box {
+            border: 2px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            background: #ecf0f1;
+            border-radius: 5px;
+        }
+        .demo-text {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            margin: 10px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #34495e;
+            color: white;
+        }
+        .tip {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔤 HTML 实体与特殊字符</h1>
+
+        <h2>一、什么是HTML实体？</h2>
+        <p>HTML实体是用于表示特殊字符的代码。当你想在HTML中显示某些特殊字符（如 &lt;、&gt;、&amp; 等）时，需要使用实体代码，因为这些字符在HTML中有特殊含义。</p>
+
+        <h2>二、为什么需要HTML实体？</h2>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- ❌ 错误：浏览器会将其解析为标签 --&gt;</span><br>
+<span class="tag">&lt;p&gt;</span>5 &lt; 10<span class="tag">&lt;/p&gt;</span>  <span class="comment">&lt;!-- 显示为：5 --&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- ✅ 正确：使用实体代码 --&gt;</span><br>
+<span class="tag">&lt;p&gt;</span>5 &amp;lt; 10<span class="tag">&lt;/p&gt;</span>  <span class="comment">&lt;!-- 显示为：5 &lt; 10 --&gt;</span>
+            </code>
+        </div>
+
+        <h2>三、常用HTML实体</h2>
+
+        <h3>1. 基本实体（必须记住）</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>字符</th>
+                    <th>实体名称</th>
+                    <th>实体编号</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>&lt;</td>
+                    <td>&amp;lt;</td>
+                    <td>&amp;#60;</td>
+                    <td>小于号（开始标签）</td>
+                </tr>
+                <tr>
+                    <td>&gt;</td>
+                    <td>&amp;gt;</td>
+                    <td>&amp;#62;</td>
+                    <td>大于号（结束标签）</td>
+                </tr>
+                <tr>
+                    <td>&amp;</td>
+                    <td>&amp;amp;</td>
+                    <td>&amp;#38;</td>
+                    <td>和号（实体开始）</td>
+                </tr>
+                <tr>
+                    <td>"</td>
+                    <td>&amp;quot;</td>
+                    <td>&amp;#34;</td>
+                    <td>双引号</td>
+                </tr>
+                <tr>
+                    <td>'</td>
+                    <td>&amp;apos;</td>
+                    <td>&amp;#39;</td>
+                    <td>单引号</td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
+                    <td>&amp;nbsp;</td>
+                    <td>&amp;#160;</td>
+                    <td>不间断空格</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <div class="demo-text">
+                <p>5 &lt; 10（使用 &amp;lt;）</p>
+                <p>10 &gt; 5（使用 &amp;gt;）</p>
+                <p>HTML &amp; CSS（使用 &amp;amp;）</p>
+                <p>他说："你好"（使用 &amp;quot;）</p>
+                <p>这是&nbsp;&nbsp;&nbsp;多个空格（使用 &amp;nbsp;）</p>
+            </div>
+        </div>
+
+        <h3>2. 数学符号</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>字符</th>
+                    <th>实体名称</th>
+                    <th>实体编号</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>×</td>
+                    <td>&amp;times;</td>
+                    <td>&amp;#215;</td>
+                    <td>乘号</td>
+                </tr>
+                <tr>
+                    <td>÷</td>
+                    <td>&amp;divide;</td>
+                    <td>&amp;#247;</td>
+                    <td>除号</td>
+                </tr>
+                <tr>
+                    <td>±</td>
+                    <td>&amp;plusmn;</td>
+                    <td>&amp;#177;</td>
+                    <td>正负号</td>
+                </tr>
+                <tr>
+                    <td>≠</td>
+                    <td>&amp;ne;</td>
+                    <td>&amp;#8800;</td>
+                    <td>不等于</td>
+                </tr>
+                <tr>
+                    <td>≤</td>
+                    <td>&amp;le;</td>
+                    <td>&amp;#8804;</td>
+                    <td>小于等于</td>
+                </tr>
+                <tr>
+                    <td>≥</td>
+                    <td>&amp;ge;</td>
+                    <td>&amp;#8805;</td>
+                    <td>大于等于</td>
+                </tr>
+                <tr>
+                    <td>∞</td>
+                    <td>&amp;infin;</td>
+                    <td>&amp;#8734;</td>
+                    <td>无穷大</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>3. 货币符号</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>字符</th>
+                    <th>实体名称</th>
+                    <th>实体编号</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>€</td>
+                    <td>&amp;euro;</td>
+                    <td>&amp;#8364;</td>
+                    <td>欧元</td>
+                </tr>
+                <tr>
+                    <td>£</td>
+                    <td>&amp;pound;</td>
+                    <td>&amp;#163;</td>
+                    <td>英镑</td>
+                </tr>
+                <tr>
+                    <td>¥</td>
+                    <td>&amp;yen;</td>
+                    <td>&amp;#165;</td>
+                    <td>日元/人民币</td>
+                </tr>
+                <tr>
+                    <td>$</td>
+                    <td>直接使用 $</td>
+                    <td>&amp;#36;</td>
+                    <td>美元</td>
+                </tr>
+                <tr>
+                    <td>¢</td>
+                    <td>&amp;cent;</td>
+                    <td>&amp;#162;</td>
+                    <td>美分</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>4. 版权和商标</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>字符</th>
+                    <th>实体名称</th>
+                    <th>实体编号</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>©</td>
+                    <td>&amp;copy;</td>
+                    <td>&amp;#169;</td>
+                    <td>版权符号</td>
+                </tr>
+                <tr>
+                    <td>®</td>
+                    <td>&amp;reg;</td>
+                    <td>&amp;#174;</td>
+                    <td>注册商标</td>
+                </tr>
+                <tr>
+                    <td>™</td>
+                    <td>&amp;trade;</td>
+                    <td>&amp;#8482;</td>
+                    <td>商标</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>5. 箭头符号</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>字符</th>
+                    <th>实体名称</th>
+                    <th>实体编号</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>←</td>
+                    <td>&amp;larr;</td>
+                    <td>&amp;#8592;</td>
+                    <td>左箭头</td>
+                </tr>
+                <tr>
+                    <td>→</td>
+                    <td>&amp;rarr;</td>
+                    <td>&amp;#8594;</td>
+                    <td>右箭头</td>
+                </tr>
+                <tr>
+                    <td>↑</td>
+                    <td>&amp;uarr;</td>
+                    <td>&amp;#8593;</td>
+                    <td>上箭头</td>
+                </tr>
+                <tr>
+                    <td>↓</td>
+                    <td>&amp;darr;</td>
+                    <td>&amp;#8595;</td>
+                    <td>下箭头</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>6. 其他常用符号</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>字符</th>
+                    <th>实体名称</th>
+                    <th>实体编号</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>•</td>
+                    <td>&amp;bull;</td>
+                    <td>&amp;#8226;</td>
+                    <td>项目符号</td>
+                </tr>
+                <tr>
+                    <td>…</td>
+                    <td>&amp;hellip;</td>
+                    <td>&amp;#8230;</td>
+                    <td>省略号</td>
+                </tr>
+                <tr>
+                    <td>§</td>
+                    <td>&amp;sect;</td>
+                    <td>&amp;#167;</td>
+                    <td>章节符号</td>
+                </tr>
+                <tr>
+                    <td>¶</td>
+                    <td>&amp;para;</td>
+                    <td>&amp;#182;</td>
+                    <td>段落符号</td>
+                </tr>
+                <tr>
+                    <td>°</td>
+                    <td>&amp;deg;</td>
+                    <td>&amp;#176;</td>
+                    <td>度</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>四、使用示例</h2>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- 在代码中显示HTML标签 --&gt;</span><br>
+<span class="tag">&lt;p&gt;</span>使用 &amp;lt;div&amp;gt; 标签创建容器<span class="tag">&lt;/p&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 显示数学公式 --&gt;</span><br>
+<span class="tag">&lt;p&gt;</span>5 &amp;times; 3 = 15<span class="tag">&lt;/p&gt;</span><br>
+<span class="tag">&lt;p&gt;</span>10 &amp;divide; 2 = 5<span class="tag">&lt;/p&gt;</span><br>
+<span class="tag">&lt;p&gt;</span>x &amp;le; 10<span class="tag">&lt;/p&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 显示版权信息 --&gt;</span><br>
+<span class="tag">&lt;p&gt;</span>&amp;copy; 2024 我的网站<span class="tag">&lt;/p&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 显示货币 --&gt;</span><br>
+<span class="tag">&lt;p&gt;</span>价格：&amp;yen;100 或 &amp;euro;10<span class="tag">&lt;/p&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 显示引号 --&gt;</span><br>
+<span class="tag">&lt;p&gt;</span>他说：&amp;quot;你好&amp;quot;<span class="tag">&lt;/p&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <div class="demo-text">
+                <p>使用 &lt;div&gt; 标签创建容器</p>
+                <p>5 × 3 = 15</p>
+                <p>10 ÷ 2 = 5</p>
+                <p>x ≤ 10</p>
+                <p>© 2024 我的网站</p>
+                <p>价格：¥100 或 €10</p>
+                <p>他说："你好"</p>
+            </div>
+        </div>
+
+        <h2>五、实体名称 vs 实体编号</h2>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- 实体名称（更易读，推荐） --&gt;</span><br>
+<span class="tag">&lt;p&gt;</span>&amp;copy; 2024<span class="tag">&lt;/p&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 实体编号（数字形式） --&gt;</span><br>
+<span class="tag">&lt;p&gt;</span>&amp;#169; 2024<span class="tag">&lt;/p&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 十六进制编号 --&gt;</span><br>
+<span class="tag">&lt;p&gt;</span>&amp;#xA9; 2024<span class="tag">&lt;/p&gt;</span>
+            </code>
+        </div>
+
+        <div class="tip">
+            <strong>💡 提示：</strong>
+            <ul>
+                <li><strong>优先使用实体名称</strong>：更易读、易记（如 &amp;copy; 比 &amp;#169; 更清晰）</li>
+                <li><strong>实体编号的优势</strong>：所有浏览器都支持，不受字符集限制</li>
+                <li><strong>记住基本实体</strong>：&amp;lt;、&amp;gt;、&amp;amp;、&amp;quot;、&amp;nbsp; 是最常用的</li>
+                <li><strong>不间断空格</strong>：&amp;nbsp; 用于防止单词在行尾断开</li>
+            </ul>
+        </div>
+
+        <h2>六、Unicode字符</h2>
+        <p>HTML5支持直接使用Unicode字符，但使用实体代码更安全、更兼容。</p>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- 直接使用Unicode字符（如果字符集支持） --&gt;</span><br>
+<span class="tag">&lt;p&gt;</span>© 2024 我的网站<span class="tag">&lt;/p&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 使用实体代码（更安全） --&gt;</span><br>
+<span class="tag">&lt;p&gt;</span>&amp;copy; 2024 我的网站<span class="tag">&lt;/p&gt;</span>
+            </code>
+        </div>
+
+        <h2>✅ 本节总结</h2>
+        <p>你已经学会了：</p>
+        <ul>
+            <li>HTML实体的概念和用途</li>
+            <li>基本实体：&amp;lt;、&amp;gt;、&amp;amp;、&amp;quot;、&amp;nbsp;</li>
+            <li>数学符号实体</li>
+            <li>货币符号实体</li>
+            <li>版权和商标符号</li>
+            <li>箭头和其他常用符号</li>
+            <li>实体名称和实体编号的区别</li>
+            <li>何时使用HTML实体</li>
+        </ul>
+
+        <p style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #ecf0f1;">
+            <strong>下一步：</strong>学习 <a href="01-文档结构与基本语法.html">01-文档结构与基本语法.html</a>
+        </p>
+    </div>
+</body>
+</html>
+

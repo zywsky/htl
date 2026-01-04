@@ -1,0 +1,267 @@
+<!--
+  HTL 响应式设计指南
+  
+  学习如何在 HTL 组件中实现响应式设计
+-->
+
+<!--
+  响应式设计基础:
+  确保组件在不同设备上都能良好显示
+-->
+
+<!--
+  1. 响应式图片
+  使用 srcset 和 sizes 属性
+-->
+<picture class="responsive-image">
+    <source media="(min-width: 1200px)" 
+            srcset="${properties.imageLarge}">
+    <source media="(min-width: 768px)" 
+            srcset="${properties.imageMedium}">
+    <img src="${properties.imageSmall}"
+         srcset="${properties.imageSrcset}"
+         sizes="${properties.imageSizes || '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'}"
+         alt="${properties.altText}"
+         loading="lazy">
+</picture>
+
+<!--
+  2. 响应式容器
+  使用容器查询和媒体查询
+-->
+<div class="responsive-container"
+     data-sly-attribute="${{
+         'data-breakpoint': properties.breakpoint || 'mobile',
+         'class': 'responsive-container breakpoint-' + (properties.breakpoint || 'mobile')
+     }}">
+    <div class="content">${properties.content}</div>
+</div>
+
+<!--
+  3. 响应式网格
+  使用 CSS Grid 或 Flexbox
+-->
+<div class="responsive-grid"
+     data-sly-attribute.style="${'grid-template-columns: repeat(auto-fit, minmax(' + (properties.minColumnWidth || '300px') + ', 1fr));'}">
+    <div data-sly-list="${properties.items}"
+         class="grid-item">
+        ${item.content}
+    </div>
+</div>
+
+<!--
+  4. 响应式导航
+  移动端和桌面端不同的导航
+-->
+<nav class="responsive-navigation">
+    <!-- 桌面导航 -->
+    <ul class="desktop-nav">
+        <li data-sly-list="${properties.menuItems}">
+            <a href="${item.url}">${item.title}</a>
+        </li>
+    </ul>
+    
+    <!-- 移动端汉堡菜单 -->
+    <button class="mobile-menu-toggle"
+            aria-label="打开菜单"
+            aria-expanded="false">
+        <span class="hamburger-icon"></span>
+    </button>
+    
+    <ul class="mobile-nav" aria-hidden="true">
+        <li data-sly-list="${properties.menuItems}">
+            <a href="${item.url}">${item.title}</a>
+        </li>
+    </ul>
+</nav>
+
+<!--
+  5. 响应式表格
+  在小屏幕上使用卡片布局
+-->
+<div class="responsive-table-container">
+    <!-- 桌面端表格 -->
+    <table class="desktop-table">
+        <thead>
+            <tr>
+                <th data-sly-list="${properties.headers}">${item}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr data-sly-list="${properties.rows}">
+                <td data-sly-list="${item.values}">${item}</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <!-- 移动端卡片 -->
+    <div class="mobile-cards">
+        <div data-sly-list="${properties.rows}" class="card">
+            <div data-sly-list="${item.values}">
+                <div class="card-field">
+                    <span class="label">${properties.headers[itemList.index]}:</span>
+                    <span class="value">${item}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--
+  6. 响应式字体
+  使用相对单位和视口单位
+-->
+<div class="responsive-text"
+     data-sly-attribute.style="${'font-size: clamp(' + (properties.minFontSize || '16px') + ', ' + (properties.preferredFontSize || '2vw') + ', ' + (properties.maxFontSize || '24px') + ');'}">
+    ${properties.text}
+</div>
+
+<!--
+  7. 响应式间距
+  使用相对单位和容器查询
+-->
+<div class="responsive-spacing"
+     data-sly-attribute.style="${'padding: clamp(' + (properties.minPadding || '1rem') + ', ' + (properties.preferredPadding || '5vw') + ', ' + (properties.maxPadding || '3rem') + ');'}">
+    ${properties.content}
+</div>
+
+<!--
+  8. 响应式组件变体
+  根据屏幕尺寸显示不同内容
+-->
+<div class="responsive-component">
+    <!-- 移动端内容 -->
+    <div class="mobile-content">
+        <h2>${properties.mobileTitle || properties.title}</h2>
+        <p>${properties.mobileContent || properties.content}</p>
+    </div>
+    
+    <!-- 桌面端内容 -->
+    <div class="desktop-content">
+        <h1>${properties.title}</h1>
+        <div class="content-grid">
+            <div>${properties.content}</div>
+            <div>${properties.sidebar}</div>
+        </div>
+    </div>
+</div>
+
+<!--
+  9. 响应式图片画廊
+-->
+<div class="responsive-gallery"
+     data-sly-attribute="${{
+         'data-columns-mobile': properties.columnsMobile || '1',
+         'data-columns-tablet': properties.columnsTablet || '2',
+         'data-columns-desktop': properties.columnsDesktop || '4'
+     }}">
+    <div data-sly-list="${properties.images}" class="gallery-item">
+        <img src="${item.url}"
+             srcset="${item.srcset}"
+             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+             alt="${item.alt}"
+             loading="lazy">
+    </div>
+</div>
+
+<!--
+  10. 响应式表单
+  表单字段在不同屏幕上的布局
+-->
+<form class="responsive-form">
+    <div class="form-row">
+        <div class="form-field form-field-full-mobile">
+            <label for="${properties.field1Id}">${properties.field1Label}</label>
+            <input type="text" id="${properties.field1Id}" name="${properties.field1Name}">
+        </div>
+        <div class="form-field form-field-full-mobile">
+            <label for="${properties.field2Id}">${properties.field2Label}</label>
+            <input type="text" id="${properties.field2Id}" name="${properties.field2Name}">
+        </div>
+    </div>
+    <div class="form-field">
+        <label for="${properties.field3Id}">${properties.field3Label}</label>
+        <textarea id="${properties.field3Id}" name="${properties.field3Name}"></textarea>
+    </div>
+</form>
+
+<!--
+  11. 响应式卡片组件
+-->
+<div class="responsive-card-grid">
+    <article data-sly-list="${properties.cards}" class="card">
+        <div class="card-image">
+            <img src="${item.image}"
+                 srcset="${item.imageSrcset}"
+                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                 alt="${item.title}"
+                 loading="lazy">
+        </div>
+        <div class="card-content">
+            <h3>${item.title}</h3>
+            <p>${item.description}</p>
+        </div>
+        <div class="card-actions">
+            <a href="${item.url}">了解更多</a>
+        </div>
+    </article>
+</div>
+
+<!--
+  12. 响应式工具类
+  使用工具类控制响应式行为
+-->
+<div class="component ${properties.hideOnMobile ? 'hide-mobile' : ''} ${properties.hideOnDesktop ? 'hide-desktop' : ''}">
+    ${properties.content}
+</div>
+
+<!--
+  13. 实际应用: 响应式英雄横幅
+-->
+<section class="hero-banner responsive-hero">
+    <picture>
+        <source media="(min-width: 1200px)" 
+                srcset="${properties.heroImageDesktop}">
+        <source media="(min-width: 768px)" 
+                srcset="${properties.heroImageTablet}">
+        <img src="${properties.heroImageMobile}"
+             alt="${properties.heroAlt}"
+             class="hero-image">
+    </picture>
+    <div class="hero-content">
+        <h1 class="hero-title">${properties.heroTitle}</h1>
+        <p class="hero-description">${properties.heroDescription}</p>
+        <a href="${properties.heroLinkUrl}" 
+           class="hero-button">
+            ${properties.heroLinkText}
+        </a>
+    </div>
+</section>
+
+<!--
+  响应式设计最佳实践:
+  1. 移动优先设计
+  2. 使用相对单位
+  3. 使用响应式图片
+  4. 测试不同设备
+  5. 考虑触摸目标大小
+  6. 优化性能
+  7. 使用容器查询（如果支持）
+  8. 考虑横屏和竖屏
+-->
+
+<!--
+  响应式断点建议:
+  - Mobile: < 768px
+  - Tablet: 768px - 1199px
+  - Desktop: >= 1200px
+-->
+
+<!--
+  测试工具:
+  - 浏览器开发者工具
+  - 真实设备测试
+  - 响应式设计测试工具
+  - 性能测试工具
+-->
+

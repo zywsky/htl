@@ -1,0 +1,279 @@
+<!--
+  HTL 高级特性: 国际化 (i18n)
+  
+  学习在 HTL 中实现多语言支持
+-->
+
+<!--
+  AEM 国际化支持：
+  - 使用 i18n API 获取翻译文本
+  - 支持语言回退
+  - 支持日期、数字格式化
+-->
+
+<!--
+  使用 i18n API：
+  通过 Use API 访问国际化服务
+-->
+<sly data-sly-use.i18n="${'com.day.cq.i18n.I18n' @ request=request}"></sly>
+
+<!--
+  获取翻译文本：
+  使用 get() 方法
+-->
+<p>${i18n.get('Hello World')}</p>
+
+<!--
+  使用翻译键：
+  使用键而不是原始文本（推荐方式）
+-->
+<p>${i18n.get('welcome.message')}</p>
+
+<!--
+  带参数的翻译：
+  使用格式化参数
+-->
+<sly data-sly-set.welcomeMessage="${i18n.get('welcome.user', [properties.userName])}"></sly>
+<p>${welcomeMessage}</p>
+
+<!--
+  实际应用示例 1：
+  按钮文本国际化
+-->
+<sly data-sly-use.i18n="${'com.day.cq.i18n.I18n' @ request=request}"></sly>
+<button>${i18n.get('button.submit')}</button>
+<button>${i18n.get('button.cancel')}</button>
+<button>${i18n.get('button.save')}</button>
+
+<!--
+  实际应用示例 2：
+  表单标签国际化
+-->
+<sly data-sly-use.i18n="${'com.day.cq.i18n.I18n' @ request=request}"></sly>
+<form>
+    <label>${i18n.get('form.label.name')}</label>
+    <input type="text" name="name">
+    
+    <label>${i18n.get('form.label.email')}</label>
+    <input type="email" name="email">
+    
+    <label>${i18n.get('form.label.message')}</label>
+    <textarea name="message"></textarea>
+    
+    <button type="submit">${i18n.get('form.button.submit')}</button>
+</form>
+
+<!--
+  实际应用示例 3：
+  错误消息国际化
+-->
+<sly data-sly-use.i18n="${'com.day.cq.i18n.I18n' @ request=request}"></sly>
+<div data-sly-test="${properties.showError}" class="error">
+    <p>${i18n.get('error.required.field', [properties.fieldName])}</p>
+</div>
+
+<!--
+  使用 Sling Model 处理国际化：
+  将国际化逻辑封装在 Sling Model 中
+-->
+<sly data-sly-use.model="${'com.example.I18nModel'}"></sly>
+<div class="component">
+    <h1>${model.title}</h1>
+    <p>${model.description}</p>
+    <button>${model.buttonLabel}</button>
+</div>
+
+<!--
+  对应的 Sling Model 示例（参考）：
+  
+  @Model(adaptables = SlingHttpServletRequest.class)
+  public interface I18nModel {
+      @Inject
+      private I18n i18n;
+      
+      default String getTitle() {
+          return i18n.get("component.title");
+      }
+      
+      default String getDescription() {
+          return i18n.get("component.description");
+      }
+      
+      default String getButtonLabel() {
+          return i18n.get("component.button.label");
+      }
+  }
+-->
+
+<!--
+  日期格式化：
+  根据语言环境格式化日期
+-->
+<sly data-sly-use.i18n="${'com.day.cq.i18n.I18n' @ request=request}"></sly>
+<sly data-sly-use.locale="${'java.util.Locale' @ 
+    language=currentPage.language,
+    country=currentPage.country}"></sly>
+
+<sly data-sly-set.formattedDate="${i18n.getDate(properties.publishDate, locale)}"></sly>
+<p>发布时间: ${formattedDate}</p>
+
+<!--
+  数字格式化：
+  根据语言环境格式化数字
+-->
+<sly data-sly-use.i18n="${'com.day.cq.i18n.I18n' @ request=request}"></sly>
+<sly data-sly-use.locale="${'java.util.Locale' @ 
+    language=currentPage.language,
+    country=currentPage.country}"></sly>
+
+<sly data-sly-set.formattedPrice="${i18n.getNumber(properties.price, locale, 'currency')}"></sly>
+<p>价格: ${formattedPrice}</p>
+
+<!--
+  货币格式化：
+  格式化货币值
+-->
+<sly data-sly-use.i18n="${'com.day.cq.i18n.I18n' @ request=request}"></sly>
+<sly data-sly-set.formattedCurrency="${i18n.format('currency', properties.price)}"></sly>
+<p>${formattedCurrency}</p>
+
+<!--
+  语言切换链接：
+  创建语言切换功能
+-->
+<sly data-sly-use.i18n="${'com.day.cq.i18n.I18n' @ request=request}"></sly>
+<sly data-sly-use.languages="${'com.example.LanguageHelper'}"></sly>
+
+<div class="language-switcher">
+    <span>${i18n.get('language.select')}:</span>
+    <ul>
+        <li data-sly-list="${languages.availableLanguages}">
+            <a href="${item.url}"
+               data-sly-attribute.class="${item.active ? 'active' : ''}">
+                ${item.label}
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!--
+  实际应用示例 4：
+  完整的多语言组件
+-->
+<sly data-sly-use.i18n="${'com.day.cq.i18n.I18n' @ request=request}"></sly>
+<sly data-sly-use.model="${'com.example.MultilingualComponent'}"></sly>
+
+<article class="multilingual-component">
+    <header>
+        <h1>${model.title}</h1>
+        <p class="meta">
+            ${i18n.get('article.published.on')}: ${model.formattedDate}
+            ${i18n.get('article.by')}: ${model.author}
+        </p>
+    </header>
+    <div class="content">
+        ${model.content}
+    </div>
+    <footer>
+        <a href="${model.readMoreUrl}">${i18n.get('article.read.more')}</a>
+    </footer>
+</article>
+
+<!--
+  实际应用示例 5：
+  导航菜单国际化
+-->
+<sly data-sly-use.i18n="${'com.day.cq.i18n.I18n' @ request=request}"></sly>
+<sly data-sly-use.nav="${'com.example.NavigationModel'}"></sly>
+
+<nav class="main-navigation">
+    <ul>
+        <li data-sly-list="${nav.items}">
+            <a href="${item.url}">${i18n.get(item.i18nKey)}</a>
+        </li>
+    </ul>
+</nav>
+
+<!--
+  翻译字典文件位置（参考）：
+  
+  /apps/myapp/i18n/[locale].json
+  
+  例如：
+  /apps/myapp/i18n/en.json
+  {
+    "welcome.message": "Welcome",
+    "button.submit": "Submit",
+    "form.label.name": "Name"
+  }
+  
+  /apps/myapp/i18n/zh.json
+  {
+    "welcome.message": "欢迎",
+    "button.submit": "提交",
+    "form.label.name": "姓名"
+  }
+-->
+
+<!--
+  国际化最佳实践：
+  1. 使用翻译键而不是硬编码文本
+  2. 为翻译键使用有意义的命名空间
+  3. 提供默认语言（通常是英语）
+  4. 在 Sling Model 中处理国际化逻辑
+  5. 测试所有支持的语言
+  6. 考虑文本长度差异（不同语言文本长度不同）
+  7. 处理日期、时间、数字的本地化格式
+-->
+
+<!--
+  处理 RTL (从右到左) 语言：
+  为 RTL 语言添加适当的样式类
+-->
+<sly data-sly-use.locale="${'java.util.Locale' @ language=currentPage.language}"></sly>
+<sly data-sly-set.isRTL="${locale.language == 'ar' || locale.language == 'he'}"></sly>
+
+<div class="component ${isRTL ? 'rtl' : 'ltr'}">
+    <!-- 内容 -->
+</div>
+
+<!--
+  语言检测：
+  根据请求或页面属性检测语言
+-->
+<sly data-sly-set.currentLanguage="${currentPage.language || 'en'}"></sly>
+<div class="component" 
+     data-sly-attribute.lang="${currentLanguage}">
+    <!-- 内容 -->
+</div>
+
+<!--
+  回退语言：
+  如果翻译不存在，使用回退语言
+-->
+<sly data-sly-use.i18n="${'com.day.cq.i18n.I18n' @ request=request}"></sly>
+<sly data-sly-set.translatedText="${i18n.get('my.key', 'Default Text')}"></sly>
+<p>${translatedText}</p>
+
+<!--
+  复数形式处理：
+  处理不同语言的复数规则
+-->
+<sly data-sly-use.i18n="${'com.day.cq.i18n.I18n' @ request=request}"></sly>
+<sly data-sly-set.itemCount="${properties.items ? properties.items.size : 0}"></sly>
+<sly data-sly-set.itemText="${i18n.get('items.count', [itemCount])}"></sly>
+<p>${itemText}</p>
+
+<!--
+  占位符替换：
+  在翻译文本中使用占位符
+-->
+<sly data-sly-use.i18n="${'com.day.cq.i18n.I18n' @ request=request}"></sly>
+<sly data-sly-set.message="${i18n.get('greeting', ['John', 'Welcome'])}"></sly>
+<p>${message}</p>
+
+<!-- 翻译文件示例：
+  "greeting": "{1}, {0}! Welcome to our site."
+  {0} 是第一个参数，{1} 是第二个参数
+-->
+

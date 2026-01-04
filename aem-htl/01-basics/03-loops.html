@@ -1,0 +1,212 @@
+<!--
+  HTL 基础: 循环
+  
+  学习使用 data-sly-list 和 data-sly-repeat 进行循环渲染
+-->
+
+<!--
+  data-sly-list 指令：
+  - 用于遍历集合（数组、列表等）
+  - 会渲染包含的元素
+  - 提供内置变量：item (当前项), itemList (列表对象)
+-->
+
+<!-- 基础循环：遍历数组 -->
+<ul>
+    <li data-sly-list="${properties.items}">
+        ${item}
+    </li>
+</ul>
+
+<!--
+  itemList 对象提供的属性：
+  - itemList.index: 当前索引 (0-based)
+  - itemList.count: 当前计数 (1-based)
+  - itemList.first: 是否是第一项 (boolean)
+  - itemList.last: 是否是最后一项 (boolean)
+  - itemList.odd: 是否是奇数项 (boolean)
+  - itemList.even: 是否是偶数项 (boolean)
+  - itemList.size: 列表总大小
+-->
+
+<!-- 使用 itemList 属性 -->
+<ul>
+    <li data-sly-list="${properties.items}">
+        ${itemList.count}. ${item.name}
+        <span data-sly-test="${itemList.first}">(第一个)</span>
+        <span data-sly-test="${itemList.last}">(最后一个)</span>
+    </li>
+</ul>
+
+<!--
+  循环遍历对象列表：
+  访问对象的属性
+-->
+<ul>
+    <li data-sly-list="${properties.products}">
+        <h3>${item.name}</h3>
+        <p>价格: $${item.price}</p>
+        <p data-sly-test="${item.description}">${item.description}</p>
+    </li>
+</ul>
+
+<!--
+  自定义变量名：
+  使用 @ 符号可以自定义 item 和 itemList 的变量名
+-->
+<ul>
+    <li data-sly-list.product="${properties.products}">
+        产品 ${productList.count}: ${product.name}
+    </li>
+</ul>
+
+<!--
+  data-sly-repeat 指令：
+  - 与 data-sly-list 类似，但只重复元素内容，不重复元素本身
+  - 适用于表格行、列表项等场景
+-->
+
+<!-- data-sly-repeat 示例：只重复内容，不重复 li 标签 -->
+<ul>
+    <li data-sly-repeat="${properties.items}">
+        ${item}
+    </li>
+</ul>
+
+<!--
+  data-sly-list vs data-sly-repeat 的区别：
+  
+  data-sly-list:
+  - 会重复包含的元素
+  - 适用于创建多个独立的元素
+  
+  data-sly-repeat:
+  - 只重复元素的内容
+  - 适用于在单个元素内生成多个内容块
+-->
+
+<!-- data-sly-list 示例：创建多个 div -->
+<div data-sly-list="${properties.items}">
+    <div>${item}</div>
+</div>
+<!-- 结果：多个 <div> 元素 -->
+
+<!-- data-sly-repeat 示例：在单个 div 内生成多个内容 -->
+<div>
+    <span data-sly-repeat="${properties.items}">${item}, </span>
+</div>
+<!-- 结果：单个 <div> 包含多个 <span> -->
+
+<!--
+  循环中的条件渲染：
+  结合 data-sly-test 过滤项目
+-->
+<ul>
+    <li data-sly-list="${properties.items}"
+        data-sly-test="${item.isVisible}">
+        ${item.name}
+    </li>
+</ul>
+
+<!--
+  嵌套循环：
+  在循环内部嵌套另一个循环
+-->
+<ul data-sly-list="${properties.categories}">
+    <li>
+        <h3>${item.name}</h3>
+        <ul>
+            <li data-sly-list="${item.products}">
+                ${item.name} - $${item.price}
+            </li>
+        </ul>
+    </li>
+</ul>
+
+<!--
+  循环遍历 Map：
+  遍历键值对
+-->
+<dl>
+    <dt data-sly-list="${properties.metadata}">
+        ${item.key}:
+        <dd>${item.value}</dd>
+    </dt>
+</dl>
+
+<!--
+  循环中的索引使用：
+  使用索引创建动态 ID 或类名
+-->
+<div data-sly-list="${properties.items}">
+    <div id="item-${itemList.index}" 
+         class="${itemList.odd ? 'odd' : 'even'}">
+        ${item.name}
+    </div>
+</div>
+
+<!--
+  表格行循环：
+  使用 data-sly-list 创建表格行
+-->
+<table>
+    <thead>
+        <tr>
+            <th>名称</th>
+            <th>价格</th>
+            <th>库存</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr data-sly-list="${properties.products}">
+            <td>${item.name}</td>
+            <td>$${item.price}</td>
+            <td>${item.stock}</td>
+        </tr>
+    </tbody>
+</table>
+
+<!--
+  空列表处理：
+  使用 data-sly-test 处理空列表情况
+-->
+<ul data-sly-test="${properties.items && properties.items.size > 0}">
+    <li data-sly-list="${properties.items}">
+        ${item.name}
+    </li>
+</ul>
+<div data-sly-test="${!properties.items || properties.items.size == 0}">
+    暂无项目
+</div>
+
+<!--
+  循环和属性结合：
+  在循环中使用 data-sly-attribute
+-->
+<div data-sly-list="${properties.items}">
+    <div data-sly-attribute.class="${itemList.odd ? 'odd-row' : 'even-row'}"
+         data-sly-attribute.data-id="${item.id}">
+        ${item.name}
+    </div>
+</div>
+
+<!--
+  性能优化：
+  1. 避免在循环中进行复杂计算
+  2. 使用 Use API 预处理数据
+  3. 考虑分页而不是渲染所有项目
+-->
+
+<!--
+  高级示例：分组循环
+  使用 itemList 属性实现交替样式
+-->
+<div class="product-list">
+    <div data-sly-list="${properties.products}"
+         class="product-item ${itemList.first ? 'first' : ''} ${itemList.last ? 'last' : ''} ${itemList.odd ? 'odd' : 'even'}">
+        <img src="${item.image}" alt="${item.name}">
+        <h3>${item.name}</h3>
+        <p>$${item.price}</p>
+    </div>
+</div>
+

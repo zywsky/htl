@@ -1,0 +1,1673 @@
+<!--
+  AEM 组件资源管理: Asset 和图片资源详解
+  
+  本文档详细分析 AEM 组件中 asset 和图片资源的管理方式，
+  包括 DAM 系统、资源存储、引用方式、处理机制和最佳实践
+-->
+
+<!--
+  Asset 和图片资源管理概述
+  =======================
+  
+  AEM 使用 DAM (Digital Asset Management) 系统管理所有数字资产，
+  包括图片、视频、文档等。组件通过多种方式引用和使用这些资源。
+  
+  主要内容:
+  - DAM 系统基础
+  - 资源存储结构
+  - 组件中引用资源的方式
+  - 图片上传和选择
+  - 图片处理和转换
+  - 响应式图片
+  - 性能优化
+  - 最佳实践
+-->
+
+<!--
+  1. DAM 系统基础
+  ==============
+-->
+
+<!--
+  1.1 什么是 DAM
+  ------------
+  
+  DAM (Digital Asset Management) 是 AEM 的数字资产管理系统。
+  
+  功能:
+  - 集中存储和管理所有数字资产
+  - 提供资产上传、组织、搜索功能
+  - 支持资产元数据管理
+  - 提供资产版本控制
+  - 支持资产处理和转换
+  
+  存储位置:
+  - 主要路径: /content/dam
+  - 资产以 JCR 节点形式存储
+  - 支持文件夹结构组织
+  
+  资产类型:
+  - 图片: JPG, PNG, GIF, SVG, WebP 等
+  - 视频: MP4, MOV, AVI 等
+  - 文档: PDF, DOC, XLS 等
+  - 其他: 字体、音频等
+-->
+
+<!--
+  1.2 DAM 存储结构
+  ----------------
+  
+  DAM 的典型存储结构:
+  
+  /content/dam/
+    ├── myapp/                    # 项目文件夹
+    │   ├── images/               # 图片文件夹
+    │   │   ├── hero/             # Hero 图片
+    │   │   │   ├── hero-1.jpg
+    │   │   │   └── hero-2.jpg
+    │   │   └── thumbnails/       # 缩略图
+    │   ├── videos/               # 视频文件夹
+    │   └── documents/            # 文档文件夹
+    └── shared/                   # 共享资源
+  
+  节点结构:
+  - 每个资产是一个 nt:file 节点
+  - 包含 jcr:content 子节点
+  - jcr:content 包含实际文件数据（jcr:data）
+  - 包含元数据（jcr:title, jcr:description 等）
+  
+  示例节点结构:
+  /content/dam/myapp/images/hero/hero-1.jpg
+    └── jcr:content
+        ├── jcr:data (二进制数据)
+        ├── jcr:mimeType = "image/jpeg"
+        ├── jcr:title = "Hero Image 1"
+        └── metadata/
+            ├── dc:title
+            ├── dc:description
+            └── tiff:ImageWidth
+-->
+
+<!--
+  1.3 资产访问路径
+  --------------
+  
+  资产可以通过多种路径访问:
+  
+  1. 直接路径
+     - /content/dam/myapp/images/hero/hero-1.jpg
+     - 直接访问资产文件
+  
+  2. 渲染路径
+     - /content/dam/myapp/images/hero/hero-1.jpg.renditions/original.jpg
+     - 通过渲染服务访问（支持处理）
+  
+  3. 下载路径
+     - /content/dam/myapp/images/hero/hero-1.jpg.download
+     - 触发下载而非显示
+  
+  4. 缩略图路径
+     - /content/dam/myapp/images/hero/hero-1.jpg.thumb.319.319.png
+     - 自动生成的缩略图
+-->
+
+<!--
+  2. 组件中引用资源的方式
+  ======================
+-->
+
+<!--
+  2.1 直接路径引用
+  --------------
+  
+  在 HTL 中直接使用路径:
+  
+  <img src="/content/dam/myapp/images/hero/hero-1.jpg" 
+       alt="Hero Image"/>
+  
+  说明:
+  - 使用绝对路径
+  - 简单直接
+  - 但不够灵活（硬编码路径）
+  
+  使用组件属性:
+  
+  <img src="${properties.imagePath}" 
+       alt="${properties.altText}"/>
+  
+  说明:
+  - 通过对话框配置路径
+  - 更灵活
+  - 支持内容作者选择
+-->
+
+<!--
+  2.2 fileReference 属性
+  --------------------
+  
+  fileReference 是 AEM 中存储资产引用的标准属性。
+  
+  使用方式:
+  
+  1. 在对话框中配置:
+  
+  <image jcr:primaryType="nt:unstructured"
+         sling:resourceType="cq/gui/components/authoring/dialog/fileupload"
+         fieldLabel="Image"
+         name="./fileReference"
+         fileReferenceParameter="./fileReference"
+         mimeTypes="[image]"/>
+  
+  2. 在 HTL 中使用:
+  
+  <img src="${properties.fileReference}" 
+       alt="${properties.altText}"/>
+  
+  说明:
+  - fileReference 存储资产的完整路径
+  - 格式: /content/dam/myapp/images/hero/hero-1.jpg
+  - 是 AEM 推荐的标准方式
+-->
+
+<!--
+  2.3 通过 Sling Model 访问
+  -----------------------
+  
+  使用 Sling Model 处理资产:
+  
+  @Model(adaptables = Resource.class)
+  public interface ImageModel {
+      
+      @Inject
+      private Resource resource;
+      
+      default String getImageSrc() {
+          String fileReference = resource.getValueMap()
+              .get("fileReference", String.class);
+          if (fileReference != null) {
+              return fileReference;
+          }
+          return "/content/dam/myapp/images/default.jpg";
+      }
+      
+      default String getAltText() {
+          return resource.getValueMap()
+              .get("altText", resource.getValueMap()
+                  .get("jcr:title", "Image"));
+      }
+      
+      default Asset getAsset() {
+          String fileReference = resource.getValueMap()
+              .get("fileReference", String.class);
+          if (fileReference != null) {
+              Resource assetResource = resource.getResourceResolver()
+                  .resolve(fileReference);
+              return assetResource.adaptTo(Asset.class);
+          }
+          return null;
+      }
+  }
+  
+  在 HTL 中使用:
+  
+  <sly data-sly-use.image="${'com.example.models.ImageModel'}"></sly>
+  <img src="${image.imageSrc}" 
+       alt="${image.altText}"/>
+-->
+
+<!--
+  2.4 相对路径和组件资源
+  ---------------------
+  
+  组件内部资源:
+  
+  组件目录结构:
+  /apps/myapp/components/hero/
+    ├── .content.xml
+    ├── hero.html
+    └── assets/
+        └── default-image.jpg
+  
+  在 HTL 中引用:
+  
+  <img src="${resource.path}/assets/default-image.jpg" 
+       alt="Default Image"/>
+  
+  或者使用 resourceType:
+  
+  <img src="${'assets/default-image.jpg' @ resourceType='myapp/components/hero'}" 
+       alt="Default Image"/>
+  
+  说明:
+  - 组件内部资源用于默认图片、图标等
+  - 相对路径相对于组件路径
+  - 适合静态资源
+-->
+
+<!--
+  3. 图片上传和选择
+  ================
+-->
+
+<!--
+  3.1 图片上传字段配置
+  ------------------
+  
+  标准图片上传字段:
+  
+  <image jcr:primaryType="nt:unstructured"
+         sling:resourceType="cq/gui/components/authoring/dialog/fileupload"
+         fieldLabel="Image"
+         name="./fileReference"
+         fileNameParameter="./fileName"
+         fileReferenceParameter="./fileReference"
+         title="Upload Image"
+         buttonText="Browse"
+         mimeTypes="[image]"
+         required="{Boolean}true"/>
+  
+  属性说明:
+  - name: 存储文件引用的属性名
+  - fileNameParameter: 存储文件名的属性名
+  - fileReferenceParameter: 存储文件引用的属性名（通常与 name 相同）
+  - mimeTypes: 允许的 MIME 类型（[image] 表示所有图片类型）
+  - required: 是否必填
+  
+  上传流程:
+  1. 用户点击 "Browse" 按钮
+  2. 打开 DAM 资产选择器
+  3. 用户选择或上传图片
+  4. 保存到 /content/dam
+  5. fileReference 属性存储资产路径
+-->
+
+<!--
+  3.2 智能图片字段（Smart Image）
+  -----------------------------
+  
+  智能图片字段提供图片编辑功能:
+  
+  <smartImage jcr:primaryType="nt:unstructured"
+              sling:resourceType="cq/gui/components/authoring/dialog/smartimage"
+              fieldLabel="Smart Image"
+              name="./fileReference"
+              fileNameParameter="./fileName"
+              fileReferenceParameter="./fileReference"
+              cropParameter="./imageCrop"
+              rotateParameter="./imageRotate"
+              mapParameter="./imageMap"
+              title="Select Image"
+              mimeTypes="[image]"/>
+  
+  功能:
+  - 图片裁剪（cropParameter）
+  - 图片旋转（rotateParameter）
+  - 图片映射（mapParameter）
+  - 实时预览
+  
+  存储的参数:
+  - fileReference: 资产路径
+  - imageCrop: 裁剪参数（JSON 格式）
+  - imageRotate: 旋转角度
+  - imageMap: 映射区域（JSON 格式）
+-->
+
+<!--
+  3.3 资产选择器（Asset Selector）
+  -----------------------------
+  
+  使用路径字段选择资产:
+  
+  <asset jcr:primaryType="nt:unstructured"
+         sling:resourceType="granite/ui/components/coral/foundation/form/pathfield"
+         fieldLabel="Asset"
+         name="./assetPath"
+         rootPath="/content/dam"
+         filter="[hierarchyNotFile]"
+         pickerSrc="/mnt/overlay/cq/gui/content/common/form/field/assetpicker.html"/>
+  
+  说明:
+  - rootPath: 资产选择器的根路径
+  - filter: 过滤器（hierarchyNotFile 表示只显示文件夹）
+  - pickerSrc: 资产选择器的自定义路径
+  - 提供 DAM 浏览器界面
+-->
+
+<!--
+  3.4 多图片选择
+  -------------
+  
+  使用多字段选择多个图片:
+  
+  <images jcr:primaryType="nt:unstructured"
+          sling:resourceType="granite/ui/components/coral/foundation/form/multifield"
+          fieldLabel="Images"
+          name="./images">
+      <field jcr:primaryType="nt:unstructured"
+             sling:resourceType="granite/ui/components/coral/foundation/form/fieldset"
+             name="./images">
+          <items jcr:primaryType="nt:unstructured">
+              <image jcr:primaryType="nt:unstructured"
+                     sling:resourceType="cq/gui/components/authoring/dialog/fileupload"
+                     fieldLabel="Image"
+                     name="./fileReference"
+                     fileReferenceParameter="./fileReference"
+                     mimeTypes="[image]"/>
+              <altText jcr:primaryType="nt:unstructured"
+                       sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+                       fieldLabel="Alt Text"
+                       name="./altText"/>
+          </items>
+      </field>
+  </images>
+  
+  在 HTL 中使用:
+  
+  <div data-sly-list="${properties.images}">
+      <img src="${item.fileReference}" 
+           alt="${item.altText}"/>
+  </div>
+-->
+
+<!--
+  4. 图片处理和转换
+  ================
+-->
+
+<!--
+  4.1 图片渲染（Renditions）
+  -----------------------
+  
+  AEM 支持自动生成图片的不同尺寸和格式。
+  
+  原始图片:
+  /content/dam/myapp/images/hero/hero-1.jpg
+  
+  自动生成的渲染:
+  - /content/dam/myapp/images/hero/hero-1.jpg.renditions/original.jpg
+  - /content/dam/myapp/images/hero/hero-1.jpg.renditions/cq5dam.thumbnail.48.48.png
+  - /content/dam/myapp/images/hero/hero-1.jpg.renditions/cq5dam.thumbnail.140.100.png
+  - /content/dam/myapp/images/hero/hero-1.jpg.renditions/cq5dam.thumbnail.319.319.png
+  
+  使用渲染:
+  
+  <img src="${properties.fileReference}.renditions/cq5dam.thumbnail.319.319.png" 
+       alt="Thumbnail"/>
+  
+  说明:
+  - 渲染是自动生成的
+  - 支持多种尺寸
+  - 可以缓存以提高性能
+-->
+
+<!--
+  4.2 动态图片处理
+  ----------------
+  
+  使用图片服务动态处理图片:
+  
+  1. 缩放:
+  
+  <img src="${properties.fileReference}.img.800.600.jpg" 
+       alt="Scaled Image"/>
+  
+  说明:
+  - .img.{width}.{height}.{format}
+  - 动态生成指定尺寸的图片
+  - 支持 JPG, PNG, GIF 等格式
+  
+  2. 裁剪:
+  
+  <img src="${properties.fileReference}.img.800.600.crop.100.100.600.400.jpg" 
+       alt="Cropped Image"/>
+  
+  说明:
+  - .crop.{x}.{y}.{width}.{height}
+  - 从指定位置裁剪指定尺寸
+  
+  3. 旋转:
+  
+  <img src="${properties.fileReference}.img.800.600.rotate.90.jpg" 
+       alt="Rotated Image"/>
+  
+  说明:
+  - .rotate.{angle}
+  - 旋转指定角度（90, 180, 270）
+-->
+
+<!--
+  4.3 使用 Sling Model 处理图片
+  ---------------------------
+  
+  在 Sling Model 中处理图片:
+  
+  @Model(adaptables = Resource.class)
+  public interface ProcessedImageModel {
+      
+      @Inject
+      private Resource resource;
+      
+      default String getImageSrc(int width, int height) {
+          String fileReference = resource.getValueMap()
+              .get("fileReference", String.class);
+          if (fileReference != null) {
+              return fileReference + ".img." + width + "." + height + ".jpg";
+          }
+          return null;
+      }
+      
+      default String getThumbnailSrc() {
+          return getImageSrc(319, 319);
+      }
+      
+      default String getResponsiveSrcSet() {
+          String fileReference = resource.getValueMap()
+              .get("fileReference", String.class);
+          if (fileReference != null) {
+              return fileReference + ".img.320.240.jpg 320w, " +
+                     fileReference + ".img.640.480.jpg 640w, " +
+                     fileReference + ".img.1280.960.jpg 1280w";
+          }
+          return null;
+      }
+  }
+  
+  在 HTL 中使用:
+  
+  <sly data-sly-use.image="${'com.example.models.ProcessedImageModel'}"></sly>
+  <img src="${image.thumbnailSrc}" 
+       srcset="${image.responsiveSrcSet}"
+       sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
+       alt="Responsive Image"/>
+-->
+
+<!--
+  5. 响应式图片
+  ============
+-->
+
+<!--
+  5.1 srcset 和 sizes
+  ------------------
+  
+  使用 HTML5 srcset 实现响应式图片:
+  
+  <img src="${properties.fileReference}.img.800.600.jpg"
+       srcset="${properties.fileReference}.img.320.240.jpg 320w,
+               ${properties.fileReference}.img.640.480.jpg 640w,
+               ${properties.fileReference}.img.1280.960.jpg 1280w"
+       sizes="(max-width: 640px) 320px,
+              (max-width: 1280px) 640px,
+              1280px"
+       alt="${properties.altText}"/>
+  
+  说明:
+  - srcset: 提供多个图片源和宽度描述符
+  - sizes: 定义在不同屏幕尺寸下使用的图片尺寸
+  - 浏览器自动选择最合适的图片
+  - 减少移动设备的数据传输
+-->
+
+<!--
+  5.2 picture 元素
+  --------------
+  
+  使用 picture 元素实现更复杂的响应式图片:
+  
+  <picture>
+      <source media="(max-width: 640px)"
+              srcset="${properties.fileReference}.img.640.480.jpg">
+      <source media="(max-width: 1280px)"
+              srcset="${properties.fileReference}.img.1280.960.jpg">
+      <img src="${properties.fileReference}.img.1920.1080.jpg"
+           alt="${properties.altText}">
+  </picture>
+  
+  说明:
+  - picture 元素提供更灵活的控制
+  - 可以根据媒体查询选择不同的图片
+  - 支持不同格式（WebP, AVIF 等）
+-->
+
+<!--
+  5.3 响应式图片最佳实践
+  ---------------------
+  
+  1. 提供多个尺寸
+     - 移动设备: 320-640px
+     - 平板设备: 640-1024px
+     - 桌面设备: 1024px+
+  
+  2. 使用适当的格式
+     - WebP: 现代浏览器，更好的压缩
+     - AVIF: 最新格式，最佳压缩
+     - JPG: 兼容性最好
+  
+  3. 懒加载
+     - 使用 loading="lazy" 属性
+     - 延迟加载视口外的图片
+     - 改善页面加载性能
+  
+  示例:
+  
+  <img src="${properties.fileReference}.img.800.600.jpg"
+       srcset="${properties.fileReference}.img.320.240.webp 320w,
+               ${properties.fileReference}.img.640.480.webp 640w,
+               ${properties.fileReference}.img.1280.960.webp 1280w"
+       sizes="(max-width: 640px) 320px,
+              (max-width: 1280px) 640px,
+              1280px"
+       loading="lazy"
+       alt="${properties.altText}"/>
+-->
+
+<!--
+  6. 图片优化
+  ==========
+-->
+
+<!--
+  6.1 图片格式选择
+  --------------
+  
+  不同格式的特点:
+  
+  1. JPEG
+     - 适合: 照片、复杂图像
+     - 优点: 兼容性好，压缩率高
+     - 缺点: 不支持透明，有损压缩
+  
+  2. PNG
+     - 适合: 图标、简单图形、需要透明
+     - 优点: 无损压缩，支持透明
+     - 缺点: 文件较大
+  
+  3. WebP
+     - 适合: 现代浏览器
+     - 优点: 更好的压缩率，支持透明
+     - 缺点: 兼容性较差（需要回退）
+  
+  4. SVG
+     - 适合: 图标、矢量图形
+     - 优点: 矢量格式，可缩放，文件小
+     - 缺点: 不适合复杂图像
+  
+  选择建议:
+  - 照片: JPEG 或 WebP
+  - 图标: SVG 或 PNG
+  - 简单图形: PNG 或 SVG
+  - 复杂图形: JPEG 或 WebP
+-->
+
+<!--
+  6.2 图片压缩
+  -----------
+  
+  压缩策略:
+  
+  1. 上传前压缩
+     - 使用图片编辑软件压缩
+     - 优化图片质量设置
+     - 移除不必要的元数据
+  
+  2. AEM 自动压缩
+     - 使用 DAM 更新资产工作流
+     - 自动生成优化版本
+     - 配置压缩参数
+  
+  3. 动态压缩
+     - 使用图片服务动态压缩
+     - 根据请求参数调整质量
+     - 缓存压缩结果
+  
+  配置示例:
+  
+  DAM 更新资产工作流配置:
+  - 路径: /workflow/models/dam/update_asset
+  - 配置压缩参数
+  - 设置质量级别（通常 80-90%）
+-->
+
+<!--
+  6.3 懒加载
+  ---------
+  
+  实现懒加载:
+  
+  1. 原生懒加载:
+  
+  <img src="${properties.fileReference}"
+       loading="lazy"
+       alt="${properties.altText}"/>
+  
+  说明:
+  - loading="lazy" 是 HTML5 原生属性
+  - 浏览器自动延迟加载视口外的图片
+  - 兼容现代浏览器
+  
+  2. JavaScript 懒加载:
+  
+  <img data-src="${properties.fileReference}"
+       class="lazy"
+       alt="${properties.altText}"/>
+  
+  <script>
+      // 使用 Intersection Observer API
+      const images = document.querySelectorAll('img.lazy');
+      const imageObserver = new IntersectionObserver((entries, observer) => {
+          entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                  const img = entry.target;
+                  img.src = img.dataset.src;
+                  img.classList.remove('lazy');
+                  imageObserver.unobserve(img);
+              }
+          });
+      });
+      images.forEach(img => imageObserver.observe(img));
+  </script>
+  
+  说明:
+  - 使用 Intersection Observer API
+  - 更灵活的控制
+  - 支持所有浏览器（需要 polyfill）
+-->
+
+<!--
+  7. 资产元数据
+  ===========
+-->
+
+<!--
+  7.1 访问资产元数据
+  ----------------
+  
+  通过 Asset API 访问元数据:
+  
+  @Model(adaptables = Resource.class)
+  public interface AssetMetadataModel {
+      
+      @Inject
+      private Resource resource;
+      
+      default Asset getAsset() {
+          String fileReference = resource.getValueMap()
+              .get("fileReference", String.class);
+          if (fileReference != null) {
+              Resource assetResource = resource.getResourceResolver()
+                  .resolve(fileReference);
+              return assetResource.adaptTo(Asset.class);
+          }
+          return null;
+      }
+      
+      default String getAssetTitle() {
+          Asset asset = getAsset();
+          if (asset != null) {
+              return asset.getMetadataValue("dc:title");
+          }
+          return null;
+      }
+      
+      default String getAssetDescription() {
+          Asset asset = getAsset();
+          if (asset != null) {
+              return asset.getMetadataValue("dc:description");
+          }
+          return null;
+      }
+      
+      default int getImageWidth() {
+          Asset asset = getAsset();
+          if (asset != null) {
+              String width = asset.getMetadataValue("tiff:ImageWidth");
+              return width != null ? Integer.parseInt(width) : 0;
+          }
+          return 0;
+      }
+      
+      default int getImageHeight() {
+          Asset asset = getAsset();
+          if (asset != null) {
+              String height = asset.getMetadataValue("tiff:ImageHeight");
+              return height != null ? Integer.parseInt(height) : 0;
+          }
+          return 0;
+      }
+  }
+  
+  在 HTL 中使用:
+  
+  <sly data-sly-use.asset="${'com.example.models.AssetMetadataModel'}"></sly>
+  <img src="${properties.fileReference}"
+       alt="${asset.assetTitle || properties.altText}"
+       width="${asset.imageWidth}"
+       height="${asset.imageHeight}"/>
+-->
+
+<!--
+  7.2 常用元数据属性
+  ----------------
+  
+  DAM 资产常用元数据:
+  
+  1. Dublin Core 元数据
+     - dc:title: 标题
+     - dc:description: 描述
+     - dc:creator: 创建者
+     - dc:subject: 主题
+     - dc:rights: 版权
+  
+  2. EXIF 元数据（图片）
+     - tiff:ImageWidth: 图片宽度
+     - tiff:ImageHeight: 图片高度
+     - exif:DateTimeOriginal: 拍摄时间
+     - exif:Orientation: 方向
+     - exif:GPSLatitude: GPS 纬度
+     - exif:GPSLongitude: GPS 经度
+  
+  3. AEM 特定元数据
+     - jcr:title: JCR 标题
+     - jcr:description: JCR 描述
+     - cq:tags: 标签
+     - dam:size: 文件大小
+     - dam:sha1: SHA1 哈希值
+-->
+
+<!--
+  8. 最佳实践
+  ==========
+-->
+
+<!--
+  8.1 资源组织
+  ----------
+  
+  组织原则:
+  
+  1. 按项目组织
+     - /content/dam/myapp/
+     - 每个项目有独立的文件夹
+  
+  2. 按类型组织
+     - /content/dam/myapp/images/
+     - /content/dam/myapp/videos/
+     - /content/dam/myapp/documents/
+  
+  3. 按用途组织
+     - /content/dam/myapp/images/hero/
+     - /content/dam/myapp/images/thumbnails/
+     - /content/dam/myapp/images/icons/
+  
+  4. 命名规范
+     - 使用有意义的文件名
+     - 使用连字符分隔（kebab-case）
+     - 包含版本号（如需要）
+     - 示例: hero-banner-v2.jpg
+-->
+
+<!--
+  8.2 性能优化
+  ----------
+  
+  优化建议:
+  
+  1. 使用适当的图片尺寸
+     - 不要上传过大的图片
+     - 使用响应式图片
+     - 根据使用场景选择尺寸
+  
+  2. 使用 CDN
+     - 配置 CDN 加速资产访问
+     - 减少服务器负载
+     - 改善全球访问速度
+  
+  3. 启用缓存
+     - 配置 Dispatcher 缓存资产
+     - 设置适当的缓存头
+     - 使用版本号控制缓存失效
+  
+  4. 压缩图片
+     - 上传前压缩
+     - 使用适当的格式
+     - 配置自动压缩
+-->
+
+<!--
+  8.3 可访问性
+  ----------
+  
+  可访问性最佳实践:
+  
+  1. 提供 alt 文本
+     - 所有图片都应该有 alt 属性
+     - 使用描述性的文本
+     - 装饰性图片使用空 alt=""
+  
+  2. 提供标题和描述
+     - 使用 title 属性（可选）
+     - 使用 figure 和 figcaption（适合）
+  
+  3. 考虑颜色对比
+     - 确保文字和背景对比度足够
+     - 不要仅依赖颜色传达信息
+  
+  示例:
+  
+  <figure>
+      <img src="${properties.fileReference}"
+           alt="${properties.altText || 'Image description'}"
+           title="${properties.title}">
+      <figcaption>${properties.caption}</figcaption>
+  </figure>
+-->
+
+<!--
+  10. 高级图片处理
+  ===============
+-->
+
+<!--
+  10.1 图片裁剪和编辑
+  ----------------
+  
+  使用智能图片字段保存的裁剪参数:
+  
+  裁剪参数格式（JSON）:
+  {
+      "x": 100,
+      "y": 100,
+      "width": 600,
+      "height": 400
+  }
+  
+  在 HTL 中应用裁剪:
+  
+  <sly data-sly-set.cropData="${properties.imageCrop}"></sly>
+  <sly data-sly-use.crop="${'com.example.utils.ImageCropUtil' @ cropData=cropData}"></sly>
+  <img src="${properties.fileReference}.img.${crop.width}.${crop.height}.crop.${crop.x}.${crop.y}.${crop.width}.${crop.height}.jpg"
+       alt="${properties.altText}"/>
+  
+  或者使用 Sling Model:
+  
+  @Model(adaptables = Resource.class)
+  public interface CroppedImageModel {
+      
+      @Inject
+      private Resource resource;
+      
+      default String getCroppedImageSrc() {
+          String fileReference = resource.getValueMap()
+              .get("fileReference", String.class);
+          String cropData = resource.getValueMap()
+              .get("imageCrop", String.class);
+          
+          if (fileReference != null && cropData != null) {
+              try {
+                  JSONObject crop = new JSONObject(cropData);
+                  int x = crop.getInt("x");
+                  int y = crop.getInt("y");
+                  int width = crop.getInt("width");
+                  int height = crop.getInt("height");
+                  
+                  return fileReference + ".img." + width + "." + height + 
+                         ".crop." + x + "." + y + "." + width + "." + height + ".jpg";
+              } catch (JSONException e) {
+                  log.error("Error parsing crop data", e);
+              }
+          }
+          
+          return fileReference;
+      }
+  }
+-->
+
+<!--
+  10.2 图片映射（Image Map）
+  -----------------------
+  
+  图片映射参数格式（JSON）:
+  
+  {
+      "areas": [
+          {
+              "shape": "rect",
+              "coords": [100, 100, 200, 200],
+              "href": "/content/myapp/page1",
+              "alt": "Link 1"
+          },
+          {
+              "shape": "circle",
+              "coords": [300, 300, 50],
+              "href": "/content/myapp/page2",
+              "alt": "Link 2"
+          }
+      ]
+  }
+  
+  在 HTL 中生成图片映射:
+  
+  <sly data-sly-set.mapData="${properties.imageMap}"></sly>
+  <sly data-sly-use.map="${'com.example.utils.ImageMapUtil' @ mapData=mapData}"></sly>
+  <img src="${properties.fileReference}"
+       alt="${properties.altText}"
+       usemap="#image-map">
+  <map name="image-map">
+      <area data-sly-list="${map.areas}"
+            shape="${item.shape}"
+            coords="${item.coords}"
+            href="${item.href}.html"
+            alt="${item.alt}">
+  </map>
+-->
+
+<!--
+  10.3 图片水印
+  -----------
+  
+  使用图片服务添加水印:
+  
+  1. 配置水印图片:
+     - 路径: /content/dam/myapp/watermark.png
+     - 透明背景 PNG 格式
+  
+  2. 在图片 URL 中添加水印参数:
+  
+  <img src="${properties.fileReference}.img.800.600.watermark./content/dam/myapp/watermark.png.jpg"
+       alt="${properties.altText}"/>
+  
+  说明:
+  - .watermark.{watermarkPath}
+  - 水印图片路径
+  - 自动叠加到原图上
+  
+  或者使用 Sling Model:
+  
+  default String getWatermarkedImageSrc(int width, int height) {
+      String fileReference = resource.getValueMap()
+          .get("fileReference", String.class);
+      String watermarkPath = "/content/dam/myapp/watermark.png";
+      
+      if (fileReference != null) {
+          return fileReference + ".img." + width + "." + height + 
+                 ".watermark." + watermarkPath + ".jpg";
+      }
+      return null;
+  }
+-->
+
+<!--
+  10.4 图片滤镜和效果
+  -----------------
+  
+  使用图片服务添加效果:
+  
+  1. 灰度:
+  
+  <img src="${properties.fileReference}.img.800.600.grayscale.jpg"
+       alt="${properties.altText}"/>
+  
+  2. 模糊:
+  
+  <img src="${properties.fileReference}.img.800.600.blur.5.jpg"
+       alt="${properties.altText}"/>
+  
+  说明:
+  - .blur.{radius}
+  - 模糊半径（像素）
+  
+  3. 亮度调整:
+  
+  <img src="${properties.fileReference}.img.800.600.brightness.20.jpg"
+       alt="${properties.altText}"/>
+  
+  说明:
+  - .brightness.{value}
+  - 亮度值（-100 到 100）
+  
+  4. 对比度调整:
+  
+  <img src="${properties.fileReference}.img.800.600.contrast.20.jpg"
+       alt="${properties.altText}"/>
+  
+  说明:
+  - .contrast.{value}
+  - 对比度值（-100 到 100）
+-->
+
+<!--
+  11. 资产版本控制
+  ===============
+-->
+
+<!--
+  11.1 资产版本管理
+  --------------
+  
+  AEM DAM 支持资产版本控制:
+  
+  1. 创建版本:
+     - 在 DAM 中编辑资产时自动创建版本
+     - 手动创建版本（通过 UI）
+     - 通过 API 创建版本
+  
+  2. 访问版本:
+     - 原始版本: /content/dam/myapp/images/hero.jpg
+     - 历史版本: /content/dam/myapp/images/hero.jpg;v=1.0
+     - 版本号格式: v=1.0, v=1.1 等
+  
+  3. 恢复版本:
+     - 从历史版本恢复
+     - 创建新版本基于历史版本
+  
+  代码示例:
+  
+  Asset asset = assetManager.getAsset("/content/dam/myapp/images/hero.jpg");
+  AssetVersionManager versionManager = asset.adaptTo(AssetVersionManager.class);
+  
+  // 创建版本
+  Version version = versionManager.createVersion("Version comment");
+  
+  // 获取所有版本
+  List<Version> versions = versionManager.listVersions();
+  
+  // 恢复版本
+  versionManager.restoreVersion(version);
+-->
+
+<!--
+  11.2 在组件中使用版本
+  -------------------
+  
+  引用特定版本的资产:
+  
+  <img src="${properties.fileReference};v=1.0"
+       alt="${properties.altText}"/>
+  
+  或者通过 Sling Model:
+  
+  default String getVersionedImageSrc(String version) {
+      String fileReference = resource.getValueMap()
+          .get("fileReference", String.class);
+      if (fileReference != null && version != null) {
+          return fileReference + ";v=" + version;
+      }
+      return fileReference;
+  }
+  
+  说明:
+  - 使用版本号参数引用特定版本
+  - 适合需要固定版本资产的场景
+  - 版本号格式: v=1.0, v=1.1 等
+-->
+
+<!--
+  12. 资产搜索和查询
+  ================
+-->
+
+<!--
+  12.1 通过 JCR 查询搜索资产
+  -----------------------
+  
+  使用 JCR 查询查找资产:
+  
+  @Model(adaptables = SlingHttpServletRequest.class)
+  public interface AssetSearchModel {
+      
+      @Inject
+      private ResourceResolver resourceResolver;
+      
+      default List<Asset> searchAssets(String searchTerm, String folderPath) {
+          List<Asset> assets = new ArrayList<>();
+          
+          try {
+              QueryManager queryManager = resourceResolver.adaptTo(Session.class)
+                  .getWorkspace().getQueryManager();
+              
+              String query = "SELECT * FROM [dam:Asset] " +
+                           "WHERE ISDESCENDANTNODE('" + folderPath + "') " +
+                           "AND CONTAINS(jcr:content/metadata/dc:title, '" + searchTerm + "')";
+              
+              QueryResult result = queryManager.createQuery(query, "JCR-SQL2").execute();
+              NodeIterator nodes = result.getNodes();
+              
+              while (nodes.hasNext()) {
+                  Node node = nodes.nextNode();
+                  Resource assetResource = resourceResolver.getResource(node.getPath());
+                  if (assetResource != null) {
+                      Asset asset = assetResource.adaptTo(Asset.class);
+                      if (asset != null) {
+                          assets.add(asset);
+                      }
+                  }
+              }
+          } catch (Exception e) {
+              log.error("Error searching assets", e);
+          }
+          
+          return assets;
+      }
+      
+      default List<Asset> searchAssetsByTag(String tag) {
+          // 通过标签搜索资产
+          // ...
+      }
+  }
+-->
+
+<!--
+  12.2 使用 Asset Manager API
+  ------------------------
+  
+  使用 Asset Manager 搜索资产:
+  
+  @Reference
+  private AssetManager assetManager;
+  
+  default List<Asset> findAssets(String folderPath, String mimeType) {
+      List<Asset> assets = new ArrayList<>();
+      
+      Resource folderResource = resourceResolver.resolve(folderPath);
+      if (folderResource != null) {
+          Iterator<Resource> children = folderResource.listChildren();
+          while (children.hasNext()) {
+              Resource child = children.next();
+              Asset asset = child.adaptTo(Asset.class);
+              if (asset != null) {
+                  String assetMimeType = asset.getMimeType();
+                  if (mimeType == null || mimeType.equals(assetMimeType)) {
+                      assets.add(asset);
+                  }
+              }
+          }
+      }
+      
+      return assets;
+  }
+-->
+
+<!--
+  13. 资产上传和处理
+  ================
+-->
+
+<!--
+  13.1 编程方式上传资产
+  -------------------
+  
+  通过 Java API 上传资产:
+  
+  @Model(adaptables = SlingHttpServletRequest.class)
+  public interface AssetUploadModel {
+      
+      @Inject
+      private ResourceResolver resourceResolver;
+      
+      @Reference
+      private AssetManager assetManager;
+      
+      default Asset uploadAsset(InputStream inputStream, String fileName, 
+                                String folderPath, Map<String, Object> metadata) {
+          try {
+              // 确保文件夹存在
+              Resource folder = resourceResolver.resolve(folderPath);
+              if (folder == null) {
+                  // 创建文件夹
+                  Session session = resourceResolver.adaptTo(Session.class);
+                  Node parentNode = session.getNode(folderPath.substring(0, 
+                      folderPath.lastIndexOf('/')));
+                  Node folderNode = parentNode.addNode(
+                      folderPath.substring(folderPath.lastIndexOf('/') + 1),
+                      "sling:Folder");
+                  session.save();
+                  folder = resourceResolver.resolve(folderPath);
+              }
+              
+              // 上传资产
+              Asset asset = assetManager.createAsset(
+                  folderPath + "/" + fileName,
+                  inputStream,
+                  assetManager.getMimeType(fileName),
+                  true  // 自动处理
+              );
+              
+              // 设置元数据
+              if (metadata != null) {
+                  Metadata metadataObj = asset.getMetadata();
+                  metadata.forEach((key, value) -> {
+                      metadataObj.setProperty(key, value);
+                  });
+                  assetManager.setMetadata(asset, metadataObj);
+              }
+              
+              return asset;
+          } catch (Exception e) {
+              log.error("Error uploading asset", e);
+              return null;
+          }
+      }
+  }
+-->
+
+<!--
+  13.2 资产处理工作流
+  -----------------
+  
+  DAM 更新资产工作流:
+  
+  1. 工作流配置:
+     - 路径: /workflow/models/dam/update_asset
+     - 自动处理上传的资产
+     - 生成缩略图和渲染
+  
+  2. 自定义工作流步骤:
+     - 创建自定义工作流步骤
+     - 处理特定类型的资产
+     - 添加自定义元数据
+  
+  3. 工作流触发:
+     - 自动触发（资产上传时）
+     - 手动触发（通过 UI）
+     - 通过 API 触发
+  
+  工作流步骤示例:
+  
+  @Component(service = WorkflowProcess.class)
+  @Property(name = "process.label", value = "Custom Asset Processor")
+  public class CustomAssetProcessor implements WorkflowProcess {
+      
+      @Override
+      public void execute(WorkItem workItem, WorkflowSession workflowSession, 
+                         MetaDataMap args) throws WorkflowException {
+          // 获取资产
+          String assetPath = workItem.getWorkflowData().getPayload().toString();
+          Resource assetResource = resourceResolver.resolve(assetPath);
+          Asset asset = assetResource.adaptTo(Asset.class);
+          
+          // 处理资产
+          // 例如: 生成自定义渲染、提取元数据等
+      }
+  }
+-->
+
+<!--
+  14. 资产权限和安全
+  ================
+-->
+
+<!--
+  14.1 资产访问控制
+  ----------------
+  
+  配置资产访问权限:
+  
+  1. ACL 配置:
+     - 使用 JCR ACL 控制访问
+     - 设置读取、写入、删除权限
+     - 基于用户和组
+  
+  2. 权限检查:
+  
+  default boolean canAccessAsset(String assetPath, String userId) {
+      try {
+          Session session = resourceResolver.adaptTo(Session.class);
+          AccessControlManager acm = session.getAccessControlManager();
+          
+          // 检查权限
+          Privilege[] privileges = acm.getPrivileges(assetPath);
+          // 验证用户权限
+          
+          return true;  // 或 false
+      } catch (Exception e) {
+          log.error("Error checking asset access", e);
+          return false;
+      }
+  }
+  
+  3. 安全最佳实践:
+     - 限制敏感资产的访问
+     - 使用组而非单个用户
+     - 定期审查权限
+     - 记录访问日志
+-->
+
+<!--
+  14.2 资产水印和安全
+  -----------------
+  
+  为敏感资产添加水印:
+  
+  1. 动态水印:
+     - 基于用户信息生成水印
+     - 包含用户 ID 或时间戳
+     - 防止未授权分发
+  
+  2. 水印实现:
+  
+  default String getWatermarkedImageSrc(String userId) {
+      String fileReference = resource.getValueMap()
+          .get("fileReference", String.class);
+      
+      if (fileReference != null && userId != null) {
+          // 生成包含用户信息的水印
+          String watermarkText = "User: " + userId;
+          return fileReference + ".img.800.600.watermark-text." + 
+                 URLEncoder.encode(watermarkText, "UTF-8") + ".jpg";
+      }
+      
+      return fileReference;
+  }
+  
+  说明:
+  - 动态生成水印
+  - 包含用户标识
+  - 防止未授权使用
+-->
+
+<!--
+  15. 性能优化深度分析
+  ===================
+-->
+
+<!--
+  15.1 CDN 集成
+  -----------
+  
+  配置 CDN 加速资产访问:
+  
+  1. CDN 配置:
+     - 配置 CDN 提供商（CloudFlare, Akamai 等）
+     - 设置源站为 AEM Publisher
+     - 配置缓存规则
+  
+  2. URL 重写:
+     - 使用 Sling Mappings 重写资产 URL
+     - 将 /content/dam 映射到 CDN URL
+     - 保持路径结构
+  
+  3. 缓存策略:
+     - 静态资产长期缓存
+     - 使用版本号控制缓存失效
+     - 设置适当的缓存头
+  
+  Sling Mapping 配置示例:
+  
+  /etc/map.publish/http/
+    └── content-dam
+        └── .content.xml
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:sling="http://sling.apache.org/jcr/sling/1.0"
+            jcr:primaryType="sling:Mapping"
+            sling:internalRedirect="/content/dam"
+            sling:match="https://cdn.example.com/dam"/>
+-->
+
+<!--
+  15.2 图片预加载和预取
+  -------------------
+  
+  优化图片加载:
+  
+  1. 预加载关键图片:
+  
+  <link rel="preload" 
+        as="image" 
+        href="${properties.fileReference}.img.1920.1080.jpg">
+  
+  2. 预取非关键图片:
+  
+  <link rel="prefetch" 
+        as="image" 
+        href="${properties.nextImagePath}">
+  
+  3. 使用 Resource Hints:
+     - dns-prefetch: DNS 预解析
+     - preconnect: 预连接
+     - prefetch: 预取资源
+     - preload: 预加载关键资源
+  
+  说明:
+  - preload: 高优先级，立即加载
+  - prefetch: 低优先级，空闲时加载
+  - 改善页面加载性能
+-->
+
+<!--
+  15.3 图片格式优化
+  ----------------
+  
+  现代图片格式支持:
+  
+  1. WebP 格式:
+     - 更好的压缩率（比 JPEG 小 25-35%）
+     - 支持透明（类似 PNG）
+     - 现代浏览器支持
+  
+  2. AVIF 格式:
+     - 最佳压缩率（比 JPEG 小 50%）
+     - 支持透明和动画
+     - 最新浏览器支持
+  
+  3. 格式回退:
+  
+  <picture>
+      <source type="image/avif" 
+              srcset="${properties.fileReference}.img.800.600.avif">
+      <source type="image/webp" 
+              srcset="${properties.fileReference}.img.800.600.webp">
+      <img src="${properties.fileReference}.img.800.600.jpg"
+           alt="${properties.altText}">
+  </picture>
+  
+  说明:
+  - 浏览器自动选择支持的格式
+  - 提供回退到 JPEG
+  - 最大化压缩和兼容性
+-->
+
+<!--
+  16. 测试和验证
+  =============
+-->
+
+<!--
+  16.1 资产访问测试
+  --------------
+  
+  测试资产是否正确加载:
+  
+  @ExtendWith(AemContextExtension.class)
+  class AssetAccessTest {
+      
+      @RegisterExtension
+      AemContext context = new AemContext();
+      
+      @Test
+      void testAssetAccess() {
+          // 创建测试资产
+          context.create().asset("/content/dam/myapp/test.jpg", 
+              new byte[]{}, "image/jpeg");
+          
+          // 创建组件实例
+          context.create().resource("/content/test/jcr:content/hero",
+              "jcr:primaryType", "nt:unstructured",
+              "sling:resourceType", "myapp/components/hero",
+              "fileReference", "/content/dam/myapp/test.jpg");
+          
+          // 验证资产访问
+          Resource componentResource = context.resourceResolver()
+              .resolve("/content/test/jcr:content/hero");
+          String fileReference = componentResource.getValueMap()
+              .get("fileReference", String.class);
+          
+          assertEquals("/content/dam/myapp/test.jpg", fileReference);
+          
+          // 验证资产存在
+          Resource assetResource = context.resourceResolver()
+              .resolve(fileReference);
+          assertNotNull(assetResource);
+      }
+  }
+-->
+
+<!--
+  16.2 图片处理测试
+  ----------------
+  
+  测试图片处理功能:
+  
+  @Test
+  void testImageProcessing() {
+      // 测试图片缩放
+      String originalPath = "/content/dam/myapp/test.jpg";
+      String scaledPath = originalPath + ".img.800.600.jpg";
+      
+      // 验证缩放路径格式
+      assertTrue(scaledPath.contains(".img.800.600.jpg"));
+      
+      // 测试图片裁剪
+      String croppedPath = originalPath + ".img.400.300.crop.100.100.400.300.jpg";
+      assertTrue(croppedPath.contains(".crop."));
+      
+      // 测试响应式图片
+      String srcset = originalPath + ".img.320.240.jpg 320w, " +
+                     originalPath + ".img.640.480.jpg 640w";
+      assertTrue(srcset.contains("320w"));
+      assertTrue(srcset.contains("640w"));
+  }
+-->
+
+<!--
+  17. 故障排查
+  ===========
+-->
+
+<!--
+  17.1 常见问题
+  -----------
+  
+  问题 1: 图片不显示
+  
+  检查项:
+  1. fileReference 路径是否正确
+  2. 资产是否存在
+  3. 用户是否有访问权限
+  4. URL 是否正确编码
+  5. 图片格式是否支持
+  
+  调试方法:
+  - 在浏览器中直接访问资产 URL
+  - 检查网络请求（开发者工具）
+  - 查看服务器日志
+  - 验证资产路径格式
+  
+  问题 2: 图片处理不工作
+  
+  检查项:
+  1. 图片服务是否启用
+  2. 处理参数格式是否正确
+  3. 是否有处理权限
+  4. 服务器资源是否足够
+  
+  调试方法:
+  - 测试简单的处理请求
+  - 检查图片服务配置
+  - 查看处理日志
+  - 验证参数格式
+  
+  问题 3: 性能问题
+  
+  检查项:
+  1. 图片尺寸是否过大
+  2. 是否使用了响应式图片
+  3. CDN 是否配置正确
+  4. 缓存是否生效
+  
+  优化方法:
+  - 压缩图片
+  - 使用适当的尺寸
+  - 启用 CDN
+  - 配置缓存
+-->
+
+<!--
+  17.2 调试工具
+  -----------
+  
+  1. 浏览器开发者工具:
+     - Network 标签查看图片加载
+     - 检查请求和响应头
+     - 验证缓存状态
+     - 分析加载时间
+  
+  2. AEM 工具:
+     - CRX/DE Lite 查看资产节点
+     - DAM UI 查看资产信息
+     - 工作流控制台查看处理状态
+  
+  3. 日志:
+     - 启用 DEBUG 日志级别
+     - 查看资产访问日志
+     - 查看图片处理日志
+     - 分析错误信息
+-->
+
+<!--
+  18. 最佳实践总结
+  ==============
+-->
+
+<!--
+  18.1 资源管理检查清单
+  -------------------
+  
+  开发时检查:
+  ✓ 使用 fileReference 而非硬编码路径
+  ✓ 提供 alt 文本
+  ✓ 使用响应式图片
+  ✓ 优化图片尺寸和格式
+  ✓ 实现懒加载
+  ✓ 配置适当的缓存
+  ✓ 测试不同设备和浏览器
+  ✓ 验证可访问性
+  
+  部署前检查:
+  ✓ 所有资产已上传到 DAM
+  ✓ 资产路径正确
+  ✓ 权限配置正确
+  ✓ CDN 配置（如使用）
+  ✓ 缓存策略配置
+  ✓ 性能测试通过
+  ✓ 可访问性检查通过
+-->
+
+<!--
+  18.2 性能优化检查清单
+  -------------------
+  
+  ✓ 图片尺寸优化
+  ✓ 使用现代格式（WebP, AVIF）
+  ✓ 实现响应式图片
+  ✓ 启用懒加载
+  ✓ 配置 CDN
+  ✓ 设置缓存头
+  ✓ 使用图片预加载（关键图片）
+  ✓ 压缩图片
+  ✓ 移除不必要的元数据
+-->
+
+<!--
+  19. 相关文档
+  ==========
+  
+  - 组件对话框: 09-component-dialog.html
+  - 组件模板（HTL）: 05-component-htl-template.html
+  - 组件配置: 04-component-content-xml.html
+  - AEM DAM 文档: https://experienceleague.adobe.com/docs/experience-manager-65/assets/home.html
+  - Core Components Image: https://github.com/adobe/aem-core-wcm-components/tree/master/content/src/content/jcr_root/apps/core/wcm/components/image
+  - AEM 图片服务: https://experienceleague.adobe.com/docs/experience-manager-65/assets/using/image-servicing.html
+  - AEM 资产 API: https://helpx.adobe.com/experience-manager/6-5/sites/developing/using/reference-materials/javadoc/com/day/cq/dam/api/package-summary.html
+-->
+

@@ -1,0 +1,2166 @@
+<!--
+  AEM 组件对话框配置: _cq_dialog 文件夹详解
+  
+  本文档详细分析 AEM 组件中的 _cq_dialog 文件夹及其配置，
+  包括其结构、字段类型、验证选项和使用场景，从基础到高级应用
+-->
+
+<!--
+  _cq_dialog 文件夹概述
+  ====================
+  
+  _cq_dialog 是 AEM 组件的编辑对话框配置，定义了内容作者编辑组件时使用的界面。
+  它控制组件属性的输入方式、验证规则、显示逻辑等。
+  
+  文件夹位置: /apps/{project}/components/{component-name}/_cq_dialog/
+  主要文件: .content.xml
+  节点类型: nt:unstructured (默认)
+  
+  作用:
+  - 定义组件编辑界面
+  - 控制属性输入方式
+  - 提供数据验证
+  - 支持条件显示和动态字段
+  - 改善内容作者体验
+-->
+
+<!--
+  1. 基本概念
+  ==========
+-->
+
+<!--
+  1.1 什么是对话框
+  --------------
+  
+  对话框是内容作者编辑组件属性时使用的界面。
+  
+  功能:
+  - 提供表单字段供内容作者输入
+  - 验证用户输入
+  - 组织字段结构（标签、字段集等）
+  - 支持复杂的数据结构（嵌套、多值等）
+  
+  类型:
+  - Touch UI 对话框（现代，推荐）
+  - Classic UI 对话框（旧版，已弃用）
+  
+  本文档主要关注 Touch UI 对话框（Coral UI / Granite UI）
+-->
+
+<!--
+  1.2 文件结构
+  -----------
+  
+  _cq_dialog 文件夹的结构:
+  
+  /apps/myapp/components/hero/
+    ├── .content.xml                    # 组件定义
+    ├── hero.html                       # HTL 模板
+    ├── _cq_dialog/                     # 编辑对话框
+    │   └── .content.xml                # 对话框配置
+    ├── _cq_design_dialog/              # 设计对话框
+    └── _cq_editConfig.xml              # 编辑配置
+  
+  对话框配置:
+  - 位于 _cq_dialog/.content.xml
+  - 使用 Granite UI / Coral UI 组件
+  - 定义字段、验证、布局等
+-->
+
+<!--
+  1.3 对话框工作原理
+  ----------------
+  
+  对话框工作流程:
+  
+  1. 内容作者点击组件编辑按钮
+  2. AEM 查找组件的 _cq_dialog 配置
+  3. 解析 .content.xml 文件
+  4. 渲染对话框界面（基于 Granite UI）
+  5. 内容作者填写表单
+  6. 提交后保存到组件的 JCR 节点
+  7. HTL 模板通过 properties 访问这些值
+  
+  数据流:
+  对话框 → JCR 节点属性 → HTL properties → HTML 输出
+-->
+
+<!--
+  2. 基本对话框结构
+  ==============
+-->
+
+<!--
+  2.1 最简单的对话框
+  ----------------
+-->
+
+<!--
+  最简单的对话框配置:
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+            xmlns:granite="http://www.adobe.com/jcr/granite/1.0"
+            xmlns:cq="http://www.day.com/jcr/cq/1.0"
+            jcr:primaryType="nt:unstructured"
+            jcr:title="Hero"
+            sling:resourceType="cq/gui/components/authoring/dialog">
+      <content jcr:primaryType="nt:unstructured"
+               sling:resourceType="granite/ui/components/coral/foundation/container">
+          <items jcr:primaryType="nt:unstructured">
+              <title jcr:primaryType="nt:unstructured"
+                     sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+                     fieldLabel="Title"
+                     name="./title"/>
+          </items>
+      </content>
+  </jcr:root>
+  
+  说明:
+  - jcr:title: 对话框标题
+  - sling:resourceType: 对话框资源类型
+  - content: 对话框内容容器
+  - items: 字段容器
+  - title: 文本字段示例
+-->
+
+<!--
+  2.2 标准对话框结构
+  ----------------
+-->
+
+<!--
+  标准对话框结构:
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+            xmlns:granite="http://www.adobe.com/jcr/granite/1.0"
+            xmlns:cq="http://www.day.com/jcr/cq/1.0"
+            jcr:primaryType="nt:unstructured"
+            jcr:title="Component Dialog"
+            sling:resourceType="cq/gui/components/authoring/dialog">
+      <content jcr:primaryType="nt:unstructured"
+               sling:resourceType="granite/ui/components/coral/foundation/container">
+          <items jcr:primaryType="nt:unstructured">
+              <!-- 标签页 -->
+              <tabs jcr:primaryType="nt:unstructured"
+                    sling:resourceType="granite/ui/components/coral/foundation/tabs"
+                    maximized="{Boolean}true">
+                  <items jcr:primaryType="nt:unstructured">
+                      <!-- 标签页 1 -->
+                      <tab1 jcr:primaryType="nt:unstructured"
+                            jcr:title="Tab 1"
+                            sling:resourceType="granite/ui/components/coral/foundation/container">
+                          <items jcr:primaryType="nt:unstructured">
+                              <!-- 字段集 -->
+                              <fieldset jcr:primaryType="nt:unstructured"
+                                        jcr:title="Fieldset"
+                                        sling:resourceType="granite/ui/components/coral/foundation/form/fieldset">
+                                  <items jcr:primaryType="nt:unstructured">
+                                      <!-- 字段 -->
+                                      <field jcr:primaryType="nt:unstructured"
+                                             sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+                                             fieldLabel="Field Label"
+                                             name="./fieldName"/>
+                                  </items>
+                              </fieldset>
+                          </items>
+                      </tab1>
+                  </items>
+              </tabs>
+          </items>
+      </content>
+  </jcr:root>
+  
+  结构说明:
+  - content: 对话框根容器
+  - items: 内容项容器
+  - tabs: 标签页容器（可选）
+  - tab: 单个标签页
+  - fieldset: 字段集（可选，用于分组）
+  - field: 实际字段
+-->
+
+<!--
+  3. 字段类型详解
+  ==============
+-->
+
+<!--
+  3.1 文本字段（Textfield）
+  ----------------------
+-->
+
+<!--
+  文本字段配置:
+  
+  <title jcr:primaryType="nt:unstructured"
+         sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+         fieldLabel="Title"
+         name="./title"
+         required="{Boolean}true"
+         emptyText="Enter title"
+         maxLength="100"
+         validation="required"/>
+  
+  属性说明:
+  - fieldLabel: 字段标签
+  - name: 属性名（./ 表示当前节点）
+  - required: 是否必填
+  - emptyText: 占位符文本
+  - maxLength: 最大长度
+  - validation: 验证规则
+  
+  在 HTL 中使用:
+  <h1>${properties.title}</h1>
+-->
+
+<!--
+  3.2 文本区域（Textarea）
+  ---------------------
+-->
+
+<!--
+  文本区域配置:
+  
+  <description jcr:primaryType="nt:unstructured"
+               sling:resourceType="granite/ui/components/coral/foundation/form/textarea"
+               fieldLabel="Description"
+               name="./description"
+               rows="5"
+               cols="50"
+               maxLength="500"/>
+  
+  属性说明:
+  - rows: 行数
+  - cols: 列数
+  - maxLength: 最大长度
+  
+  在 HTL 中使用:
+  <p>${properties.description}</p>
+-->
+
+<!--
+  3.3 富文本编辑器（Richtext）
+  -------------------------
+-->
+
+<!--
+  富文本编辑器配置:
+  
+  <content jcr:primaryType="nt:unstructured"
+           sling:resourceType="cq/gui/components/authoring/dialog/richtext"
+           fieldLabel="Content"
+           name="./content"
+           useFixedInlineToolbar="{Boolean}true"
+           paraformat="p;h1;h2;h3;h4;h5;h6"
+           formats="bold;italic;underline"
+           lists="unordered;ordered"
+           links="modifylink;unlink;anchor"
+           tables="table;removetable;insertrow;removerow;insertcolumn;removecolumn"
+           justifications="left;center;right"
+           subsuperscript="subscript;superscript"
+           indent="indent;outdent"
+           image="image"
+           sourceedit="sourceedit"/>
+  
+  属性说明:
+  - useFixedInlineToolbar: 固定工具栏
+  - paraformat: 段落格式
+  - formats: 文本格式
+  - lists: 列表功能
+  - links: 链接功能
+  - tables: 表格功能
+  - 等等...
+  
+  在 HTL 中使用:
+  <div data-sly-unescape="${properties.content}"></div>
+-->
+
+<!--
+  3.4 路径字段（Pathfield）
+  -----------------------
+-->
+
+<!--
+  路径字段配置:
+  
+  <linkPath jcr:primaryType="nt:unstructured"
+            sling:resourceType="granite/ui/components/coral/foundation/form/pathfield"
+            fieldLabel="Link Path"
+            name="./linkPath"
+            rootPath="/content"
+            filter="[hierarchyNotFile]"
+            required="{Boolean}true"/>
+  
+  属性说明:
+  - rootPath: 根路径
+  - filter: 过滤器（hierarchyNotFile 表示只显示页面，不显示文件）
+  - required: 是否必填
+  
+  在 HTL 中使用:
+  <a href="${properties.linkPath}.html">Link</a>
+-->
+
+<!--
+  3.5 图像字段（Imagefield）
+  ------------------------
+-->
+
+<!--
+  图像字段配置:
+  
+  <image jcr:primaryType="nt:unstructured"
+         sling:resourceType="cq/gui/components/authoring/dialog/fileupload"
+         fieldLabel="Image"
+         name="./fileReference"
+         fileNameParameter="./fileName"
+         fileReferenceParameter="./fileReference"
+         title="Upload Image"
+         buttonText="Browse"
+         mimeTypes="[image]"
+         required="{Boolean}true"/>
+  
+  属性说明:
+  - fileNameParameter: 文件名参数
+  - fileReferenceParameter: 文件引用参数
+  - mimeTypes: MIME 类型过滤
+  
+  在 HTL 中使用:
+  <img src="${properties.fileReference}" alt="${properties.altText}">
+-->
+
+<!--
+  3.6 选择字段（Select）
+  --------------------
+-->
+
+<!--
+  选择字段配置:
+  
+  <theme jcr:primaryType="nt:unstructured"
+         sling:resourceType="granite/ui/components/coral/foundation/form/select"
+         fieldLabel="Theme"
+         name="./theme"
+         required="{Boolean}true">
+      <items jcr:primaryType="nt:unstructured">
+          <option1 jcr:primaryType="nt:unstructured"
+                   text="Default"
+                   value="default"/>
+          <option2 jcr:primaryType="nt:unstructured"
+                   text="Dark"
+                   value="dark"/>
+          <option3 jcr:primaryType="nt:unstructured"
+                   text="Light"
+                   value="light"/>
+      </items>
+  </theme>
+  
+  在 HTL 中使用:
+  <div class="component theme-${properties.theme}">
+      <!-- 内容 -->
+  </div>
+-->
+
+<!--
+  3.7 复选框（Checkbox）
+  -------------------
+-->
+
+<!--
+  复选框配置:
+  
+  <showTitle jcr:primaryType="nt:unstructured"
+             sling:resourceType="granite/ui/components/coral/foundation/form/checkbox"
+             fieldLabel="Show Title"
+             name="./showTitle"
+             text="Display title"
+             checked="{Boolean}false"/>
+  
+  属性说明:
+  - text: 复选框文本
+  - checked: 默认是否选中
+  
+  在 HTL 中使用:
+  <h1 data-sly-test="${properties.showTitle}">${properties.title}</h1>
+-->
+
+<!--
+  3.8 数字字段（Numberfield）
+  -------------------------
+-->
+
+<!--
+  数字字段配置:
+  
+  <itemCount jcr:primaryType="nt:unstructured"
+             sling:resourceType="granite/ui/components/coral/foundation/form/numberfield"
+             fieldLabel="Item Count"
+             name="./itemCount"
+             min="1"
+             max="100"
+             step="1"
+             required="{Boolean}true"/>
+  
+  属性说明:
+  - min: 最小值
+  - max: 最大值
+  - step: 步长
+  
+  在 HTL 中使用:
+  <sly data-sly-use.list="${'com.example.ListModel' @ count=properties.itemCount}"></sly>
+-->
+
+<!--
+  3.9 日期选择器（Datepicker）
+  -------------------------
+-->
+
+<!--
+  日期选择器配置:
+  
+  <publishDate jcr:primaryType="nt:unstructured"
+               sling:resourceType="granite/ui/components/coral/foundation/form/datepicker"
+               fieldLabel="Publish Date"
+               name="./publishDate"
+               type="date"
+               displayDateFormat="YYYY-MM-DD"
+               valueFormat="YYYY-MM-DD"
+               required="{Boolean}true"/>
+  
+  属性说明:
+  - type: 类型（date, datetime, time）
+  - displayDateFormat: 显示格式
+  - valueFormat: 值格式
+  
+  在 HTL 中使用:
+  <time datetime="${properties.publishDate}">${properties.publishDate}</time>
+-->
+
+<!--
+  3.10 多字段（Multifield）
+  ----------------------
+-->
+
+<!--
+  多字段配置（重复字段）:
+  
+  <items jcr:primaryType="nt:unstructured"
+         sling:resourceType="granite/ui/components/coral/foundation/form/multifield"
+         fieldLabel="Items"
+         name="./items"
+         required="{Boolean}true">
+      <field jcr:primaryType="nt:unstructured"
+             sling:resourceType="granite/ui/components/coral/foundation/form/fieldset"
+             name="./items">
+          <items jcr:primaryType="nt:unstructured">
+              <title jcr:primaryType="nt:unstructured"
+                     sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+                     fieldLabel="Title"
+                     name="./title"/>
+              <link jcr:primaryType="nt:unstructured"
+                    sling:resourceType="granite/ui/components/coral/foundation/form/pathfield"
+                    fieldLabel="Link"
+                    name="./link"/>
+          </items>
+      </field>
+  </items>
+  
+  在 HTL 中使用:
+  <ul data-sly-list="${properties.items}">
+      <li>
+          <a href="${item.link}.html">${item.title}</a>
+      </li>
+  </ul>
+-->
+
+<!--
+  3.11 隐藏字段（Hidden）
+  ---------------------
+-->
+
+<!--
+  隐藏字段配置:
+  
+  <hiddenField jcr:primaryType="nt:unstructured"
+               sling:resourceType="granite/ui/components/coral/foundation/form/hidden"
+               name="./hiddenField"
+               value="defaultValue"/>
+  
+  说明:
+  - 用于存储不需要用户输入的值
+  - 可以设置默认值
+  - 在 HTL 中正常访问
+-->
+
+<!--
+  3.12 颜色选择器（Colorfield）
+  --------------------------
+-->
+
+<!--
+  颜色选择器配置:
+  
+  <backgroundColor jcr:primaryType="nt:unstructured"
+                   sling:resourceType="granite/ui/components/coral/foundation/form/colorfield"
+                   fieldLabel="Background Color"
+                   name="./backgroundColor"
+                   value="#ffffff"/>
+  
+  在 HTL 中使用:
+  <div style="background-color: ${properties.backgroundColor}">
+      <!-- 内容 -->
+  </div>
+-->
+
+<!--
+  3.13 开关（Switch）
+  -----------------
+-->
+
+<!--
+  开关配置:
+  
+  <enabled jcr:primaryType="nt:unstructured"
+           sling:resourceType="granite/ui/components/coral/foundation/form/switch"
+           fieldLabel="Enabled"
+           name="./enabled"
+           checked="{Boolean}true"/>
+  
+  说明:
+  - 类似复选框，但使用开关样式
+  - 适合布尔值切换
+-->
+
+<!--
+  3.14 滑块（Slider）
+  -----------------
+-->
+
+<!--
+  滑块配置:
+  
+  <opacity jcr:primaryType="nt:unstructured"
+           sling:resourceType="granite/ui/components/coral/foundation/form/slider"
+           fieldLabel="Opacity"
+           name="./opacity"
+           min="0"
+           max="100"
+           step="1"
+           value="100"/>
+  
+  说明:
+  - 用于数值范围选择
+  - 提供可视化输入方式
+-->
+
+<!--
+  4. 对话框结构组件
+  ================
+-->
+
+<!--
+  4.1 标签页（Tabs）
+  ----------------
+-->
+
+<!--
+  标签页配置:
+  
+  <tabs jcr:primaryType="nt:unstructured"
+        sling:resourceType="granite/ui/components/coral/foundation/tabs"
+        maximized="{Boolean}true">
+      <items jcr:primaryType="nt:unstructured">
+          <tab1 jcr:primaryType="nt:unstructured"
+                jcr:title="Tab 1"
+                sling:resourceType="granite/ui/components/coral/foundation/container">
+              <!-- 标签页内容 -->
+          </tab1>
+          <tab2 jcr:primaryType="nt:unstructured"
+                jcr:title="Tab 2"
+                sling:resourceType="granite/ui/components/coral/foundation/container">
+              <!-- 标签页内容 -->
+          </tab2>
+      </items>
+  </tabs>
+  
+  说明:
+  - maximized: 是否最大化标签页
+  - jcr:title: 标签页标题
+  - 用于组织大量字段
+-->
+
+<!--
+  4.2 字段集（Fieldset）
+  -------------------
+-->
+
+<!--
+  字段集配置:
+  
+  <fieldset jcr:primaryType="nt:unstructured"
+            jcr:title="Fieldset Title"
+            sling:resourceType="granite/ui/components/coral/foundation/form/fieldset">
+      <items jcr:primaryType="nt:unstructured">
+          <!-- 字段 -->
+      </items>
+  </fieldset>
+  
+  说明:
+  - 用于分组相关字段
+  - 提供视觉分隔
+  - 可以折叠/展开
+-->
+
+<!--
+  4.3 列布局（Columns）
+  ------------------
+-->
+
+<!--
+  列布局配置:
+  
+  <columns jcr:primaryType="nt:unstructured"
+           sling:resourceType="granite/ui/components/coral/foundation/fixedcolumns"
+           margin="{Boolean}true">
+      <items jcr:primaryType="nt:unstructured">
+          <column jcr:primaryType="nt:unstructured"
+                  sling:resourceType="granite/ui/components/coral/foundation/container">
+              <items jcr:primaryType="nt:unstructured">
+                  <!-- 字段 -->
+              </items>
+          </column>
+      </items>
+  </columns>
+  
+  说明:
+  - 用于多列布局
+  - 改善字段组织
+  - 响应式支持
+-->
+
+<!--
+  5. 验证和约束
+  ============
+-->
+
+<!--
+  5.1 必填验证
+  ----------
+-->
+
+<!--
+  必填验证:
+  
+  <title jcr:primaryType="nt:unstructured"
+         sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+         fieldLabel="Title"
+         name="./title"
+         required="{Boolean}true"
+         validation="required"/>
+  
+  说明:
+  - required: 标记为必填
+  - validation: 验证规则
+  - 提交时会验证
+-->
+
+<!--
+  5.2 自定义验证
+  ------------
+-->
+
+<!--
+  自定义验证（使用 JavaScript）:
+  
+  <title jcr:primaryType="nt:unstructured"
+         sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+         fieldLabel="Title"
+         name="./title"
+         validation="custom-validation">
+      <granite:data jcr:primaryType="nt:unstructured"
+                    validation-function="validateTitle"/>
+  </title>
+  
+  JavaScript 验证函数:
+  
+  function validateTitle(field) {
+      var value = field.getValue();
+      if (value && value.length < 5) {
+          return "Title must be at least 5 characters";
+      }
+      return null;  // 验证通过
+  }
+-->
+
+<!--
+  5.3 正则表达式验证
+  ----------------
+-->
+
+<!--
+  正则表达式验证:
+  
+  <email jcr:primaryType="nt:unstructured"
+         sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+         fieldLabel="Email"
+         name="./email"
+         validation="email"
+         pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"/>
+  
+  说明:
+  - pattern: 正则表达式
+  - validation: 验证类型
+  - 客户端和服务器端验证
+-->
+
+<!--
+  5.4 数值范围验证
+  --------------
+-->
+
+<!--
+  数值范围验证:
+  
+  <age jcr:primaryType="nt:unstructured"
+       sling:resourceType="granite/ui/components/coral/foundation/form/numberfield"
+       fieldLabel="Age"
+       name="./age"
+       min="18"
+       max="100"
+       step="1"
+       validation="range"/>
+  
+  说明:
+  - min: 最小值
+  - max: 最大值
+  - step: 步长
+  - 自动验证范围
+-->
+
+<!--
+  6. 条件显示和动态字段
+  ====================
+-->
+
+<!--
+  6.1 基于值的条件显示
+  ------------------
+-->
+
+<!--
+  条件显示（使用 show/hide）:
+  
+  <showAdvanced jcr:primaryType="nt:unstructured"
+                sling:resourceType="granite/ui/components/coral/foundation/form/checkbox"
+                fieldLabel="Show Advanced"
+                name="./showAdvanced"/>
+  
+  <advancedField jcr:primaryType="nt:unstructured"
+                sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+                fieldLabel="Advanced Field"
+                name="./advancedField">
+      <granite:data jcr:primaryType="nt:unstructured"
+                    showhint="true"
+                    showhintType="condition"
+                    condition="showAdvanced"/>
+  </advancedField>
+  
+  说明:
+  - condition: 条件字段名
+  - 当条件字段为 true 时显示
+-->
+
+<!--
+  6.2 基于表达式的条件显示
+  ----------------------
+-->
+
+<!--
+  表达式条件显示:
+  
+  <advancedField jcr:primaryType="nt:unstructured"
+                 sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+                 fieldLabel="Advanced Field"
+                 name="./advancedField">
+      <granite:data jcr:primaryType="nt:unstructured"
+                    showhint="true"
+                    showhintType="condition"
+                    condition="${'./showAdvanced == true'}"
+                    conditionType="javascript"/>
+  </advancedField>
+  
+  说明:
+  - conditionType: 条件类型（javascript）
+  - 支持复杂表达式
+-->
+
+<!--
+  6.3 动态选项（Select）
+  --------------------
+-->
+
+<!--
+  动态选项（使用数据源）:
+  
+  <category jcr:primaryType="nt:unstructured"
+            sling:resourceType="granite/ui/components/coral/foundation/form/select"
+            fieldLabel="Category"
+            name="./category">
+      <datasource jcr:primaryType="nt:unstructured"
+                  sling:resourceType="myapp/components/datasources/categories"/>
+  </category>
+  
+  数据源实现（Sling Model）:
+  
+  @Model(adaptables = Resource.class)
+  public interface CategoryDataSource {
+      @Inject
+      List<OptionItem> getOptions();
+  }
+-->
+
+<!--
+  7. 实际应用示例
+  ==============
+-->
+
+<!--
+  7.1 Hero 组件对话框
+  -----------------
+-->
+
+<!--
+  Hero 组件完整对话框:
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+            xmlns:granite="http://www.adobe.com/jcr/granite/1.0"
+            xmlns:cq="http://www.day.com/jcr/cq/1.0"
+            jcr:primaryType="nt:unstructured"
+            jcr:title="Hero"
+            sling:resourceType="cq/gui/components/authoring/dialog">
+      <content jcr:primaryType="nt:unstructured"
+               sling:resourceType="granite/ui/components/coral/foundation/container">
+          <items jcr:primaryType="nt:unstructured">
+              <tabs jcr:primaryType="nt:unstructured"
+                    sling:resourceType="granite/ui/components/coral/foundation/tabs"
+                    maximized="{Boolean}true">
+                  <items jcr:primaryType="nt:unstructured">
+                      <content jcr:primaryType="nt:unstructured"
+                               jcr:title="Content"
+                               sling:resourceType="granite/ui/components/coral/foundation/container">
+                          <items jcr:primaryType="nt:unstructured">
+                              <title jcr:primaryType="nt:unstructured"
+                                     sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+                                     fieldLabel="Title"
+                                     name="./title"
+                                     required="{Boolean}true"/>
+                              <description jcr:primaryType="nt:unstructured"
+                                          sling:resourceType="granite/ui/components/coral/foundation/form/textarea"
+                                          fieldLabel="Description"
+                                          name="./description"/>
+                              <image jcr:primaryType="nt:unstructured"
+                                     sling:resourceType="cq/gui/components/authoring/dialog/fileupload"
+                                     fieldLabel="Image"
+                                     name="./fileReference"
+                                     fileNameParameter="./fileName"
+                                     fileReferenceParameter="./fileReference"
+                                     mimeTypes="[image]"/>
+                          </items>
+                      </content>
+                      <link jcr:primaryType="nt:unstructured"
+                            jcr:title="Link"
+                            sling:resourceType="granite/ui/components/coral/foundation/container">
+                          <items jcr:primaryType="nt:unstructured">
+                              <linkPath jcr:primaryType="nt:unstructured"
+                                        sling:resourceType="granite/ui/components/coral/foundation/form/pathfield"
+                                        fieldLabel="Link Path"
+                                        name="./linkPath"
+                                        rootPath="/content"/>
+                              <linkText jcr:primaryType="nt:unstructured"
+                                        sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+                                        fieldLabel="Link Text"
+                                        name="./linkText"/>
+                          </items>
+                      </link>
+                  </items>
+              </tabs>
+          </items>
+      </content>
+  </jcr:root>
+-->
+
+<!--
+  7.2 卡片组件对话框
+  ----------------
+-->
+
+<!--
+  卡片组件对话框（包含多字段）:
+  
+  <content jcr:primaryType="nt:unstructured"
+           sling:resourceType="granite/ui/components/coral/foundation/container">
+      <items jcr:primaryType="nt:unstructured">
+          <title jcr:primaryType="nt:unstructured"
+                 sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+                 fieldLabel="Title"
+                 name="./title"
+                 required="{Boolean}true"/>
+          <description jcr:primaryType="nt:unstructured"
+                      sling:resourceType="granite/ui/components/coral/foundation/form/textarea"
+                      fieldLabel="Description"
+                      name="./description"/>
+          <image jcr:primaryType="nt:unstructured"
+                 sling:resourceType="cq/gui/components/authoring/dialog/fileupload"
+                 fieldLabel="Image"
+                 name="./fileReference"
+                 fileReferenceParameter="./fileReference"
+                 mimeTypes="[image]"/>
+          <items jcr:primaryType="nt:unstructured"
+                 sling:resourceType="granite/ui/components/coral/foundation/form/multifield"
+                 fieldLabel="Items"
+                 name="./items">
+              <field jcr:primaryType="nt:unstructured"
+                     sling:resourceType="granite/ui/components/coral/foundation/form/fieldset"
+                     name="./items">
+                  <items jcr:primaryType="nt:unstructured">
+                      <itemTitle jcr:primaryType="nt:unstructured"
+                                 sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+                                 fieldLabel="Item Title"
+                                 name="./itemTitle"/>
+                      <itemLink jcr:primaryType="nt:unstructured"
+                                sling:resourceType="granite/ui/components/coral/foundation/form/pathfield"
+                                fieldLabel="Item Link"
+                                name="./itemLink"/>
+                  </items>
+              </field>
+          </items>
+      </items>
+  </content>
+-->
+
+<!--
+  8. 与 HTL 模板的集成
+  ===================
+-->
+
+<!--
+  8.1 访问对话框属性
+  ----------------
+  
+  在 HTL 中访问对话框属性:
+  
+  <div class="hero-component">
+      <h1>${properties.title}</h1>
+      <p>${properties.description}</p>
+      <img src="${properties.fileReference}" alt="${properties.title}">
+      <a href="${properties.linkPath}.html">${properties.linkText}</a>
+  </div>
+  
+  说明:
+  - properties 对象包含所有对话框字段的值
+  - 字段的 name 属性对应 properties 中的键
+  - 使用 ./ 前缀表示当前节点属性
+-->
+
+<!--
+  8.2 处理多值属性
+  --------------
+  
+  多值属性访问:
+  
+  <ul data-sly-list="${properties.items}">
+      <li>
+          <a href="${item.itemLink}.html">${item.itemTitle}</a>
+      </li>
+  </ul>
+  
+  说明:
+  - 多字段（multifield）返回数组
+  - 使用 data-sly-list 遍历
+  - 每个 item 包含字段集中的所有字段
+-->
+
+<!--
+  8.3 默认值处理
+  ------------
+  
+  在 HTL 中提供默认值:
+  
+  <h1>${properties.title || 'Default Title'}</h1>
+  
+  或者使用 data-sly-set:
+  
+  <sly data-sly-set.title="${properties.title || 'Default Title'}"></sly>
+  <h1>${title}</h1>
+  
+  说明:
+  - 使用 || 运算符提供默认值
+  - 避免空值错误
+  - 改善用户体验
+-->
+
+<!--
+  9. 最佳实践
+  ==========
+-->
+
+<!--
+  9.1 字段组织
+  ----------
+  
+  组织原则:
+  1. 使用标签页组织大量字段
+  2. 使用字段集分组相关字段
+  3. 按逻辑顺序排列字段
+  4. 重要字段放在前面
+  5. 可选字段放在后面
+  
+  示例结构:
+  - Tab 1: 基本内容
+    - Fieldset: 文本内容
+    - Fieldset: 媒体内容
+  - Tab 2: 链接和导航
+  - Tab 3: 高级选项
+-->
+
+<!--
+  9.2 字段命名
+  ----------
+  
+  命名规范:
+  1. 使用有意义的名称
+  2. 使用驼峰命名（camelCase）
+  3. 避免缩写（除非通用）
+  4. 保持一致性
+  5. 使用描述性名称
+  
+  示例:
+  - title (好)
+  - txt (不好)
+  - heroTitle (好)
+  - ht (不好)
+-->
+
+<!--
+  9.3 验证策略
+  ----------
+  
+  验证建议:
+  1. 客户端验证（快速反馈）
+  2. 服务器端验证（安全性）
+  3. 提供清晰的错误消息
+  4. 使用适当的验证类型
+  5. 验证必填字段
+  
+  验证层次:
+  - HTML5 验证（pattern, required）
+  - JavaScript 验证（自定义）
+  - 服务器端验证（Sling Model）
+-->
+
+<!--
+  9.4 用户体验
+  ----------
+  
+  UX 建议:
+  1. 提供清晰的字段标签
+  2. 使用占位符文本（emptyText）
+  3. 提供帮助文本（helpText）
+  4. 使用条件显示减少混乱
+  5. 合理使用默认值
+  6. 提供预览功能（如可能）
+-->
+
+<!--
+  10. 调试和故障排查
+  ================
+-->
+
+<!--
+  10.1 对话框不显示
+  --------------
+  
+  检查项:
+  1. 文件位置
+     - 路径: /apps/{project}/components/{component}/_cq_dialog/.content.xml
+     - 文件名和文件夹名正确
+     - 文件存在且可读
+  
+  2. XML 语法
+     - XML 格式正确
+     - 命名空间声明正确
+     - 节点类型正确
+  
+  3. 资源类型
+     - sling:resourceType 正确
+     - 组件已注册
+     - 权限正确
+  
+  4. 缓存
+     - 清除浏览器缓存
+     - 重启 AEM 实例
+     - 清除 JCR 缓存
+-->
+
+<!--
+  10.2 字段不保存
+  ------------
+  
+  检查项:
+  1. 字段名称
+     - name 属性正确（使用 ./ 前缀）
+     - 没有拼写错误
+     - 符合命名规范
+  
+  2. 数据类型
+     - 字段类型匹配数据类型
+     - 多值字段使用数组
+     - 嵌套字段使用正确结构
+  
+  3. 权限
+     - 内容作者有写入权限
+     - 节点可写
+     - 没有权限冲突
+-->
+
+<!--
+  10.3 验证不工作
+  -------------
+  
+  检查项:
+  1. 验证配置
+     - validation 属性正确
+     - 验证规则正确
+     - 自定义验证函数存在
+  
+  2. JavaScript
+     - 验证脚本已加载
+     - 函数名正确
+     - 没有 JavaScript 错误
+  
+  3. 服务器端验证
+     - Sling Model 验证逻辑正确
+     - 错误消息正确
+-->
+
+<!--
+  11. 版本兼容性
+  =============
+-->
+
+<!--
+  AEM 6.0+
+  - 基本对话框支持
+  - Touch UI 对话框
+  - Granite UI 组件
+  
+  AEM 6.1+
+  - 改进的对话框功能
+  - 更多字段类型
+  
+  AEM 6.2+
+  - 增强的验证功能
+  - 改进的条件显示
+  
+  AEM 6.3+
+  - 更好的性能
+  - 改进的用户体验
+  
+  AEM 6.4+
+  - 增强的字段类型
+  - 改进的验证
+  
+  AEM 6.5+
+  - 更好的可访问性
+  - 改进的响应式支持
+  
+  AEM as a Cloud Service
+  - 所有功能都支持
+  - 性能优化
+  - 更好的云原生支持
+-->
+
+<!--
+  13. 高级字段类型
+  ==============
+-->
+
+<!--
+  13.1 标签字段（Tagfield）
+  -----------------------
+-->
+
+<!--
+  标签字段配置:
+  
+  <tags jcr:primaryType="nt:unstructured"
+        sling:resourceType="cq/gui/components/common/tagspicker"
+        fieldLabel="Tags"
+        name="./cq:tags"
+        rootPath="/etc/tags"
+        multiple="{Boolean}true"/>
+  
+  说明:
+  - 用于选择和管理标签
+  - rootPath: 标签根路径
+  - multiple: 是否允许多选
+  - 保存到 cq:tags 属性
+-->
+
+<!--
+  13.2 体验片段字段（Experience Fragment）
+  --------------------------------------
+-->
+
+<!--
+  体验片段字段配置:
+  
+  <experienceFragment jcr:primaryType="nt:unstructured"
+                     sling:resourceType="cq/gui/components/common/experiencefragment"
+                     fieldLabel="Experience Fragment"
+                     name="./fragmentPath"
+                     rootPath="/content/experience-fragments"/>
+  
+  说明:
+  - 用于选择体验片段
+  - rootPath: 体验片段根路径
+  - 支持变体选择
+-->
+
+<!--
+  13.3 内容片段字段（Content Fragment）
+  -----------------------------------
+-->
+
+<!--
+  内容片段字段配置:
+  
+  <contentFragment jcr:primaryType="nt:unstructured"
+                   sling:resourceType="cq/gui/components/common/contentfragment"
+                   fieldLabel="Content Fragment"
+                   name="./fragmentPath"
+                   rootPath="/content/dam"
+                   filter="[contentfragment]"/>
+  
+  说明:
+  - 用于选择内容片段
+  - rootPath: DAM 根路径
+  - filter: 过滤器（只显示内容片段）
+-->
+
+<!--
+  13.4 资产选择器（Asset Selector）
+  --------------------------------
+-->
+
+<!--
+  资产选择器配置:
+  
+  <asset jcr:primaryType="nt:unstructured"
+         sling:resourceType="granite/ui/components/coral/foundation/form/pathfield"
+         fieldLabel="Asset"
+         name="./assetPath"
+         rootPath="/content/dam"
+         filter="[hierarchyNotFile]"
+         pickerSrc="/mnt/overlay/cq/gui/content/common/form/field/assetpicker.html"/>
+  
+  说明:
+  - 用于选择 DAM 资产
+  - 提供资产浏览器界面
+  - 支持多种资产类型
+-->
+
+<!--
+  13.5 智能图像字段（Smart Image）
+  ------------------------------
+-->
+
+<!--
+  智能图像字段配置:
+  
+  <smartImage jcr:primaryType="nt:unstructured"
+              sling:resourceType="cq/gui/components/authoring/dialog/smartimage"
+              fieldLabel="Smart Image"
+              name="./fileReference"
+              fileNameParameter="./fileName"
+              fileReferenceParameter="./fileReference"
+              cropParameter="./imageCrop"
+              rotateParameter="./imageRotate"
+              mapParameter="./imageMap"
+              title="Select Image"
+              mimeTypes="[image]"/>
+  
+  说明:
+  - 提供图像编辑功能
+  - 支持裁剪、旋转、映射
+  - 保存编辑参数
+-->
+
+<!--
+  13.6 页面选择器（Page Selector）
+  ------------------------------
+-->
+
+<!--
+  页面选择器配置:
+  
+  <page jcr:primaryType="nt:unstructured"
+        sling:resourceType="granite/ui/components/coral/foundation/form/pathfield"
+        fieldLabel="Page"
+        name="./pagePath"
+        rootPath="/content"
+        filter="[hierarchyNotFile]"
+        pickerSrc="/mnt/overlay/cq/gui/content/common/form/field/pagepicker.html"/>
+  
+  说明:
+  - 用于选择页面
+  - 提供页面浏览器
+  - 只显示页面（不显示文件）
+-->
+
+<!--
+  14. 编程方式操作对话框
+  ====================
+-->
+
+<!--
+  14.1 读取对话框配置
+  -----------------
+  
+  通过 Java 代码读取配置:
+  
+  public Resource getDialogConfig(Resource componentResource) {
+      return componentResource.getChild("_cq_dialog");
+  }
+  
+  public ValueMap getDialogProperties(Resource componentResource) {
+      Resource dialogConfig = getDialogConfig(componentResource);
+      if (dialogConfig != null) {
+          return dialogConfig.getValueMap();
+      }
+      return ValueMap.EMPTY;
+  }
+  
+  使用示例:
+  
+  Resource componentResource = resolver.resolve("/apps/myapp/components/hero");
+  Resource dialogConfig = getDialogConfig(componentResource);
+  String dialogTitle = dialogConfig.getValueMap().get("jcr:title", "");
+-->
+
+<!--
+  14.2 动态创建对话框
+  -----------------
+  
+  程序化创建对话框:
+  
+  public Resource createDialog(Resource componentResource, String title) {
+      ResourceResolver resolver = componentResource.getResourceResolver();
+      
+      try {
+          Resource dialogConfig = componentResource.getChild("_cq_dialog");
+          
+          if (dialogConfig == null) {
+              // 创建对话框节点
+              Map<String, Object> props = new HashMap<>();
+              props.put("jcr:primaryType", "nt:unstructured");
+              props.put("jcr:title", title);
+              props.put("sling:resourceType", "cq/gui/components/authoring/dialog");
+              
+              dialogConfig = resolver.create(componentResource, "_cq_dialog", props);
+              
+              // 创建内容节点
+              Map<String, Object> contentProps = new HashMap<>();
+              contentProps.put("jcr:primaryType", "nt:unstructured");
+              contentProps.put("sling:resourceType", 
+                  "granite/ui/components/coral/foundation/container");
+              
+              resolver.create(dialogConfig, "content", contentProps);
+              
+              resolver.commit();
+          }
+          
+          return dialogConfig;
+      } catch (PersistenceException e) {
+          log.error("Error creating dialog", e);
+          return null;
+      }
+  }
+-->
+
+<!--
+  14.3 在 Sling Model 中验证对话框数据
+  --------------------------------
+  
+  @Model(adaptables = SlingHttpServletRequest.class)
+  public interface ComponentModel {
+      
+      @Inject
+      private Resource resource;
+      
+      @PostConstruct
+      protected void init() {
+          // 验证对话框数据
+          validateDialogData();
+      }
+      
+      private void validateDialogData() {
+          ValueMap props = resource.getValueMap();
+          
+          // 验证必填字段
+          if (!props.containsKey("title") || 
+              props.get("title", String.class).isEmpty()) {
+              throw new ValidationException("Title is required");
+          }
+          
+          // 验证数据格式
+          String email = props.get("email", String.class);
+          if (email != null && !isValidEmail(email)) {
+              throw new ValidationException("Invalid email format");
+          }
+      }
+      
+      private boolean isValidEmail(String email) {
+          return email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+      }
+  }
+-->
+
+<!--
+  15. 对话框查找机制
+  ================
+-->
+
+<!--
+  15.1 查找顺序
+  -----------
+  
+  AEM 查找对话框配置的顺序:
+  
+  1. 当前组件的配置
+     - 路径: /apps/{project}/components/{component}/_cq_dialog
+     - 优先级: 最高
+  
+  2. 通过 resourceSuperType 继承
+     - 路径: /apps/{project}/components/{super-component}/_cq_dialog
+     - 优先级: 中（递归查找）
+  
+  3. 系统默认
+     - 如果没有配置，使用默认对话框
+     - 优先级: 低
+  
+  注意:
+  - 对话框配置不会合并
+  - 子组件配置会覆盖父组件配置
+  - 不支持多配置继承合并
+-->
+
+<!--
+  15.2 Resource Resolution 集成
+  ----------------------------
+  
+  配置查找使用 Sling Resource Resolution:
+  
+  public Resource findDialog(Resource componentResource) {
+      Resource dialog = componentResource.getChild("_cq_dialog");
+      if (dialog != null) {
+          return dialog;
+      }
+      
+      // 检查 resourceSuperType
+      String superType = componentResource.getValueMap()
+          .get("sling:resourceSuperType", String.class);
+      if (superType != null) {
+          Resource superComponent = resourceResolver.resolve("/apps/" + superType);
+          if (superComponent != null) {
+              return findDialog(superComponent);  // 递归查找
+          }
+      }
+      
+      return null;  // 使用默认对话框
+  }
+-->
+
+<!--
+  16. 高级应用场景
+  ==============
+-->
+
+<!--
+  16.1 动态字段生成
+  ----------------
+  
+  基于数据源动态生成字段:
+  
+  <dynamicFields jcr:primaryType="nt:unstructured"
+                 sling:resourceType="granite/ui/components/coral/foundation/container">
+      <items jcr:primaryType="nt:unstructured"
+             sling:resourceType="granite/ui/components/coral/foundation/form/multifield"
+             name="./dynamicFields">
+          <field jcr:primaryType="nt:unstructured"
+                 sling:resourceType="granite/ui/components/coral/foundation/form/fieldset"
+                 name="./dynamicFields">
+              <items jcr:primaryType="nt:unstructured">
+                  <fieldType jcr:primaryType="nt:unstructured"
+                             sling:resourceType="granite/ui/components/coral/foundation/form/select"
+                             fieldLabel="Field Type"
+                             name="./fieldType">
+                      <items jcr:primaryType="nt:unstructured">
+                          <text jcr:primaryType="nt:unstructured"
+                                text="Text"
+                                value="text"/>
+                          <number jcr:primaryType="nt:unstructured"
+                                   text="Number"
+                                   value="number"/>
+                          <date jcr:primaryType="nt:unstructured"
+                                text="Date"
+                                value="date"/>
+                      </items>
+                  </fieldType>
+                  <fieldValue jcr:primaryType="nt:unstructured"
+                              sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+                              fieldLabel="Field Value"
+                              name="./fieldValue"/>
+              </items>
+          </field>
+      </items>
+  </dynamicFields>
+-->
+
+<!--
+  16.2 级联选择
+  ------------
+  
+  级联选择（一个字段影响另一个字段）:
+  
+  <country jcr:primaryType="nt:unstructured"
+           sling:resourceType="granite/ui/components/coral/foundation/form/select"
+           fieldLabel="Country"
+           name="./country">
+      <items jcr:primaryType="nt:unstructured">
+          <us jcr:primaryType="nt:unstructured"
+              text="United States"
+              value="us"/>
+          <uk jcr:primaryType="nt:unstructured"
+              text="United Kingdom"
+              value="uk"/>
+      </items>
+  </country>
+  
+  <state jcr:primaryType="nt:unstructured"
+         sling:resourceType="granite/ui/components/coral/foundation/form/select"
+         fieldLabel="State"
+         name="./state">
+      <granite:data jcr:primaryType="nt:unstructured"
+                    dependsOn="./country"
+                    dependsOnType="value"/>
+      <datasource jcr:primaryType="nt:unstructured"
+                  sling:resourceType="myapp/components/datasources/states"/>
+  </state>
+  
+  说明:
+  - dependsOn: 依赖的字段
+  - dependsOnType: 依赖类型（value）
+  - 当 country 改变时，state 字段会更新
+-->
+
+<!--
+  16.3 自定义字段组件
+  -----------------
+  
+  创建自定义字段组件:
+  
+  1. 创建字段组件:
+  
+  /apps/myapp/components/dialogfields/customfield/.content.xml
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+            jcr:primaryType="nt:unstructured"
+            sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+            fieldLabel="Custom Field"
+            name="./customField"/>
+  
+  2. 在对话框中使用:
+  
+  <customField jcr:primaryType="nt:unstructured"
+               sling:resourceType="myapp/components/dialogfields/customfield"/>
+  
+  说明:
+  - 可以创建可重用的字段组件
+  - 封装字段配置和逻辑
+  - 改善对话框组织
+-->
+
+<!--
+  16.4 对话框继承和覆盖
+  -------------------
+  
+  对话框继承机制:
+  
+  1. 子组件可以继承父组件的对话框
+  2. 子组件可以覆盖特定字段
+  3. 子组件可以添加新字段
+  
+  示例:
+  
+  父组件对话框:
+  <title>...</title>
+  <description>...</description>
+  
+  子组件对话框（覆盖 title，保留 description，添加新字段）:
+  <title>...</title>  <!-- 覆盖父组件的 title -->
+  <description>...</description>  <!-- 继承父组件的 description -->
+  <newField>...</newField>  <!-- 添加新字段 -->
+  
+  注意:
+  - 字段名相同会覆盖
+  - 字段名不同会合并
+  - 需要手动管理继承
+-->
+
+<!--
+  17. 性能优化
+  ===========
+-->
+
+<!--
+  17.1 对话框加载优化
+  -----------------
+  
+  优化建议:
+  
+  1. 减少字段数量
+     - 只包含必要的字段
+     - 使用条件显示隐藏不常用字段
+     - 使用标签页组织大量字段
+  
+  2. 延迟加载
+     - 使用条件显示延迟加载字段
+     - 使用数据源延迟加载选项
+     - 避免一次性加载所有数据
+  
+  3. 缓存配置
+     - 对话框配置会被缓存
+     - 避免频繁修改配置
+     - 使用版本控制管理配置
+-->
+
+<!--
+  17.2 数据源优化
+  -------------
+  
+  数据源性能优化:
+  
+  @Model(adaptables = Resource.class)
+  public interface OptimizedDataSource {
+      
+      @Inject
+      private ResourceResolver resourceResolver;
+      
+      default List<OptionItem> getOptions() {
+          // 使用缓存
+          String cacheKey = "datasource-" + getCacheKey();
+          List<OptionItem> cached = getFromCache(cacheKey);
+          if (cached != null) {
+              return cached;
+          }
+          
+          // 查询数据
+          List<OptionItem> options = queryOptions();
+          
+          // 缓存结果
+          putToCache(cacheKey, options);
+          
+          return options;
+      }
+      
+      private List<OptionItem> queryOptions() {
+          // 优化查询
+          // 只查询必要的数据
+          // 使用索引
+          // ...
+      }
+  }
+-->
+
+<!--
+  18. 测试策略
+  ===========
+-->
+
+<!--
+  18.1 单元测试
+  -----------
+  
+  测试对话框配置读取:
+  
+  @ExtendWith(AemContextExtension.class)
+  class DialogConfigTest {
+      
+      @RegisterExtension
+      AemContext context = new AemContext();
+      
+      @Test
+      void testDialogConfigLoading() {
+          // 创建对话框配置
+          context.create().resource("/apps/myapp/components/hero/_cq_dialog",
+              "jcr:primaryType", "nt:unstructured",
+              "jcr:title", "Hero Dialog",
+              "sling:resourceType", "cq/gui/components/authoring/dialog");
+          
+          // 获取配置
+          Resource componentResource = context.resourceResolver()
+              .resolve("/apps/myapp/components/hero");
+          Resource dialogConfig = componentResource.getChild("_cq_dialog");
+          
+          assertNotNull("Dialog config should exist", dialogConfig);
+          
+          ValueMap props = dialogConfig.getValueMap();
+          assertEquals("Hero Dialog", props.get("jcr:title", String.class));
+      }
+  }
+-->
+
+<!--
+  18.2 集成测试
+  -----------
+  
+  测试对话框功能:
+  
+  @ExtendWith(AemContextExtension.class)
+  class DialogFunctionalityTest {
+      
+      @RegisterExtension
+      AemContext context = new AemContext();
+      
+      @Test
+      void testDialogSave() {
+          // 创建组件和对话框
+          context.create().resource("/apps/myapp/components/hero",
+              "jcr:primaryType", "cq:Component");
+          // ... 创建对话框配置 ...
+          
+          // 创建组件实例
+          context.create().resource("/content/test/jcr:content/hero",
+              "jcr:primaryType", "nt:unstructured",
+              "sling:resourceType", "myapp/components/hero");
+          
+          // 模拟保存对话框数据
+          Resource componentInstance = context.resourceResolver()
+              .resolve("/content/test/jcr:content/hero");
+          ModifiableValueMap props = componentInstance.adaptTo(ModifiableValueMap.class);
+          props.put("title", "Test Title");
+          
+          context.resourceResolver().commit();
+          
+          // 验证数据保存
+          assertEquals("Test Title", 
+              componentInstance.getValueMap().get("title", String.class));
+      }
+  }
+-->
+
+<!--
+  18.3 浏览器测试
+  -------------
+  
+  使用浏览器工具测试:
+  
+  1. 手动测试
+     - 打开组件对话框
+     - 填写字段
+     - 验证保存
+     - 检查数据
+  
+  2. 自动化测试
+     - 使用 Selenium 或 Cypress
+     - 自动化对话框操作
+     - 验证字段行为
+     - 检查数据保存
+  
+  3. 可访问性测试
+     - 使用屏幕阅读器
+     - 检查键盘导航
+     - 验证 ARIA 属性
+     - 符合 WCAG 标准
+-->
+
+<!--
+  19. 安全考虑
+  ===========
+-->
+
+<!--
+  19.1 输入验证
+  -----------
+  
+  安全验证建议:
+  
+  1. 客户端验证
+     - 提供即时反馈
+     - 改善用户体验
+     - 但不能依赖客户端验证
+  
+  2. 服务器端验证
+     - 必须验证所有输入
+     - 防止恶意输入
+     - 使用白名单验证
+  
+  3. XSS 防护
+     - 转义用户输入
+     - 使用 HTL 自动转义
+     - 避免在 HTML 中直接输出
+  
+  4. SQL 注入防护
+     - 使用参数化查询
+     - 验证路径输入
+     - 限制路径范围
+-->
+
+<!--
+  19.2 权限控制
+  -----------
+  
+  对话框权限控制:
+  
+  1. 字段级权限
+     - 基于用户角色显示/隐藏字段
+     - 使用条件显示
+     - 服务器端验证权限
+  
+  2. 数据访问控制
+     - 限制路径选择器范围
+     - 验证用户权限
+     - 防止未授权访问
+  
+  3. 敏感数据
+     - 避免在对话框中存储敏感数据
+     - 使用加密存储
+     - 限制访问权限
+-->
+
+<!--
+  20. 可访问性（Accessibility）
+  ============================
+-->
+
+<!--
+  20.1 ARIA 属性
+  ------------
+  
+  对话框可访问性:
+  
+  1. 字段标签
+     - 使用 fieldLabel 提供标签
+     - 标签与字段关联
+     - 屏幕阅读器可以读取
+  
+  2. 错误消息
+     - 提供清晰的错误消息
+     - 使用 ARIA 属性标记错误
+     - 改善屏幕阅读器体验
+  
+  3. 键盘导航
+     - 支持 Tab 键导航
+     - 支持 Enter 键提交
+     - 支持 Esc 键关闭
+  
+  4. 焦点管理
+     - 打开对话框时聚焦第一个字段
+     - 关闭对话框时恢复焦点
+     - 改善键盘用户体验
+-->
+
+<!--
+  20.2 语义化 HTML
+  --------------
+  
+  对话框生成的 HTML 应该是语义化的:
+  
+  1. 使用适当的表单元素
+     - input, textarea, select 等
+     - 符合 HTML5 标准
+  
+  2. 标签关联
+     - label 与 input 关联
+     - 使用 for 属性
+     - 改善可访问性
+  
+  3. 错误标记
+     - 使用 aria-invalid
+     - 使用 aria-describedby
+     - 关联错误消息
+-->
+
+<!--
+  21. 国际化（i18n）
+  ================
+-->
+
+<!--
+  21.1 字段标签国际化
+  -----------------
+  
+  使用国际化键:
+  
+  <title jcr:primaryType="nt:unstructured"
+         sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+         fieldLabel="Title"
+         i18n="true"
+         i18n-fieldLabel="myapp.dialog.hero.title"/>
+  
+  说明:
+  - i18n: 启用国际化
+  - i18n-fieldLabel: 国际化键
+  - 从语言包中读取翻译
+  
+  语言包:
+  /apps/myapp/i18n/en.json:
+  {
+      "myapp": {
+          "dialog": {
+              "hero": {
+                  "title": "Title"
+              }
+          }
+      }
+  }
+-->
+
+<!--
+  21.2 帮助文本国际化
+  -----------------
+  
+  帮助文本国际化:
+  
+  <title jcr:primaryType="nt:unstructured"
+         sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+         fieldLabel="Title"
+         helpText="Enter the title"
+         i18n-helpText="myapp.dialog.hero.title.help"/>
+  
+  说明:
+  - helpText: 帮助文本
+  - i18n-helpText: 国际化键
+  - 支持多语言
+-->
+
+<!--
+  22. 版本控制和部署
+  ================
+-->
+
+<!--
+  22.1 版本控制策略
+  ---------------
+  
+  对话框配置应该纳入版本控制:
+  
+  1. 文件跟踪
+     - 配置文件纳入 Git
+     - 跟踪配置变更
+     - 记录变更历史
+  
+  2. 变更管理
+     - 使用有意义的提交消息
+     - 记录变更原因
+     - 标记重大变更
+  
+  3. 测试验证
+     - 测试配置变更影响
+     - 验证字段行为
+     - 检查数据兼容性
+-->
+
+<!--
+  22.2 部署最佳实践
+  ----------------
+  
+  1. 打包策略
+     - 将配置包含在组件包中
+     - 使用 Maven 或 Gradle 构建
+     - 创建可安装的包
+  
+  2. 部署顺序
+     - 先部署组件定义
+     - 再部署对话框配置
+     - 最后部署模板和脚本
+  
+  3. 回滚策略
+     - 保留旧版本配置
+     - 准备回滚脚本
+     - 测试回滚流程
+  
+  4. 数据迁移
+     - 处理字段变更
+     - 迁移现有数据
+     - 验证数据完整性
+-->
+
+<!--
+  23. 常见问题和解决方案
+  ====================
+-->
+
+<!--
+  23.1 对话框不显示
+  --------------
+  
+  问题: 对话框不显示或无法打开
+  
+  解决方案:
+  1. 检查文件路径
+     - 确认路径正确
+     - 检查文件名拼写
+     - 验证文件存在
+  
+  2. 验证 XML 语法
+     - 检查 XML 格式
+     - 验证命名空间
+     - 检查节点类型
+  
+  3. 检查资源类型
+     - 确认 sling:resourceType 正确
+     - 验证组件已注册
+     - 检查权限
+  
+  4. 清除缓存
+     - 清除浏览器缓存
+     - 重启 AEM 实例
+     - 清除 JCR 缓存
+-->
+
+<!--
+  23.2 字段值不保存
+  --------------
+  
+  问题: 对话框字段值不保存到 JCR
+  
+  解决方案:
+  1. 检查字段名称
+     - 确认 name 属性正确（使用 ./ 前缀）
+     - 没有拼写错误
+     - 符合命名规范
+  
+  2. 验证数据类型
+     - 字段类型匹配数据类型
+     - 多值字段使用数组
+     - 嵌套字段使用正确结构
+  
+  3. 检查权限
+     - 内容作者有写入权限
+     - 节点可写
+     - 没有权限冲突
+  
+  4. 检查验证
+     - 验证规则是否正确
+     - 是否有验证错误
+     - 错误消息是否清晰
+-->
+
+<!--
+  23.3 条件显示不工作
+  -----------------
+  
+  问题: 条件显示字段不按预期显示/隐藏
+  
+  解决方案:
+  1. 检查条件配置
+     - condition 属性正确
+     - 条件字段名正确
+     - 条件类型正确
+  
+  2. 验证字段值
+     - 条件字段值是否正确
+     - 数据类型是否匹配
+     - 是否有默认值影响
+  
+  3. 检查 JavaScript
+     - 条件脚本是否正确
+     - 是否有 JavaScript 错误
+     - 脚本是否已加载
+-->
+
+<!--
+  24. 最佳实践总结
+  ==============
+-->
+
+<!--
+  24.1 设计原则
+  -----------
+  
+  1. 简洁明了
+     - 只包含必要的字段
+     - 使用清晰的标签
+     - 避免过度复杂
+  
+  2. 组织良好
+     - 使用标签页组织大量字段
+     - 使用字段集分组相关字段
+     - 按逻辑顺序排列
+  
+  3. 用户友好
+     - 提供帮助文本
+     - 使用占位符
+     - 提供默认值
+     - 清晰的错误消息
+  
+  4. 性能优化
+     - 减少字段数量
+     - 使用条件显示
+     - 优化数据源
+     - 缓存配置
+-->
+
+<!--
+  24.2 开发检查清单
+  ------------
+  
+  开发时检查:
+  ✓ 对话框文件位置正确
+  ✓ XML 语法正确
+  ✓ 字段名称规范
+  ✓ 字段类型正确
+  ✓ 验证规则配置
+  ✓ 条件显示配置
+  ✓ 国际化支持
+  ✓ 可访问性检查
+  ✓ 测试字段保存
+  ✓ 测试验证功能
+  
+  部署前检查:
+  ✓ 配置文件在版本控制中
+  ✓ 所有环境配置一致
+  ✓ 数据迁移脚本（如需要）
+  ✓ 性能测试通过
+  ✓ 可访问性检查通过
+  ✓ 国际化测试通过
+  ✓ 文档完整
+-->
+
+<!--
+  25. 相关文档
+  ==========
+  
+  - 组件结构: 01-component-structure.html
+  - 组件配置: 04-component-content-xml.html
+  - 组件模板（HTL）: 05-component-htl-template.html
+  - 编辑配置: 06-component-edit-config.html
+  - 组件模板: 07-component-template.html
+  - HTML 标签配置: 08-component-html-tag.html
+  - 对话框开发指南: 12-practical-guides/01-component-dialog.md
+  - Core Components: https://github.com/adobe/aem-core-wcm-components
+  - Granite UI 文档: https://helpx.adobe.com/experience-manager/6-5/sites/developing/using/reference-materials/granite-ui/api/index.html
+  - AEM 官方文档: https://experienceleague.adobe.com/docs/experience-manager.html
+  - Touch UI 对话框指南: https://experienceleague.adobe.com/docs/experience-manager-65/developing/components/touch-ui-concepts.html
+-->
+

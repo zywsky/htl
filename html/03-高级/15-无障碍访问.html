@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>15-无障碍访问</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .comment { color: #5c6370; }
+        .tag { color: #e06c75; }
+        .attribute { color: #d19a66; }
+        .keyword { color: #61afef; }
+        .tip {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>♿ HTML 无障碍访问（A11y）</h1>
+
+        <h2>一、什么是无障碍访问？</h2>
+        <p>无障碍访问（Accessibility，简称A11y）是指让网站对所有用户都可用，包括有视觉、听觉、运动或认知障碍的用户。无障碍访问不仅是道德责任，也是法律要求。</p>
+
+        <h2>二、语义化HTML</h2>
+        <p>使用语义化HTML是最基础的无障碍实践。</p>
+
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- ✅ 好的做法：使用语义化标签 --&gt;</span><br>
+<span class="tag">&lt;header&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;nav&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;ul&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;li&gt;&lt;a</span> <span class="attribute">href</span>=<span class="keyword">"/"</span><span class="tag">&gt;</span>首页<span class="tag">&lt;/a&gt;&lt;/li&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/ul&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/nav&gt;</span><br>
+<span class="tag">&lt;/header&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- ❌ 不好的做法：使用div模拟 --&gt;</span><br>
+<span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="keyword">"header"</span><span class="tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;div</span> <span class="attribute">class</span>=<span class="keyword">"nav"</span><span class="tag">&gt;</span>...<span class="tag">&lt;/div&gt;</span><br>
+<span class="tag">&lt;/div&gt;</span>
+            </code>
+        </div>
+
+        <h2>三、alt属性（图片替代文本）</h2>
+        <p>所有图片都必须提供有意义的alt属性。</p>
+
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- ✅ 好的做法：描述性alt文本 --&gt;</span><br>
+<span class="tag">&lt;img</span> <span class="attribute">src</span>=<span class="keyword">"cat.jpg"</span> <span class="attribute">alt</span>=<span class="keyword">"一只橘色的猫坐在窗台上"</span><span class="tag">&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- ✅ 装饰性图片：空alt --&gt;</span><br>
+<span class="tag">&lt;img</span> <span class="attribute">src</span>=<span class="keyword">"decoration.png"</span> <span class="attribute">alt</span>=<span class="keyword">""</span><span class="tag">&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- ❌ 不好的做法：缺少alt或alt无意义 --&gt;</span><br>
+<span class="tag">&lt;img</span> <span class="attribute">src</span>=<span class="keyword">"cat.jpg"</span><span class="tag">&gt;</span><br>
+<span class="tag">&lt;img</span> <span class="attribute">src</span>=<span class="keyword">"cat.jpg"</span> <span class="attribute">alt</span>=<span class="keyword">"图片"</span><span class="tag">&gt;</span>
+            </code>
+        </div>
+
+        <h2>四、表单标签关联</h2>
+        <p>所有表单控件都必须有对应的label。</p>
+
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- ✅ 好的做法：使用for和id关联 --&gt;</span><br>
+<span class="tag">&lt;label</span> <span class="attribute">for</span>=<span class="keyword">"email"</span><span class="tag">&gt;</span>邮箱：<span class="tag">&lt;/label&gt;</span><br>
+<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"email"</span> <span class="attribute">id</span>=<span class="keyword">"email"</span> <span class="attribute">name</span>=<span class="keyword">"email"</span><span class="tag">&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- ✅ 或者包裹方式 --&gt;</span><br>
+<span class="tag">&lt;label&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;邮箱：<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"email"</span> <span class="attribute">name</span>=<span class="keyword">"email"</span><span class="tag">&gt;</span><br>
+<span class="tag">&lt;/label&gt;</span>
+            </code>
+        </div>
+
+        <h2>五、ARIA属性</h2>
+        <p>ARIA（Accessible Rich Internet Applications）提供额外的无障碍信息。</p>
+
+        <h3>1. 基本ARIA属性</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- aria-label：提供标签 --&gt;</span><br>
+<span class="tag">&lt;button</span> <span class="attribute">aria-label</span>=<span class="keyword">"关闭对话框"</span><span class="tag">&gt;</span>×<span class="tag">&lt;/button&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- aria-labelledby：引用其他元素的id作为标签 --&gt;</span><br>
+<span class="tag">&lt;div</span> <span class="attribute">id</span>=<span class="keyword">"form-title"</span><span class="tag">&gt;</span>用户注册<span class="tag">&lt;/div&gt;</span><br>
+<span class="tag">&lt;form</span> <span class="attribute">aria-labelledby</span>=<span class="keyword">"form-title"</span><span class="tag">&gt;</span>...<span class="tag">&lt;/form&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- aria-describedby：提供额外描述 --&gt;</span><br>
+<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"password"</span> <span class="attribute">aria-describedby</span>=<span class="keyword">"password-help"</span><span class="tag">&gt;</span><br>
+<span class="tag">&lt;div</span> <span class="attribute">id</span>=<span class="keyword">"password-help"</span><span class="tag">&gt;</span>密码至少8位<span class="tag">&lt;/div&gt;</span>
+            </code>
+        </div>
+
+        <h3>2. ARIA角色（Roles）</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- role：定义元素角色 --&gt;</span><br>
+<span class="tag">&lt;div</span> <span class="attribute">role</span>=<span class="keyword">"button"</span> <span class="attribute">tabindex</span>=<span class="keyword">"0"</span><span class="tag">&gt;</span>点击我<span class="tag">&lt;/div&gt;</span><br>
+<span class="tag">&lt;div</span> <span class="attribute">role</span>=<span class="keyword">"alert"</span><span class="tag">&gt;</span>错误信息<span class="tag">&lt;/div&gt;</span><br>
+<span class="tag">&lt;div</span> <span class="attribute">role</span>=<span class="keyword">"navigation"</span><span class="tag">&gt;</span>导航<span class="tag">&lt;/div&gt;</span><br>
+<span class="tag">&lt;div</span> <span class="attribute">role</span>=<span class="keyword">"main"</span><span class="tag">&gt;</span>主要内容<span class="tag">&lt;/div&gt;</span>
+            </code>
+        </div>
+
+        <h3>3. ARIA状态（States）</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- aria-hidden：隐藏元素（对屏幕阅读器） --&gt;</span><br>
+<span class="tag">&lt;span</span> <span class="attribute">aria-hidden</span>=<span class="keyword">"true"</span><span class="tag">&gt;</span>装饰性图标<span class="tag">&lt;/span&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- aria-expanded：展开/折叠状态 --&gt;</span><br>
+<span class="tag">&lt;button</span> <span class="attribute">aria-expanded</span>=<span class="keyword">"false"</span> <span class="attribute">aria-controls</span>=<span class="keyword">"menu"</span><span class="tag">&gt;</span>菜单<span class="tag">&lt;/button&gt;</span><br>
+<span class="tag">&lt;ul</span> <span class="attribute">id</span>=<span class="keyword">"menu"</span><span class="tag">&gt;</span>...<span class="tag">&lt;/ul&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- aria-disabled：禁用状态 --&gt;</span><br>
+<span class="tag">&lt;button</span> <span class="attribute">aria-disabled</span>=<span class="keyword">"true"</span><span class="tag">&gt;</span>禁用按钮<span class="tag">&lt;/button&gt;</span>
+            </code>
+        </div>
+
+        <h2>六、键盘导航</h2>
+        <p>确保所有交互元素都可以通过键盘访问。</p>
+
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- tabindex：控制Tab键顺序 --&gt;</span><br>
+<span class="tag">&lt;button</span> <span class="attribute">tabindex</span>=<span class="keyword">"0"</span><span class="tag">&gt;</span>可聚焦<span class="tag">&lt;/button&gt;</span><br>
+<span class="tag">&lt;button</span> <span class="attribute">tabindex</span>=<span class="keyword">"-1"</span><span class="tag">&gt;</span>不可聚焦<span class="tag">&lt;/button&gt;</span><br>
+<span class="tag">&lt;button</span> <span class="attribute">tabindex</span>=<span class="keyword">"1"</span><span class="tag">&gt;</span>优先聚焦（不推荐）<span class="tag">&lt;/button&gt;</span>
+            </code>
+        </div>
+
+        <h2>七、颜色对比度</h2>
+        <p>确保文本和背景有足够的对比度（WCAG AA标准：4.5:1）。</p>
+
+        <div class="tip">
+            <strong>💡 对比度建议：</strong>
+            <ul>
+                <li>普通文本：至少4.5:1</li>
+                <li>大文本（18pt+）：至少3:1</li>
+                <li>使用工具检查：WebAIM Contrast Checker</li>
+            </ul>
+        </div>
+
+        <h2>八、无障碍最佳实践清单</h2>
+        <div class="tip">
+            <strong>✅ 无障碍检查清单：</strong>
+            <ul>
+                <li>✓ 使用语义化HTML标签</li>
+                <li>✓ 所有图片都有alt属性</li>
+                <li>✓ 所有表单都有label</li>
+                <li>✓ 使用正确的标题层级（h1-h6）</li>
+                <li>✓ 确保键盘可以访问所有功能</li>
+                <li>✓ 提供足够的颜色对比度</li>
+                <li>✓ 使用ARIA属性增强语义</li>
+                <li>✓ 测试屏幕阅读器</li>
+                <li>✓ 确保焦点可见</li>
+                <li>✓ 提供错误提示和帮助文本</li>
+            </ul>
+        </div>
+
+        <h2>九、完整无障碍表单示例</h2>
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;form</span> <span class="attribute">aria-labelledby</span>=<span class="keyword">"form-title"</span><span class="tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;h2</span> <span class="attribute">id</span>=<span class="keyword">"form-title"</span><span class="tag">&gt;</span>用户注册<span class="tag">&lt;/h2&gt;</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;div&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;label</span> <span class="attribute">for</span>=<span class="keyword">"email"</span><span class="tag">&gt;</span>邮箱 <span class="tag">&lt;span</span> <span class="attribute">aria-label</span>=<span class="keyword">"必填"</span><span class="tag">&gt;</span>*<span class="tag">&lt;/span&gt;&lt;/label&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;input</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">type</span>=<span class="keyword">"email"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">id</span>=<span class="keyword">"email"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">name</span>=<span class="keyword">"email"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">required</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">aria-describedby</span>=<span class="keyword">"email-help"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">aria-invalid</span>=<span class="keyword">"false"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;div</span> <span class="attribute">id</span>=<span class="keyword">"email-help"</span> <span class="attribute">class</span>=<span class="keyword">"help-text"</span><span class="tag">&gt;</span>请输入有效的邮箱地址<span class="tag">&lt;/div&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/div&gt;</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;button</span> <span class="attribute">type</span>=<span class="keyword">"submit"</span><span class="tag">&gt;</span>提交<span class="tag">&lt;/button&gt;</span><br>
+<span class="tag">&lt;/form&gt;</span>
+            </code>
+        </div>
+
+        <h2>✅ 本节总结</h2>
+        <p>你已经学会了：</p>
+        <ul>
+            <li>无障碍访问的重要性和概念</li>
+            <li>语义化HTML对无障碍的重要性</li>
+            <li>alt属性的正确使用</li>
+            <li>表单标签的正确关联</li>
+            <li>ARIA属性的使用（label, role, state）</li>
+            <li>键盘导航的实现</li>
+            <li>颜色对比度的要求</li>
+            <li>无障碍最佳实践清单</li>
+        </ul>
+
+        <p style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #ecf0f1;">
+            <strong>恭喜完成高级篇！</strong><br>
+            <strong>下一步：</strong>进入实战篇，学习 <a href="../04-实战/16-完整项目示例.html">16-完整项目示例.html</a>
+        </p>
+    </div>
+</body>
+</html>
+
+

@@ -1,0 +1,258 @@
+<!--
+  AEM 组件 HTL: Resource Include
+  
+  学习使用 data-sly-resource 指令包含其他组件和资源
+-->
+
+<!--
+  data-sly-resource 指令：
+  - 用于包含其他组件或资源
+  - 可以实现组件嵌套和组合
+  - 支持传递参数
+-->
+
+<!--
+  基础用法：
+  包含子资源（parsys 中的子组件）
+-->
+<div class="container-component">
+    <div data-sly-resource="${'container' @ resourceType='foundation/components/parsys'}"></div>
+</div>
+
+<!--
+  包含特定路径的资源：
+  包含指定路径的组件
+-->
+<div class="header-component">
+    <div data-sly-resource="${'/content/my-site/en/header' @ resourceType='myapp/components/header'}"></div>
+</div>
+
+<!--
+  包含当前资源的子节点：
+  包含当前资源下的子资源
+-->
+<div class="navigation-component">
+    <nav>
+        <ul>
+            <li data-sly-list="${resource.children}"
+                data-sly-resource="${item @ resourceType='myapp/components/nav-item'}">
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<!--
+  传递参数给被包含的组件：
+  使用 @ 符号传递参数
+-->
+<div class="wrapper-component">
+    <div data-sly-resource="${'child' @ resourceType='myapp/components/child-component', param1='value1', param2=properties.value}"></div>
+</div>
+
+<!--
+  prependPath 和 appendPath：
+  修改资源的相对路径
+-->
+<div class="component">
+    <!-- 在当前路径前添加前缀 -->
+    <div data-sly-resource="${'child' @ prependPath='/content/common'}"></div>
+    
+    <!-- 在当前路径后添加后缀 -->
+    <div data-sly-resource="${'child' @ appendPath='/items'}"></div>
+</div>
+
+<!--
+  使用 resourceType 指定组件类型：
+  强制使用特定的组件类型渲染资源
+-->
+<div class="component">
+    <!-- 使用指定的组件类型渲染资源 -->
+    <div data-sly-resource="${resource @ resourceType='myapp/components/custom-view'}"></div>
+</div>
+
+<!--
+  包含 Dialog 资源：
+  包含对话框配置的资源
+-->
+<div class="component">
+    <div data-sly-resource="${'./image' @ resourceType='foundation/components/image'}"></div>
+</div>
+
+<!--
+  条件包含：
+  只在条件满足时包含资源
+-->
+<div class="component">
+    <div data-sly-test="${properties.showChild}"
+         data-sly-resource="${'child' @ resourceType='myapp/components/child'}">
+    </div>
+</div>
+
+<!--
+  循环包含：
+  在循环中包含多个资源
+-->
+<div class="list-component">
+    <ul>
+        <li data-sly-list="${resource.listChildren}"
+            data-sly-resource="${item @ resourceType='myapp/components/list-item'}">
+        </li>
+    </ul>
+</div>
+
+<!--
+  使用 resourceSuperType：
+  包含父类型的资源
+-->
+<div class="component">
+    <div data-sly-resource="${resource @ resourceSuperType='foundation/components/parbase'}"></div>
+</div>
+
+<!--
+  包含并传递配置对象：
+  传递复杂的配置对象
+-->
+<div class="component">
+    <sly data-sly-set.childConfig="${{
+        'title': properties.title,
+        'description': properties.description,
+        'showImage': properties.showImage
+    }}"></sly>
+    <div data-sly-resource="${'child' @ resourceType='myapp/components/child', config=childConfig}"></div>
+</div>
+
+<!--
+  实际应用示例 1：
+  创建一个容器组件，包含 parsys
+-->
+<div class="section-component ${component.cssClassNames}">
+    <div data-sly-test="${properties.title}" 
+         class="section-header">
+        <h2>${properties.title}</h2>
+    </div>
+    <div class="section-content">
+        <!-- 包含 parsys 允许作者添加子组件 -->
+        <div data-sly-resource="${'par' @ resourceType='foundation/components/parsys'}"></div>
+    </div>
+</div>
+
+<!--
+  实际应用示例 2：
+  创建一个列表组件，包含多个子项目
+-->
+<div class="product-list-component">
+    <h2 data-sly-test="${properties.title}">${properties.title}</h2>
+    <div class="products">
+        <div data-sly-list="${resource.listChildren}"
+             data-sly-test="${item.resourceType == 'myapp/components/product'}">
+            <div data-sly-resource="${item @ resourceType='myapp/components/product-card'}"></div>
+        </div>
+    </div>
+</div>
+
+<!--
+  实际应用示例 3：
+  创建一个布局组件，包含多个区域
+-->
+<div class="layout-component">
+    <div class="layout-left">
+        <div data-sly-resource="${'left' @ resourceType='foundation/components/parsys'}"></div>
+    </div>
+    <div class="layout-right">
+        <div data-sly-resource="${'right' @ resourceType='foundation/components/parsys'}"></div>
+    </div>
+</div>
+
+<!--
+  实际应用示例 4：
+  创建一个选项卡组件
+-->
+<div class="tabs-component">
+    <ul class="tab-nav">
+        <li data-sly-list="${resource.tabs}"
+            class="${itemList.first ? 'active' : ''}">
+            <a href="#tab-${itemList.index}">${item.title}</a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div data-sly-list="${resource.tabs}"
+             class="tab-pane ${itemList.first ? 'active' : ''}"
+             data-sly-attribute.id="${'tab-' + itemList.index}">
+            <div data-sly-resource="${item @ resourceType='foundation/components/parsys'}"></div>
+        </div>
+    </div>
+</div>
+
+<!--
+  实际应用示例 5：
+  创建一个嵌套组件结构
+-->
+<div class="accordion-component">
+    <div data-sly-list="${resource.accordionItems}">
+        <div class="accordion-item">
+            <div class="accordion-header">
+                <h3>${item.title}</h3>
+            </div>
+            <div class="accordion-content">
+                <!-- 包含子组件的内容 -->
+                <div data-sly-resource="${item @ resourceType='foundation/components/parsys'}"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--
+  包含外部资源：
+  包含其他位置的资源（需要权限）
+-->
+<div class="component">
+    <!-- 包含共享的头部组件 -->
+    <header data-sly-resource="${'/content/shared/header' @ resourceType='myapp/components/header'}"></header>
+    
+    <!-- 主要内容 -->
+    <main>
+        <!-- 内容 -->
+    </main>
+    
+    <!-- 包含共享的底部组件 -->
+    <footer data-sly-resource="${'/content/shared/footer' @ resourceType='myapp/components/footer'}"></footer>
+</div>
+
+<!--
+  使用 decoration tag：
+  包装被包含的资源
+-->
+<div class="wrapper-component">
+    <div class="wrapper-content"
+         data-sly-resource="${'child' @ resourceType='myapp/components/child', decorationTagName='div', decoration=true}">
+    </div>
+</div>
+
+<!--
+  包含脚本和样式：
+  包含客户端库
+-->
+<sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+<sly data-sly-call="${clientlib.css @ categories='myapp.components'}"></sly>
+
+<!-- 包含后执行 JS -->
+<sly data-sly-call="${clientlib.js @ categories='myapp.components'}"></sly>
+
+<!--
+  Resource Include 最佳实践：
+  1. 使用有意义的子节点名称
+  2. 合理使用 resourceType 指定组件类型
+  3. 只在必要时传递参数，避免性能问题
+  4. 考虑组件的可重用性和组合性
+  5. 使用 parsys 提供内容作者灵活性
+  6. 注意包含资源的权限和访问控制
+-->
+
+<!--
+  性能考虑：
+  1. 避免过度嵌套资源包含
+  2. 使用缓存策略
+  3. 考虑使用 Sling Model 预处理数据而不是多次包含
+  4. 评估包含资源的渲染成本
+-->
+

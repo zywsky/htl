@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>07-表单基础</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .comment { color: #5c6370; }
+        .tag { color: #e06c75; }
+        .attribute { color: #d19a66; }
+        .keyword { color: #61afef; }
+        .demo-box {
+            border: 2px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            background: #ecf0f1;
+            border-radius: 5px;
+        }
+        .tip {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .demo-form {
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            margin: 20px 0;
+        }
+        .demo-form input, .demo-form select, .demo-form textarea {
+            margin: 5px 0;
+            padding: 8px;
+            width: 100%;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 HTML 表单基础</h1>
+
+        <h2>一、表单基础（&lt;form&gt; 标签）</h2>
+        <p>form标签用于创建HTML表单，用于收集用户输入的数据。</p>
+
+        <h3>1. 基本语法</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- action：表单提交的URL --&gt;</span><br>
+<span class="comment">&lt;!-- method：HTTP方法（GET或POST） --&gt;</span><br>
+<span class="tag">&lt;form</span> <span class="attribute">action</span>=<span class="keyword">"/submit"</span> <span class="attribute">method</span>=<span class="keyword">"POST"</span><span class="tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">&lt;!-- 表单控件放在这里 --&gt;</span><br>
+<span class="tag">&lt;/form&gt;</span>
+            </code>
+        </div>
+
+        <h3>2. form 属性说明</h3>
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;form</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">action</span>=<span class="keyword">"/submit"</span>        <span class="comment">&lt;!-- 提交目标URL --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">method</span>=<span class="keyword">"POST"</span>        <span class="comment">&lt;!-- GET或POST（默认GET） --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">enctype</span>=<span class="keyword">"multipart/form-data"</span>  <span class="comment">&lt;!-- 文件上传时需要 --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">target</span>=<span class="keyword">"_blank"</span>      <span class="comment">&lt;!-- 提交后的打开方式 --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">autocomplete</span>=<span class="keyword">"on"</span>    <span class="comment">&lt;!-- 自动完成（on/off） --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">novalidate</span>              <span class="comment">&lt;!-- 禁用HTML5验证 --&gt;</span><br>
+<span class="tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">&lt;!-- 表单内容 --&gt;</span><br>
+<span class="tag">&lt;/form&gt;</span>
+            </code>
+        </div>
+
+        <h2>二、输入控件（&lt;input&gt; 标签）</h2>
+        <p>input标签是最常用的表单控件，通过type属性定义不同的输入类型。</p>
+
+        <h3>1. 文本输入</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- type="text"：单行文本输入（默认） --&gt;</span><br>
+<span class="tag">&lt;label</span> <span class="attribute">for</span>=<span class="keyword">"username"</span><span class="tag">&gt;</span>用户名：<span class="tag">&lt;/label&gt;</span><br>
+<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"text"</span> <span class="attribute">id</span>=<span class="keyword">"username"</span> <span class="attribute">name</span>=<span class="keyword">"username"</span> <span class="attribute">placeholder</span>=<span class="keyword">"请输入用户名"</span><span class="tag">&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- type="password"：密码输入（隐藏文本） --&gt;</span><br>
+<span class="tag">&lt;label</span> <span class="attribute">for</span>=<span class="keyword">"password"</span><span class="tag">&gt;</span>密码：<span class="tag">&lt;/label&gt;</span><br>
+<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"password"</span> <span class="attribute">id</span>=<span class="keyword">"password"</span> <span class="attribute">name</span>=<span class="keyword">"password"</span><span class="tag">&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <div class="demo-form">
+                <label for="demo-username">用户名：</label>
+                <input type="text" id="demo-username" name="username" placeholder="请输入用户名"><br><br>
+                
+                <label for="demo-password">密码：</label>
+                <input type="password" id="demo-password" name="password" placeholder="请输入密码">
+            </div>
+        </div>
+
+        <h3>2. 数值和范围输入</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- type="number"：数字输入 --&gt;</span><br>
+<span class="tag">&lt;label</span> <span class="attribute">for</span>=<span class="keyword">"age"</span><span class="tag">&gt;</span>年龄：<span class="tag">&lt;/label&gt;</span><br>
+<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"number"</span> <span class="attribute">id</span>=<span class="keyword">"age"</span> <span class="attribute">name</span>=<span class="keyword">"age"</span> <span class="attribute">min</span>=<span class="keyword">"1"</span> <span class="attribute">max</span>=<span class="keyword">"120"</span> <span class="attribute">step</span>=<span class="keyword">"1"</span><span class="tag">&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- type="range"：滑块输入 --&gt;</span><br>
+<span class="tag">&lt;label</span> <span class="attribute">for</span>=<span class="keyword">"volume"</span><span class="tag">&gt;</span>音量：<span class="tag">&lt;/label&gt;</span><br>
+<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"range"</span> <span class="attribute">id</span>=<span class="keyword">"volume"</span> <span class="attribute">name</span>=<span class="keyword">"volume"</span> <span class="attribute">min</span>=<span class="keyword">"0"</span> <span class="attribute">max</span>=<span class="keyword">"100"</span> <span class="attribute">value</span>=<span class="keyword">"50"</span><span class="tag">&gt;</span>
+            </code>
+        </div>
+
+        <h3>3. 日期和时间输入</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- type="date"：日期选择器 --&gt;</span><br>
+<span class="tag">&lt;label</span> <span class="attribute">for</span>=<span class="keyword">"birthday"</span><span class="tag">&gt;</span>生日：<span class="tag">&lt;/label&gt;</span><br>
+<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"date"</span> <span class="attribute">id</span>=<span class="keyword">"birthday"</span> <span class="attribute">name</span>=<span class="keyword">"birthday"</span><span class="tag">&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- type="time"：时间选择器 --&gt;</span><br>
+<span class="tag">&lt;label</span> <span class="attribute">for</span>=<span class="keyword">"appointment"</span><span class="tag">&gt;</span>预约时间：<span class="tag">&lt;/label&gt;</span><br>
+<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"time"</span> <span class="attribute">id</span>=<span class="keyword">"appointment"</span> <span class="attribute">name</span>=<span class="keyword">"appointment"</span><span class="tag">&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- type="datetime-local"：日期时间选择器 --&gt;</span><br>
+<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"datetime-local"</span> <span class="attribute">name</span>=<span class="keyword">"datetime"</span><span class="tag">&gt;</span>
+            </code>
+        </div>
+
+        <h3>4. 单选框和复选框</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- type="radio"：单选框（相同name的选项互斥） --&gt;</span><br>
+<span class="tag">&lt;label&gt;</span><span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"radio"</span> <span class="attribute">name</span>=<span class="keyword">"gender"</span> <span class="attribute">value</span>=<span class="keyword">"male"</span> <span class="attribute">checked</span><span class="tag">&gt;</span> 男<span class="tag">&lt;/label&gt;</span><br>
+<span class="tag">&lt;label&gt;</span><span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"radio"</span> <span class="attribute">name</span>=<span class="keyword">"gender"</span> <span class="attribute">value</span>=<span class="keyword">"female"</span><span class="tag">&gt;</span> 女<span class="tag">&lt;/label&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- type="checkbox"：复选框（可以多选） --&gt;</span><br>
+<span class="tag">&lt;label&gt;</span><span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"checkbox"</span> <span class="attribute">name</span>=<span class="keyword">"hobby"</span> <span class="attribute">value</span>=<span class="keyword">"reading"</span><span class="tag">&gt;</span> 阅读<span class="tag">&lt;/label&gt;</span><br>
+<span class="tag">&lt;label&gt;</span><span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"checkbox"</span> <span class="attribute">name</span>=<span class="keyword">"hobby"</span> <span class="attribute">value</span>=<span class="keyword">"music"</span> <span class="attribute">checked</span><span class="tag">&gt;</span> 音乐<span class="tag">&lt;/label&gt;</span><br>
+<span class="tag">&lt;label&gt;</span><span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"checkbox"</span> <span class="attribute">name</span>=<span class="keyword">"hobby"</span> <span class="attribute">value</span>=<span class="keyword">"sports"</span><span class="tag">&gt;</span> 运动<span class="tag">&lt;/label&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <div class="demo-form">
+                <p><strong>性别（单选）：</strong></p>
+                <label><input type="radio" name="demo-gender" value="male" checked> 男</label>
+                <label><input type="radio" name="demo-gender" value="female"> 女</label>
+                
+                <p><strong>爱好（多选）：</strong></p>
+                <label><input type="checkbox" name="demo-hobby" value="reading"> 阅读</label>
+                <label><input type="checkbox" name="demo-hobby" value="music" checked> 音乐</label>
+                <label><input type="checkbox" name="demo-hobby" value="sports"> 运动</label>
+            </div>
+        </div>
+
+        <h3>5. 按钮类型</h3>
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- type="button"：普通按钮（需要JavaScript处理） --&gt;</span><br>
+<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"button"</span> <span class="attribute">value</span>=<span class="keyword">"点击我"</span><span class="tag">&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- type="submit"：提交按钮（提交表单） --&gt;</span><br>
+<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"submit"</span> <span class="attribute">value</span>=<span class="keyword">"提交"</span><span class="tag">&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- type="reset"：重置按钮（清空表单） --&gt;</span><br>
+<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"reset"</span> <span class="attribute">value</span>=<span class="keyword">"重置"</span><span class="tag">&gt;</span>
+            </code>
+        </div>
+
+        <h2>三、标签（&lt;label&gt;）</h2>
+        <p>label标签用于关联表单控件，提高可用性和无障碍访问性。</p>
+
+        <div class="code-block">
+            <code>
+<span class="comment">&lt;!-- 方法1：使用for属性关联（推荐） --&gt;</span><br>
+<span class="tag">&lt;label</span> <span class="attribute">for</span>=<span class="keyword">"email"</span><span class="tag">&gt;</span>邮箱：<span class="tag">&lt;/label&gt;</span><br>
+<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"email"</span> <span class="attribute">id</span>=<span class="keyword">"email"</span> <span class="attribute">name</span>=<span class="keyword">"email"</span><span class="tag">&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 方法2：包裹表单控件 --&gt;</span><br>
+<span class="tag">&lt;label&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;用户名：<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"text"</span> <span class="attribute">name</span>=<span class="keyword">"username"</span><span class="tag">&gt;</span><br>
+<span class="tag">&lt;/label&gt;</span>
+            </code>
+        </div>
+
+        <div class="tip">
+            <strong>💡 提示：</strong>
+            <ul>
+                <li>点击label会自动聚焦到关联的表单控件</li>
+                <li>提高无障碍访问性（屏幕阅读器可以识别）</li>
+                <li>使用for属性和id关联是推荐的方式</li>
+            </ul>
+        </div>
+
+        <h2>四、文本域（&lt;textarea&gt;）</h2>
+        <p>textarea用于多行文本输入。</p>
+
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;label</span> <span class="attribute">for</span>=<span class="keyword">"message"</span><span class="tag">&gt;</span>留言：<span class="tag">&lt;/label&gt;</span><br>
+<span class="tag">&lt;textarea</span> <span class="attribute">id</span>=<span class="keyword">"message"</span> <span class="attribute">name</span>=<span class="keyword">"message"</span> <span class="attribute">rows</span>=<span class="keyword">"5"</span> <span class="attribute">cols</span>=<span class="keyword">"30"</span> <span class="attribute">placeholder</span>=<span class="keyword">"请输入您的留言"</span><span class="tag">&gt;&lt;/textarea&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <div class="demo-form">
+                <label for="demo-message">留言：</label><br>
+                <textarea id="demo-message" name="message" rows="5" cols="30" placeholder="请输入您的留言"></textarea>
+            </div>
+        </div>
+
+        <h2>五、下拉列表（&lt;select&gt;）</h2>
+        <p>select用于创建下拉选择列表。</p>
+
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;label</span> <span class="attribute">for</span>=<span class="keyword">"country"</span><span class="tag">&gt;</span>国家：<span class="tag">&lt;/label&gt;</span><br>
+<span class="tag">&lt;select</span> <span class="attribute">id</span>=<span class="keyword">"country"</span> <span class="attribute">name</span>=<span class="keyword">"country"</span><span class="tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;option</span> <span class="attribute">value</span>=<span class="keyword">""</span><span class="tag">&gt;</span>请选择国家<span class="tag">&lt;/option&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;option</span> <span class="attribute">value</span>=<span class="keyword">"cn"</span> <span class="attribute">selected</span><span class="tag">&gt;</span>中国<span class="tag">&lt;/option&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;option</span> <span class="attribute">value</span>=<span class="keyword">"us"</span><span class="tag">&gt;</span>美国<span class="tag">&lt;/option&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;option</span> <span class="attribute">value</span>=<span class="keyword">"jp"</span><span class="tag">&gt;</span>日本<span class="tag">&lt;/option&gt;</span><br>
+<span class="tag">&lt;/select&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 多选下拉列表 --&gt;</span><br>
+<span class="tag">&lt;select</span> <span class="attribute">name</span>=<span class="keyword">"fruits"</span> <span class="attribute">multiple</span> <span class="attribute">size</span>=<span class="keyword">"4"</span><span class="tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;option</span> <span class="attribute">value</span>=<span class="keyword">"apple"</span><span class="tag">&gt;</span>苹果<span class="tag">&lt;/option&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;option</span> <span class="attribute">value</span>=<span class="keyword">"banana"</span><span class="tag">&gt;</span>香蕉<span class="tag">&lt;/option&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;option</span> <span class="attribute">value</span>=<span class="keyword">"orange"</span><span class="tag">&gt;</span>橙子<span class="tag">&lt;/option&gt;</span><br>
+<span class="tag">&lt;/select&gt;</span><br>
+<br>
+<span class="comment">&lt;!-- 使用optgroup分组 --&gt;</span><br>
+<span class="tag">&lt;select</span> <span class="attribute">name</span>=<span class="keyword">"car"</span><span class="tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;optgroup</span> <span class="attribute">label</span>=<span class="keyword">"德系车"</span><span class="tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;option</span> <span class="attribute">value</span>=<span class="keyword">"bmw"</span><span class="tag">&gt;</span>宝马<span class="tag">&lt;/option&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;option</span> <span class="attribute">value</span>=<span class="keyword">"benz"</span><span class="tag">&gt;</span>奔驰<span class="tag">&lt;/option&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/optgroup&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;optgroup</span> <span class="attribute">label</span>=<span class="keyword">"日系车"</span><span class="tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;option</span> <span class="attribute">value</span>=<span class="keyword">"toyota"</span><span class="tag">&gt;</span>丰田<span class="tag">&lt;/option&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;option</span> <span class="attribute">value</span>=<span class="keyword">"honda"</span><span class="tag">&gt;</span>本田<span class="tag">&lt;/option&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/optgroup&gt;</span><br>
+<span class="tag">&lt;/select&gt;</span>
+            </code>
+        </div>
+
+        <div class="demo-box">
+            <h3>🎯 实际效果演示：</h3>
+            <div class="demo-form">
+                <label for="demo-country">国家：</label>
+                <select id="demo-country" name="country">
+                    <option value="">请选择国家</option>
+                    <option value="cn" selected>中国</option>
+                    <option value="us">美国</option>
+                    <option value="jp">日本</option>
+                </select>
+            </div>
+        </div>
+
+        <h2>六、表单分组（&lt;fieldset&gt; 和 &lt;legend&gt;）</h2>
+        <p>fieldset用于将相关表单控件分组，legend提供分组标题。</p>
+
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;form&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;fieldset&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;legend&gt;</span>个人信息<span class="tag">&lt;/legend&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;label&gt;</span>姓名：<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"text"</span> <span class="attribute">name</span>=<span class="keyword">"name"</span><span class="tag">&gt;&lt;/label&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;label&gt;</span>邮箱：<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"email"</span> <span class="attribute">name</span>=<span class="keyword">"email"</span><span class="tag">&gt;&lt;/label&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/fieldset&gt;</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;fieldset&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;legend&gt;</span>偏好设置<span class="tag">&lt;/legend&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">&lt;!-- 更多控件 --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/fieldset&gt;</span><br>
+<span class="tag">&lt;/form&gt;</span>
+            </code>
+        </div>
+
+        <h2>七、input 的常用属性</h2>
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;input</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">type</span>=<span class="keyword">"text"</span>           <span class="comment">&lt;!-- 输入类型 --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">name</span>=<span class="keyword">"username"</span>      <span class="comment">&lt;!-- 字段名称（提交时的键名） --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">id</span>=<span class="keyword">"username"</span>        <span class="comment">&lt;!-- 唯一标识符 --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">value</span>=<span class="keyword">"默认值"</span>        <span class="comment">&lt;!-- 默认值 --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">placeholder</span>=<span class="keyword">"提示文字"</span>  <span class="comment">&lt;!-- 占位符提示 --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">required</span>              <span class="comment">&lt;!-- 必填字段 --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">disabled</span>              <span class="comment">&lt;!-- 禁用（不提交） --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">readonly</span>              <span class="comment">&lt;!-- 只读（可提交） --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">autofocus</span>             <span class="comment">&lt;!-- 自动聚焦 --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">maxlength</span>=<span class="keyword">"20"</span>        <span class="comment">&lt;!-- 最大字符数 --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">size</span>=<span class="keyword">"30"</span>            <span class="comment">&lt;!-- 显示宽度（字符数） --&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">pattern</span>=<span class="keyword">"[A-Za-z]{3,}"</span>  <span class="comment">&lt;!-- 正则表达式验证 --&gt;</span><br>
+<span class="tag">&gt;</span>
+            </code>
+        </div>
+
+        <div class="tip">
+            <strong>💡 重要提示：</strong>
+            <ul>
+                <li><strong>name属性很重要</strong>：表单提交时使用name作为字段名</li>
+                <li><strong>id用于关联label</strong>：label的for属性对应input的id</li>
+                <li><strong>value vs placeholder</strong>：value是实际值，placeholder只是提示</li>
+                <li><strong>disabled vs readonly</strong>：disabled不提交，readonly可提交</li>
+            </ul>
+        </div>
+
+        <h2>八、完整表单示例</h2>
+        <div class="code-block">
+            <code>
+<span class="tag">&lt;form</span> <span class="attribute">action</span>=<span class="keyword">"/submit"</span> <span class="attribute">method</span>=<span class="keyword">"POST"</span><span class="tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;fieldset&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;legend&gt;</span>用户注册<span class="tag">&lt;/legend&gt;</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;label</span> <span class="attribute">for</span>=<span class="keyword">"username"</span><span class="tag">&gt;</span>用户名：<span class="tag">&lt;/label&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"text"</span> <span class="attribute">id</span>=<span class="keyword">"username"</span> <span class="attribute">name</span>=<span class="keyword">"username"</span> <span class="attribute">required</span> <span class="attribute">placeholder</span>=<span class="keyword">"请输入用户名"</span><span class="tag">&gt;</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;label</span> <span class="attribute">for</span>=<span class="keyword">"email"</span><span class="tag">&gt;</span>邮箱：<span class="tag">&lt;/label&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"email"</span> <span class="attribute">id</span>=<span class="keyword">"email"</span> <span class="attribute">name</span>=<span class="keyword">"email"</span> <span class="attribute">required</span><span class="tag">&gt;</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;label</span> <span class="attribute">for</span>=<span class="keyword">"password"</span><span class="tag">&gt;</span>密码：<span class="tag">&lt;/label&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"password"</span> <span class="attribute">id</span>=<span class="keyword">"password"</span> <span class="attribute">name</span>=<span class="keyword">"password"</span> <span class="attribute">required</span><span class="tag">&gt;</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"submit"</span> <span class="attribute">value</span>=<span class="keyword">"注册"</span><span class="tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;input</span> <span class="attribute">type</span>=<span class="keyword">"reset"</span> <span class="attribute">value</span>=<span class="keyword">"重置"</span><span class="tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/fieldset&gt;</span><br>
+<span class="tag">&lt;/form&gt;</span>
+            </code>
+        </div>
+
+        <h2>✅ 本节总结</h2>
+        <p>你已经学会了：</p>
+        <ul>
+            <li>form标签的基本用法和属性</li>
+            <li>input标签的各种类型（text, password, number, date, radio, checkbox, button等）</li>
+            <li>label标签的两种关联方式</li>
+            <li>textarea多行文本输入</li>
+            <li>select下拉列表（单选、多选、分组）</li>
+            <li>fieldset和legend表单分组</li>
+            <li>input的常用属性（name, id, value, placeholder, required等）</li>
+            <li>如何构建完整的表单</li>
+        </ul>
+
+        <p style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #ecf0f1;">
+            <strong>下一步：</strong>学习 <a href="08-表单高级.html">08-表单高级.html</a>
+        </p>
+    </div>
+</body>
+</html>
+

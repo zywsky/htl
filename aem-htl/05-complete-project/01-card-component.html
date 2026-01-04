@@ -1,0 +1,242 @@
+<!--
+  完整项目示例: 卡片组件
+  
+  这是一个完整的、生产级别的卡片组件示例
+  展示了 HTL 组件开发的最佳实践
+-->
+
+<!--
+  组件文件结构：
+  
+  card/
+  ├── .content.xml          # 组件定义
+  ├── card.html             # HTL 模板（本文件）
+  ├── _cq_dialog/
+  │   └── .content.xml      # 对话框配置
+  ├── _cq_design_dialog/
+  │   └── .content.xml      # 设计对话框
+  └── _cq_htmlTag/
+      └── .content.xml      # HTML 标签配置
+-->
+
+<!--
+  引入客户端库模板
+-->
+<sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+
+<!--
+  加载组件样式（在生产环境中使用压缩版本）
+-->
+<sly data-sly-call="${clientlib.css @ categories='myapp.components.card'}"></sly>
+
+<!--
+  使用 Sling Model 处理业务逻辑
+-->
+<sly data-sly-use.card="${'com.myapp.components.models.CardModel'}"></sly>
+
+<!--
+  组件主容器
+  使用 component.cssClassNames 自动添加样式类
+  使用 component.id 创建唯一标识符
+-->
+<article class="card-component ${component.cssClassNames}"
+         data-sly-attribute="${{
+             'id': component.id,
+             'data-component-path': resource.resourceType,
+             'data-card-type': card.cardType,
+             'class': 'card-component ' + 
+                      card.cardType + ' ' + 
+                      (card.isFeatured ? 'featured' : '') + ' ' + 
+                      component.cssClassNames
+         }}">
+
+    <!--
+      卡片徽章
+      只在有条件时渲染
+    -->
+    <div data-sly-test="${card.badge}"
+         class="card-badge badge-${card.badgeType}">
+        ${card.badge}
+    </div>
+
+    <!--
+      卡片图片
+      条件渲染，支持图片和背景图两种模式
+    -->
+    <div data-sly-test="${card.hasImage}" 
+         class="card-image">
+        <a data-sly-test="${card.linkUrl}"
+           href="${card.linkUrl}"
+           data-sly-attribute.aria-label="${card.imageAlt}">
+            <img src="${card.imageUrl}"
+                 srcset="${card.imageSrcset}"
+                 sizes="${card.imageSizes}"
+                 alt="${card.imageAlt}"
+                 data-sly-attribute.loading="${card.lazyLoadImage ? 'lazy' : 'eager'}">
+        </a>
+        <img data-sly-test="${!card.linkUrl}"
+             src="${card.imageUrl}"
+             srcset="${card.imageSrcset}"
+             sizes="${card.imageSizes}"
+             alt="${card.imageAlt}"
+             data-sly-attribute.loading="${card.lazyLoadImage ? 'lazy' : 'eager'}">
+    </div>
+
+    <!--
+      卡片内容区域
+    -->
+    <div class="card-content">
+        <!--
+          卡片标题
+        -->
+        <header class="card-header">
+            <h2 data-sly-test="${card.title}"
+                class="card-title">
+                <a data-sly-test="${card.linkUrl}"
+                   href="${card.linkUrl}">
+                    ${card.title}
+                </a>
+                <span data-sly-test="${!card.linkUrl}">
+                    ${card.title}
+                </span>
+            </h2>
+            <h3 data-sly-test="${card.subtitle}"
+                class="card-subtitle">
+                ${card.subtitle}
+            </h3>
+        </header>
+
+        <!--
+          卡片正文内容
+        -->
+        <div data-sly-test="${card.content}"
+             class="card-body">
+            <div data-sly-unescape="${card.contentHtml}"></div>
+        </div>
+
+        <!--
+          卡片元数据
+          显示作者、日期等信息
+        -->
+        <div data-sly-test="${card.showMeta && (card.author || card.publishDate)}"
+             class="card-meta">
+            <span data-sly-test="${card.author}"
+                  class="card-author">
+                <span class="meta-label">作者:</span>
+                <span class="meta-value">${card.author}</span>
+            </span>
+            <span data-sly-test="${card.publishDate}"
+                  class="card-date">
+                <span class="meta-label">发布时间:</span>
+                <time datetime="${card.publishDateISO}"
+                      class="meta-value">
+                    ${card.formattedPublishDate}
+                </time>
+            </span>
+            <span data-sly-test="${card.category}"
+                  class="card-category">
+                <a href="${card.categoryUrl}">${card.category}</a>
+            </span>
+        </div>
+
+        <!--
+          卡片标签
+        -->
+        <div data-sly-test="${card.tags && card.tags.size > 0}"
+             class="card-tags">
+            <ul>
+                <li data-sly-list="${card.tags}"
+                    class="tag tag-${item.type || 'default'}">
+                    <a href="${item.url}">${item.label}</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!--
+      卡片操作区域
+      链接、按钮等
+    -->
+    <footer data-sly-test="${card.linkUrl || card.actions}"
+            class="card-actions">
+        <!--
+          主要链接
+        -->
+        <a data-sly-test="${card.linkUrl}"
+           href="${card.linkUrl}"
+           class="card-link btn btn-primary"
+           data-sly-attribute="${{
+               'target': card.openInNewTab ? '_blank' : '_self',
+               'rel': card.openInNewTab ? 'noopener noreferrer' : '',
+               'aria-label': card.linkAriaLabel || card.linkText
+           }}">
+            ${card.linkText || '了解更多'}
+            <span data-sly-test="${card.showLinkIcon}"
+                  class="icon icon-arrow-right"
+                  aria-hidden="true">
+            </span>
+        </a>
+
+        <!--
+          操作按钮列表
+        -->
+        <div data-sly-test="${card.actions && card.actions.size > 0}"
+             class="card-action-buttons">
+            <a data-sly-list="${card.actions}"
+               href="${item.url}"
+               class="btn btn-${item.type || 'secondary'}"
+               data-sly-attribute.aria-label="${item.ariaLabel || item.label}">
+                ${item.label}
+            </a>
+        </div>
+    </footer>
+
+    <!--
+      空状态
+      当组件未配置时显示
+    -->
+    <div data-sly-test="${!card.isConfigured}"
+         class="card-empty-state">
+        <p class="empty-message">请配置卡片组件</p>
+    </div>
+</article>
+
+<!--
+  加载组件 JavaScript（异步加载）
+-->
+<sly data-sly-call="${clientlib.js @ categories='myapp.components.card', async=true}"></sly>
+
+<!--
+  组件使用说明：
+  
+  1. 对话框配置 (dialog):
+     - title: 卡片标题
+     - subtitle: 卡片副标题
+     - content: 卡片内容（富文本）
+     - imagePath: 图片路径
+     - linkUrl: 链接 URL
+     - linkText: 链接文本
+     - cardType: 卡片类型（default, featured, compact）
+     - showMeta: 显示元数据
+     - badge: 徽章文本
+     - badgeType: 徽章类型
+  
+  2. Sling Model (CardModel):
+     - 处理数据验证和格式化
+     - 计算派生属性
+     - 处理图片 URL 和响应式图片
+     - 格式化日期
+     - 处理链接和操作
+  
+  3. 样式 (CSS):
+     - 通过客户端库加载
+     - 支持不同的卡片类型
+     - 响应式设计
+     - 可主题化
+  
+  4. 交互 (JavaScript):
+     - 可选的前端交互
+     - 通过客户端库加载
+     - 异步加载以优化性能
+-->
+

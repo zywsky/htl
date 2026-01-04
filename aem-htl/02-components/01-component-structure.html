@@ -1,0 +1,221 @@
+<!--
+  AEM 组件 HTL: 组件结构
+  
+  学习 AEM 组件的基本结构和组织方式
+-->
+
+<!--
+  AEM 组件的文件结构：
+  
+  my-component/
+  ├── .content.xml          # 组件定义文件
+  ├── mycomponent.html      # HTL 模板文件（主要模板）
+  ├── _cq_dialog/
+  │   └── .content.xml      # 组件对话框配置
+  ├── _cq_design_dialog/
+  │   └── .content.xml      # 设计对话框配置
+  └── _cq_htmlTag/
+      └── .content.xml      # HTML 标签配置
+-->
+
+<!--
+  这是 mycomponent.html - 组件的主要 HTL 模板
+  
+  HTL 文件会从以下上下文获取数据：
+  - properties: 组件的 JCR 属性（来自对话框）
+  - currentPage: 当前页面对象
+  - resource: 当前资源对象
+  - component: 组件对象
+  - pageProperties: 页面属性
+-->
+
+<!--
+  基础组件示例：
+  一个简单的文本组件
+-->
+<div class="text-component" 
+     data-sly-attribute.id="${'text-' + component.id}">
+    <div data-sly-test="${properties.text}">
+        ${properties.text}
+    </div>
+    <div data-sly-test="${!properties.text}">
+        请编辑此组件以添加文本
+    </div>
+</div>
+
+<!--
+  组件包装元素：
+  使用 component.id 创建唯一的 ID
+-->
+<div class="component ${component.cssClassNames}"
+     data-sly-attribute.id="${component.id}">
+    <!-- 组件内容 -->
+</div>
+
+<!--
+  组件属性访问：
+  通过 properties 访问对话框配置的属性
+-->
+<div class="title-component">
+    <h1 data-sly-test="${properties.title}">${properties.title}</h1>
+    <h2 data-sly-test="${properties.subtitle}">${properties.subtitle}</h2>
+</div>
+
+<!--
+  使用 component.cssClassNames：
+  自动添加组件样式类名
+-->
+<div class="${component.cssClassNames}">
+    <!-- component.cssClassNames 包含组件路径等样式类 -->
+</div>
+
+<!--
+  条件渲染基于组件配置：
+  根据组件属性决定渲染内容
+-->
+<div class="banner-component">
+    <div data-sly-test="${properties.showTitle}">
+        <h1>${properties.title}</h1>
+    </div>
+    <div class="banner-content">
+        ${properties.content}
+    </div>
+    <div data-sly-test="${properties.showLink && properties.linkUrl}">
+        <a href="${properties.linkUrl}">${properties.linkText || '了解更多'}</a>
+    </div>
+</div>
+
+<!--
+  组件中的资源路径：
+  引用组件内部的资源（如图片、CSS、JS）
+-->
+<div class="image-component">
+    <img src="${properties.imagePath || '/content/dam/default-image.jpg'}"
+         alt="${properties.altText || properties.title}">
+</div>
+
+<!--
+  组件路径和相对路径：
+  使用 resource.path 构建资源路径
+-->
+<div class="component">
+    <sly data-sly-set.imagePath="${properties.imagePath}"></sly>
+    <sly data-sly-set.fullImagePath="${imagePath ? (imagePath.startsWith('/') ? imagePath : resource.path + '/' + imagePath) : ''}"></sly>
+    <img data-sly-test="${fullImagePath}"
+         src="${fullImagePath}"
+         alt="${properties.altText}">
+</div>
+
+<!--
+  访问页面属性：
+  在组件中访问当前页面的属性
+-->
+<div class="breadcrumb-component">
+    <nav>
+        <a href="${currentPage.path}.html">${currentPage.title || currentPage.name}</a>
+    </nav>
+</div>
+
+<!--
+  组件样式类：
+  组合固定类名和动态类名
+-->
+<div class="card-component ${component.cssClassNames}"
+     data-sly-attribute.class="${'card-component ' + (properties.cardType || 'default') + ' ' + component.cssClassNames}">
+    <!-- 内容 -->
+</div>
+
+<!--
+  组件唯一标识：
+  使用 component.id 或 resource.path
+-->
+<div class="component"
+     data-sly-attribute.id="${component.id}"
+     data-sly-attribute.data-component-path="${resource.resourceType}">
+    <!-- 组件内容 -->
+</div>
+
+<!--
+  空状态处理：
+  当组件未配置时显示占位符或默认内容
+-->
+<div class="content-component">
+    <div data-sly-test="${properties.text}">
+        ${properties.text}
+    </div>
+    <div data-sly-test="${!properties.text}" 
+         class="component-placeholder">
+        <p>请配置组件内容</p>
+    </div>
+</div>
+
+<!--
+  组件设计配置：
+  访问设计配置（从 _cq_design_dialog 配置）
+-->
+<sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+<sly data-sly-call="${clientlib.all @ categories='myapp.components', async=true}"></sly>
+
+<!--
+  组件模板示例：
+  一个完整的卡片组件
+-->
+<article class="card-component ${component.cssClassNames}"
+         data-sly-attribute.id="${component.id}">
+    
+    <!-- 卡片头部 -->
+    <div data-sly-test="${properties.title || properties.subtitle}" 
+         class="card-header">
+        <h2 data-sly-test="${properties.title}">${properties.title}</h2>
+        <h3 data-sly-test="${properties.subtitle}">${properties.subtitle}</h3>
+    </div>
+    
+    <!-- 卡片图片 -->
+    <div data-sly-test="${properties.imagePath}" 
+         class="card-image">
+        <img src="${properties.imagePath}"
+             alt="${properties.imageAlt || properties.title}">
+    </div>
+    
+    <!-- 卡片内容 -->
+    <div class="card-body">
+        <div data-sly-test="${properties.content}">
+            ${properties.content}
+        </div>
+        <div data-sly-test="${!properties.content}" 
+             class="empty-state">
+            请添加内容
+        </div>
+    </div>
+    
+    <!-- 卡片操作 -->
+    <div data-sly-test="${properties.linkUrl}" 
+         class="card-actions">
+        <a href="${properties.linkUrl}"
+           data-sly-attribute.target="${properties.openInNewTab ? '_blank' : '_self'}">
+            ${properties.linkText || '了解更多'}
+        </a>
+    </div>
+    
+    <!-- 卡片元数据 -->
+    <div data-sly-test="${properties.showMeta && (properties.author || properties.date)}"
+         class="card-meta">
+        <span data-sly-test="${properties.author}">
+            作者: ${properties.author}
+        </span>
+        <span data-sly-test="${properties.date}">
+            日期: ${properties.date}
+        </span>
+    </div>
+    
+</article>
+
+<!--
+  组件最佳实践：
+  1. 始终使用 component.cssClassNames 添加样式类
+  2. 使用 component.id 创建唯一标识符
+  3. 处理空状态和未配置的情况
+  4. 使用 data-sly-test 避免渲染空元素
+  5. 保持组件模板简洁，复杂逻辑放在 Use API 中
+-->
+

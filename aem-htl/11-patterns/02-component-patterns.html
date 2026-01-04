@@ -1,0 +1,290 @@
+<!--
+  HTL 组件模式
+  
+  学习常用的 HTL 组件开发模式
+-->
+
+<!--
+  模式 1: 空状态模式
+  处理组件未配置或数据为空的情况
+-->
+<div class="component">
+    <div data-sly-test="${properties.content}">
+        ${properties.content}
+    </div>
+    <div data-sly-test="${!properties.content}" class="empty-state">
+        <p>请配置组件内容</p>
+    </div>
+</div>
+
+<!--
+  模式 2: 加载状态模式
+  显示数据加载中的状态
+-->
+<div class="component">
+    <div data-sly-test="${model.isLoading}" class="loading-state">
+        <div class="spinner"></div>
+        <p>加载中...</p>
+    </div>
+    <div data-sly-test="${!model.isLoading && model.data}">
+        ${model.data}
+    </div>
+</div>
+
+<!--
+  模式 3: 错误状态模式
+  处理错误情况
+-->
+<div class="component">
+    <div data-sly-test="${model.hasError}" class="error-state">
+        <p class="error-message">${model.errorMessage}</p>
+        <button class="retry-button">重试</button>
+    </div>
+    <div data-sly-test="${!model.hasError}">
+        ${model.data}
+    </div>
+</div>
+
+<!--
+  模式 4: 条件显示模式
+  根据条件显示不同内容
+-->
+<div class="component">
+    <div data-sly-test="${properties.showAdvanced}">
+        <!-- 高级内容 -->
+        <div class="advanced-content">${properties.advancedContent}</div>
+    </div>
+    <div data-sly-test="${!properties.showAdvanced}">
+        <!-- 基础内容 -->
+        <div class="basic-content">${properties.basicContent}</div>
+    </div>
+</div>
+
+<!--
+  模式 5: 列表/网格切换模式
+  允许用户切换视图
+-->
+<div class="component">
+    <div class="view-toggle">
+        <button class="list-view" aria-label="列表视图">列表</button>
+        <button class="grid-view" aria-label="网格视图">网格</button>
+    </div>
+    <div class="content-list">
+        <div data-sly-list="${properties.items}">
+            ${item.content}
+        </div>
+    </div>
+    <div class="content-grid">
+        <div data-sly-list="${properties.items}">
+            ${item.content}
+        </div>
+    </div>
+</div>
+
+<!--
+  模式 6: 分页模式
+  处理大量数据的分页显示
+-->
+<div class="component">
+    <div class="items">
+        <div data-sly-list="${model.paginatedItems}">
+            ${item.content}
+        </div>
+    </div>
+    <nav class="pagination">
+        <a data-sly-test="${model.hasPrevious}"
+           href="${model.previousUrl}">上一页</a>
+        <span>第 ${model.currentPage} 页，共 ${model.totalPages} 页</span>
+        <a data-sly-test="${model.hasNext}"
+           href="${model.nextUrl}">下一页</a>
+    </nav>
+</div>
+
+<!--
+  模式 7: 标签页模式
+  使用标签页组织内容
+-->
+<div class="tabs-component">
+    <ul class="tab-nav" role="tablist">
+        <li data-sly-list="${properties.tabs}">
+            <button role="tab"
+                    data-sly-attribute="${{
+                        'aria-selected': itemList.first,
+                        'aria-controls': 'tab-panel-' + itemList.index,
+                        'id': 'tab-' + itemList.index
+                    }}">
+                ${item.title}
+            </button>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div data-sly-list="${properties.tabs}">
+            <div role="tabpanel"
+                 data-sly-attribute="${{
+                     'id': 'tab-panel-' + itemList.index,
+                     'aria-labelledby': 'tab-' + itemList.index,
+                     'aria-hidden': !itemList.first
+                 }}">
+                ${item.content}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--
+  模式 8: 手风琴模式
+  可折叠的内容区域
+-->
+<div class="accordion-component">
+    <div data-sly-list="${properties.items}">
+        <div class="accordion-item">
+            <button class="accordion-header"
+                    data-sly-attribute="${{
+                        'aria-expanded': item.isExpanded,
+                        'aria-controls': 'accordion-content-' + itemList.index
+                    }}">
+                ${item.title}
+            </button>
+            <div class="accordion-content"
+                 data-sly-attribute="${{
+                     'id': 'accordion-content-' + itemList.index,
+                     'aria-hidden': !item.isExpanded
+                 }}">
+                ${item.content}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--
+  模式 9: 模态框模式
+  弹出式对话框
+-->
+<div class="modal-component">
+    <button class="modal-trigger" 
+            aria-label="打开对话框">
+        ${properties.triggerText}
+    </button>
+    <div class="modal-overlay" 
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="modal-title">
+        <div class="modal-content">
+            <h2 id="modal-title">${properties.modalTitle}</h2>
+            <div class="modal-body">${properties.modalContent}</div>
+            <button class="modal-close" aria-label="关闭对话框">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!--
+  模式 10: 搜索模式
+  搜索和过滤功能
+-->
+<div class="search-component">
+    <form class="search-form">
+        <input type="search"
+               name="q"
+               value="${properties.query}"
+               placeholder="搜索...">
+        <button type="submit">搜索</button>
+    </form>
+    <div data-sly-test="${model.hasResults}" class="search-results">
+        <p>找到 ${model.resultCount} 个结果</p>
+        <ul>
+            <li data-sly-list="${model.results}">
+                <a href="${item.url}">${item.title}</a>
+                <p>${item.snippet}</p>
+            </li>
+        </ul>
+    </div>
+    <div data-sly-test="${!model.hasResults && properties.query}" class="no-results">
+        <p>没有找到结果</p>
+    </div>
+</div>
+
+<!--
+  模式 11: 表单验证模式
+  实时表单验证
+-->
+<form class="validated-form">
+    <div class="form-field">
+        <label for="${properties.fieldId}">${properties.label}</label>
+        <input type="text"
+               id="${properties.fieldId}"
+               name="${properties.fieldName}"
+               data-sly-attribute="${{
+                   'aria-invalid': properties.hasError,
+                   'aria-describedby': properties.errorId,
+                   'required': properties.required
+               }}">
+        <span data-sly-test="${properties.errorMessage}"
+              id="${properties.errorId}"
+              class="error-message"
+              role="alert">
+            ${properties.errorMessage}
+        </span>
+    </div>
+</form>
+
+<!--
+  模式 12: 无限滚动模式
+  动态加载更多内容
+-->
+<div class="infinite-scroll-component"
+     data-sly-attribute.data-load-more-url="${model.loadMoreUrl}">
+    <div class="items">
+        <div data-sly-list="${model.items}">
+            ${item.content}
+        </div>
+    </div>
+    <div data-sly-test="${model.hasMore}" class="load-more">
+        <button class="load-more-button">加载更多</button>
+    </div>
+</div>
+
+<!--
+  模式 13: 骨架屏模式
+  内容加载时的占位符
+-->
+<div class="component">
+    <div data-sly-test="${model.isLoading}" class="skeleton">
+        <div class="skeleton-header"></div>
+        <div class="skeleton-content"></div>
+        <div class="skeleton-content"></div>
+    </div>
+    <div data-sly-test="${!model.isLoading}">
+        <h2>${model.title}</h2>
+        <p>${model.content}</p>
+    </div>
+</div>
+
+<!--
+  模式 14: 响应式图片模式
+  根据设备加载不同尺寸图片
+-->
+<picture class="responsive-image">
+    <source media="(min-width: 1200px)" srcset="${properties.imageLarge}">
+    <source media="(min-width: 768px)" srcset="${properties.imageMedium}">
+    <img src="${properties.imageSmall}"
+         alt="${properties.altText}"
+         loading="lazy">
+</picture>
+
+<!--
+  模式 15: 条件类名模式
+  根据状态动态添加 CSS 类
+-->
+<div class="component ${properties.isActive ? 'active' : 'inactive'} ${properties.isFeatured ? 'featured' : ''}">
+    ${properties.content}
+</div>
+
+<!--
+  组件模式最佳实践:
+  1. 保持模式一致
+  2. 文档化使用的模式
+  3. 考虑可访问性
+  4. 优化性能
+  5. 测试所有状态
+-->
+

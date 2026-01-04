@@ -1,0 +1,237 @@
+<!--
+  HTL 高级特性: Client Libraries (ClientLibs)
+  
+  学习如何在 HTL 中引入 CSS 和 JavaScript
+-->
+
+<!--
+  Client Libraries 是 AEM 管理客户端资源（CSS、JS）的机制
+  使用 data-sly-use.clientlib 引入客户端库
+-->
+
+<!--
+  引入客户端库模板：
+  首先需要引入客户端库模板
+-->
+<sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+
+<!--
+  引入 CSS：
+  使用 clientlib.css 模板
+-->
+<sly data-sly-call="${clientlib.css @ categories='myapp.components'}"></sly>
+
+<!--
+  引入 JavaScript：
+  使用 clientlib.js 模板
+-->
+<sly data-sly-call="${clientlib.js @ categories='myapp.components'}"></sly>
+
+<!--
+  同时引入 CSS 和 JS：
+  使用 clientlib.all
+-->
+<sly data-sly-call="${clientlib.all @ categories='myapp.components'}"></sly>
+
+<!--
+  引入多个类别：
+  可以指定多个客户端库类别
+-->
+<sly data-sly-call="${clientlib.all @ categories='myapp.base,myapp.components,myapp.theme'}"></sly>
+
+<!--
+  异步加载 JavaScript：
+  使用 async 参数
+-->
+<sly data-sly-call="${clientlib.js @ categories='myapp.components', async=true}"></sly>
+
+<!--
+  延迟加载 JavaScript：
+  使用 defer 参数
+-->
+<sly data-sly-call="${clientlib.js @ categories='myapp.components', defer=true}"></sly>
+
+<!--
+  完整的组件示例：
+  包含样式和脚本的组件
+-->
+<sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+<sly data-sly-call="${clientlib.css @ categories='myapp.components.card'}"></sly>
+
+<div class="card-component">
+    <h2>${properties.title}</h2>
+    <p>${properties.content}</p>
+</div>
+
+<sly data-sly-call="${clientlib.js @ categories='myapp.components.card', async=true}"></sly>
+
+<!--
+  条件加载客户端库：
+  只在需要时加载
+-->
+<sly data-sly-test="${properties.loadAdvancedFeatures}">
+    <sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+    <sly data-sly-call="${clientlib.all @ categories='myapp.components.advanced'}"></sly>
+</sly>
+
+<!--
+  在页面级别加载客户端库：
+  通常在页面模板中加载全局样式和脚本
+-->
+<sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+
+<!-- 全局样式 -->
+<sly data-sly-call="${clientlib.css @ categories='myapp.base,myapp.theme'}"></sly>
+
+<!-- 页面头部 -->
+<header>
+    <!-- 头部内容 -->
+</header>
+
+<!-- 主要内容 -->
+<main>
+    <!-- 内容 -->
+</main>
+
+<!-- 全局脚本 -->
+<sly data-sly-call="${clientlib.js @ categories='myapp.base', defer=true}"></sly>
+
+<!--
+  组织客户端库：
+  按功能模块组织
+-->
+<div class="product-component">
+    <sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+    
+    <!-- 产品组件样式 -->
+    <sly data-sly-call="${clientlib.css @ categories='myapp.components.product'}"></sly>
+    
+    <!-- 组件内容 -->
+    <div class="product">
+        <!-- 内容 -->
+    </div>
+    
+    <!-- 产品组件脚本 -->
+    <sly data-sly-call="${clientlib.js @ categories='myapp.components.product', async=true}"></sly>
+</div>
+
+<!--
+  实际应用示例 1：
+  带交互的组件
+-->
+<sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+<sly data-sly-call="${clientlib.all @ categories='myapp.components.accordion'}"></sly>
+
+<div class="accordion-component" 
+     data-sly-attribute.data-component-id="${component.id}">
+    <div data-sly-list="${properties.items}">
+        <div class="accordion-item">
+            <div class="accordion-header">${item.title}</div>
+            <div class="accordion-content">${item.content}</div>
+        </div>
+    </div>
+</div>
+
+<!--
+  实际应用示例 2：
+  表单组件
+-->
+<sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+<sly data-sly-call="${clientlib.css @ categories='myapp.components.form'}"></sly>
+
+<form class="custom-form" 
+      data-sly-attribute.data-form-id="${properties.formId}">
+    <!-- 表单字段 -->
+</form>
+
+<sly data-sly-call="${clientlib.js @ categories='myapp.components.form', defer=true}"></sly>
+
+<!--
+  实际应用示例 3：
+  响应式图片组件
+-->
+<sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+<sly data-sly-call="${clientlib.all @ categories='myapp.components.responsive-image'}"></sly>
+
+<div class="responsive-image-component">
+    <img src="${properties.imagePath}"
+         srcset="${properties.srcset}"
+         sizes="${properties.sizes}"
+         alt="${properties.altText}"
+         data-sly-attribute.loading="${properties.lazyLoad ? 'lazy' : 'eager'}">
+</div>
+
+<!--
+  客户端库最佳实践：
+  1. 按功能模块组织客户端库
+  2. 使用有意义的类别名称
+  3. 在组件级别加载组件特定的样式和脚本
+  4. 在页面级别加载全局样式和脚本
+  5. 使用 async 或 defer 优化脚本加载
+  6. 避免重复加载相同的客户端库
+  7. 考虑使用 CSS 和 JS 压缩
+-->
+
+<!--
+  性能优化：
+  1. 使用 async 加载非关键脚本
+  2. 使用 defer 加载需要 DOM 就绪的脚本
+  3. 合并和压缩客户端库
+  4. 使用 CDN 加载第三方库
+  5. 考虑按需加载
+-->
+
+<!--
+  客户端库配置示例（参考）：
+  
+  .content.xml:
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:cq="http://www.day.com/jcr/cq/1.0" 
+            xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            jcr:primaryType="cq:ClientLibraryFolder"
+            categories="[myapp.components.card]"
+            dependencies="[myapp.base]"/>
+  
+  使用 dependencies 声明依赖关系
+-->
+
+<!--
+  加载带依赖的客户端库：
+  AEM 会自动处理依赖关系
+-->
+<sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+<!-- 如果 myapp.components.card 依赖 myapp.base，base 会自动加载 -->
+<sly data-sly-call="${clientlib.all @ categories='myapp.components.card'}"></sly>
+
+<!--
+  主题切换示例：
+  根据配置加载不同的主题
+-->
+<sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+<sly data-sly-set.theme="${properties.theme || 'default'}"></sly>
+<sly data-sly-call="${clientlib.css @ categories='myapp.theme.' + theme}"></sly>
+
+<div class="component theme-${theme}">
+    <!-- 内容 -->
+</div>
+
+<!--
+  条件加载第三方库：
+  只在需要时加载第三方库
+-->
+<sly data-sly-test="${properties.useChartLibrary}">
+    <sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+    <sly data-sly-call="${clientlib.all @ categories='myapp.vendor.chartjs'}"></sly>
+</sly>
+
+<!--
+  内联样式和脚本（不推荐，但有时需要）：
+  使用 data-sly-unescape 注入样式或脚本
+-->
+<style data-sly-unescape="${'<style>.custom { color: red; }</style>'}"></style>
+
+<!--
+  更好的方式：使用客户端库
+  将样式和脚本放在客户端库中，通过 categories 加载
+-->
+

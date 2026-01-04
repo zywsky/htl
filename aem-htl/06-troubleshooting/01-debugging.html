@@ -1,0 +1,238 @@
+<!--
+  HTL 调试和错误处理指南
+  
+  学习如何调试 HTL 组件和处理常见错误
+-->
+
+<!--
+  调试技巧 1: 使用开发者模式
+  在 AEM 中启用开发者模式可以显示更多调试信息
+-->
+<div class="component">
+    <!-- 在开发者模式下，会显示组件路径和资源信息 -->
+    ${properties.title}
+</div>
+
+<!--
+  调试技巧 2: 输出变量值
+  临时输出变量值进行调试
+-->
+<sly data-sly-set.debugInfo="${{
+    'title': properties.title,
+    'path': resource.path,
+    'resourceType': resource.resourceType
+}}"></sly>
+
+<!-- 仅在开发环境显示 -->
+<div data-sly-test="${properties.debugMode}" 
+     class="debug-info"
+     style="display: block; background: #f0f0f0; padding: 10px; margin: 10px 0;">
+    <pre>${JSON.stringify(debugInfo)}</pre>
+</div>
+
+<!--
+  调试技巧 3: 检查属性是否存在
+-->
+<div data-sly-test="${properties.title}">
+    <!-- 属性存在 -->
+    <h1>${properties.title}</h1>
+</div>
+<div data-sly-test="${!properties.title}">
+    <!-- 属性不存在时的调试信息 -->
+    <p style="color: red;">警告: title 属性未设置</p>
+</div>
+
+<!--
+  调试技巧 4: 使用 data-sly-test 检查条件
+-->
+<div data-sly-test="${properties.items && properties.items.size > 0}">
+    <!-- 正常渲染 -->
+    <ul>
+        <li data-sly-list="${properties.items}">${item}</li>
+    </ul>
+</div>
+<div data-sly-test="${!properties.items || properties.items.size == 0}">
+    <!-- 调试信息 -->
+    <p>调试: items 为空或未定义</p>
+    <p>items 类型: ${properties.items ? typeof properties.items : 'undefined'}</p>
+</div>
+
+<!--
+  错误处理 1: 空值检查
+  始终检查可能为 null 的值
+-->
+<div>
+    <h1>${properties.title || '未设置标题'}</h1>
+    <p>${properties.description || '未设置描述'}</p>
+</div>
+
+<!--
+  错误处理 2: 安全属性访问
+  使用可选链操作符
+-->
+<div>
+    <p>作者: ${properties.author?.name || '匿名'}</p>
+    <p>分类: ${properties.category?.label || '未分类'}</p>
+</div>
+
+<!--
+  错误处理 3: 数组/列表检查
+  在遍历前检查列表是否存在和是否为空
+-->
+<div data-sly-test="${properties.items && properties.items.size > 0}">
+    <ul>
+        <li data-sly-list="${properties.items}">
+            ${item.name || '未命名项目'}
+        </li>
+    </ul>
+</div>
+<div data-sly-test="${!properties.items || properties.items.size == 0}">
+    <p class="empty-state">暂无项目</p>
+</div>
+
+<!--
+  错误处理 4: Use API 错误处理
+  在 Use API 中处理异常
+-->
+<sly data-sly-use.model="${'com.example.SafeModel'}"></sly>
+<div data-sly-test="${model.isValid}">
+    ${model.data}
+</div>
+<div data-sly-test="${!model.isValid}" class="error">
+    <p>错误: ${model.errorMessage || '未知错误'}</p>
+</div>
+
+<!--
+  调试技巧 5: 输出原始值
+  查看属性的原始值
+-->
+<div class="debug" 
+     data-sly-test="${properties.showDebug}">
+    <dl>
+        <dt>资源路径:</dt>
+        <dd>${resource.path}</dd>
+        
+        <dt>资源类型:</dt>
+        <dd>${resource.resourceType}</dd>
+        
+        <dt>组件 ID:</dt>
+        <dd>${component.id}</dd>
+        
+        <dt>页面路径:</dt>
+        <dd>${currentPage.path}</dd>
+        
+        <dt>属性:</dt>
+        <dd>
+            <pre>${JSON.stringify(properties)}</pre>
+        </dd>
+    </dl>
+</div>
+
+<!--
+  常见错误 1: 未定义的属性
+  错误: 直接访问可能不存在的属性
+-->
+<!-- 错误示例 -->
+<!-- <div>${properties.nonExistentProperty.value}</div> -->
+
+<!-- 正确示例 -->
+<div>${properties.nonExistentProperty?.value || '默认值'}</div>
+
+<!--
+  常见错误 2: 循环中的空值
+  错误: 在循环中不检查 item 是否为 null
+-->
+<!-- 错误示例 -->
+<!-- <ul>
+    <li data-sly-list="${properties.items}">
+        ${item.name}
+    </li>
+</ul> -->
+
+<!-- 正确示例 -->
+<ul>
+    <li data-sly-list="${properties.items}"
+        data-sly-test="${item}">
+        ${item.name || '未命名'}
+    </li>
+</ul>
+
+<!--
+  常见错误 3: 字符串拼接
+  错误: 在表达式中直接拼接字符串
+-->
+<!-- 错误示例 -->
+<!-- <div class="${'base-class ' + properties.cssClass}"></div> -->
+
+<!-- 正确示例 -->
+<sly data-sly-set.cssClasses="${['base-class', properties.cssClass].filter(Boolean).join(' ')}"></sly>
+<div class="${cssClasses}"></div>
+
+<!--
+  常见错误 4: 条件表达式优先级
+  错误: 不正确的条件表达式
+-->
+<!-- 错误示例 -->
+<!-- <div data-sly-test="${properties.isActive && properties.isVisible}"></div> -->
+
+<!-- 正确示例 -->
+<div data-sly-test="${properties.isActive && properties.isVisible}">
+    内容
+</div>
+
+<!--
+  调试技巧 6: 使用浏览器控制台
+  在 JavaScript 中访问组件数据
+-->
+<div class="component" 
+     data-sly-attribute.data-debug="${JSON.stringify({
+         'id': component.id,
+         'path': resource.path,
+         'type': resource.resourceType
+     })}">
+    <!-- 在浏览器控制台中可以访问 data-debug 属性 -->
+</div>
+
+<!--
+  错误处理 5: 资源包含错误
+  处理资源包含失败的情况
+-->
+<div data-sly-test="${resource.getChild('child')}">
+    <div data-sly-resource="${'child' @ resourceType='myapp/components/child'}"></div>
+</div>
+<div data-sly-test="${!resource.getChild('child')}">
+    <p class="error">子资源不存在</p>
+</div>
+
+<!--
+  调试技巧 7: 日志输出
+  在 Sling Model 中使用日志
+-->
+<sly data-sly-use.model="${'com.example.LoggingModel'}"></sly>
+<!-- Model 内部可以使用 Logger 输出调试信息 -->
+
+<!--
+  性能调试: 识别性能瓶颈
+-->
+<div class="component">
+    <!-- 避免在循环中进行复杂计算 -->
+    <sly data-sly-set.precomputedData="${model.getPrecomputedData()}"></sly>
+    <ul>
+        <li data-sly-list="${precomputedData}">
+            ${item.value}
+        </li>
+    </ul>
+</div>
+
+<!--
+  调试最佳实践:
+  1. 使用开发者模式
+  2. 添加临时调试输出（记得移除）
+  3. 检查属性是否存在
+  4. 使用安全访问操作符
+  5. 在 Use API 中处理异常
+  6. 使用浏览器开发者工具
+  7. 查看 AEM 日志
+  8. 使用 Sling Model 的日志功能
+-->
+

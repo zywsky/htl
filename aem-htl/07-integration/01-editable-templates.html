@@ -1,0 +1,151 @@
+<!--
+  HTL 与 AEM 功能集成: 可编辑模板 (Editable Templates)
+  
+  学习如何在可编辑模板中使用 HTL
+-->
+
+<!--
+  可编辑模板结构:
+  - 模板定义结构组件
+  - 使用 data-sly-resource 包含结构组件
+  - 使用 parsys 允许内容作者添加组件
+-->
+
+<!--
+  基础可编辑模板示例:
+  页面模板结构
+-->
+<!DOCTYPE html>
+<html lang="${currentPage.language || 'en'}"
+      data-sly-attribute.lang="${currentPage.language || 'en'}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${currentPage.title || '页面标题'}</title>
+    
+    <!-- 引入全局样式 -->
+    <sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+    <sly data-sly-call="${clientlib.css @ categories='myapp.base'}"></sly>
+</head>
+<body>
+    <!--
+      使用结构组件定义页面结构
+      结构组件在模板编辑器中定义
+    -->
+    <div data-sly-resource="${'structure' @ resourceType='wcm/core/components/structure/v1/structure'}"></div>
+    
+    <!-- 全局脚本 -->
+    <sly data-sly-call="${clientlib.js @ categories='myapp.base', defer=true}"></sly>
+</body>
+</html>
+
+<!--
+  结构组件示例:
+  定义页面的布局结构
+-->
+<sly data-sly-use.page="${'com.adobe.cq.wcm.core.components.models.Page'}"></sly>
+
+<header class="header" 
+        data-sly-resource="${'header' @ resourceType='wcm/core/components/structure/v1/container'}">
+    <!-- 头部内容 -->
+</header>
+
+<main class="main" 
+      data-sly-resource="${'main' @ resourceType='wcm/core/components/structure/v1/container'}">
+    <!-- 主要内容区域 -->
+</main>
+
+<footer class="footer" 
+        data-sly-resource="${'footer' @ resourceType='wcm/core/components/structure/v1/container'}">
+    <!-- 底部内容 -->
+</footer>
+
+<!--
+  容器组件示例:
+  允许内容作者添加组件
+-->
+<div class="container ${component.cssClassNames}"
+     data-sly-attribute.id="${component.id}">
+    <!--
+      使用 parsys 允许添加组件
+    -->
+    <div data-sly-resource="${'par' @ resourceType='wcm/core/components/parsys/v1/parsys'}"></div>
+</div>
+
+<!--
+  策略配置:
+  通过设计策略配置组件样式
+-->
+<div class="component ${component.cssClassNames}"
+     data-sly-attribute="${{
+         'id': component.id,
+         'class': 'component ' + component.cssClassNames
+     }}">
+    <!-- 组件内容 -->
+</div>
+
+<!--
+  模板变量:
+  在模板中使用模板变量
+-->
+<sly data-sly-use.template="${'com.adobe.cq.wcm.core.components.models.Page'}"></sly>
+
+<div class="page"
+     data-sly-attribute="${{
+         'data-page-title': template.title,
+         'data-page-path': template.path
+     }}">
+    <!-- 页面内容 -->
+</div>
+
+<!--
+  实际应用: 响应式布局模板
+-->
+<!DOCTYPE html>
+<html lang="${currentPage.language || 'en'}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${currentPage.title || '页面标题'}</title>
+    
+    <sly data-sly-use.clientlib="${'/libs/granite/sightly/templates/clientlib.html'}"></sly>
+    <sly data-sly-call="${clientlib.css @ categories='myapp.base,myapp.layout'}"></sly>
+</head>
+<body class="page-${currentPage.name}">
+    <!-- 头部结构 -->
+    <header class="site-header"
+            data-sly-resource="${'header' @ resourceType='wcm/core/components/structure/v1/container'}">
+    </header>
+    
+    <!-- 主要内容区域 -->
+    <main class="site-main">
+        <!-- 侧边栏 -->
+        <aside class="sidebar"
+               data-sly-resource="${'sidebar' @ resourceType='wcm/core/components/structure/v1/container'}">
+        </aside>
+        
+        <!-- 内容区域 -->
+        <div class="content"
+             data-sly-resource="${'content' @ resourceType='wcm/core/components/structure/v1/container'}">
+        </div>
+    </main>
+    
+    <!-- 底部结构 -->
+    <footer class="site-footer"
+            data-sly-resource="${'footer' @ resourceType='wcm/core/components/structure/v1/container'}">
+    </footer>
+    
+    <sly data-sly-call="${clientlib.js @ categories='myapp.base,myapp.layout', defer=true}"></sly>
+</body>
+</html>
+
+<!--
+  最佳实践:
+  1. 使用结构组件定义页面布局
+  2. 使用容器组件组织内容
+  3. 使用 parsys 提供灵活性
+  4. 通过策略配置样式
+  5. 保持模板简洁
+  6. 使用语义化 HTML
+-->
+

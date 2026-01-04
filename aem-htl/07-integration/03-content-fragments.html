@@ -1,0 +1,185 @@
+<!--
+  HTL 与 AEM 功能集成: 内容片段 (Content Fragments)
+  
+  学习如何在 HTL 组件中使用内容片段
+-->
+
+<!--
+  内容片段组件:
+  使用内容片段模型和内容片段
+-->
+
+<!--
+  基础内容片段使用:
+  通过 Sling Model 访问内容片段
+-->
+<sly data-sly-use.fragment="${'com.adobe.cq.wcm.core.components.models.ContentFragment'}"></sly>
+
+<div class="content-fragment-component ${component.cssClassNames}">
+    <!-- 内容片段标题 -->
+    <h2 data-sly-test="${fragment.title}">${fragment.title}</h2>
+    
+    <!-- 内容片段描述 -->
+    <p data-sly-test="${fragment.description}">${fragment.description}</p>
+    
+    <!-- 内容片段元素 -->
+    <div class="fragment-elements">
+        <div data-sly-list="${fragment.elements}">
+            <div class="element element-${item.name}">
+                <h3>${item.title}</h3>
+                <div>${item.value}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--
+  访问特定元素:
+  通过元素名称访问
+-->
+<sly data-sly-use.fragment="${'com.adobe.cq.wcm.core.components.models.ContentFragment'}"></sly>
+
+<div class="content-fragment">
+    <!-- 访问特定元素 -->
+    <div data-sly-test="${fragment.elements.title}">
+        <h1>${fragment.elements.title.value}</h1>
+    </div>
+    
+    <div data-sly-test="${fragment.elements.content}">
+        <div>${fragment.elements.content.value}</div>
+    </div>
+    
+    <div data-sly-test="${fragment.elements.image}">
+        <img src="${fragment.elements.image.value}" 
+             alt="${fragment.elements.image.title}">
+    </div>
+</div>
+
+<!--
+  内容片段列表:
+  显示多个内容片段
+-->
+<sly data-sly-use.fragmentList="${'com.example.ContentFragmentListModel' @ 
+    fragmentPath=properties.fragmentPath}"></sly>
+
+<div class="content-fragment-list">
+    <div data-sly-list="${fragmentList.fragments}">
+        <article class="fragment-item">
+            <h3>${item.title}</h3>
+            <p>${item.description}</p>
+            <a href="${item.url}">阅读更多</a>
+        </article>
+    </div>
+</div>
+
+<!--
+  内容片段变体:
+  访问不同的变体
+-->
+<sly data-sly-use.fragment="${'com.adobe.cq.wcm.core.components.models.ContentFragment' @ 
+    variationName=properties.variation}"></sly>
+
+<div class="content-fragment variation-${fragment.variationName}">
+    <div>${fragment.elements.content.value}</div>
+</div>
+
+<!--
+  内容片段模型:
+  使用内容片段模型定义结构
+-->
+<sly data-sly-use.fragment="${'com.adobe.cq.wcm.core.components.models.ContentFragment'}"></sly>
+
+<div class="article-fragment">
+    <!-- 文章标题 -->
+    <header>
+        <h1>${fragment.elements.headline?.value || '无标题'}</h1>
+        <p data-sly-test="${fragment.elements.subheadline?.value}">
+            ${fragment.elements.subheadline.value}
+        </p>
+    </header>
+    
+    <!-- 文章内容 -->
+    <div class="article-body">
+        <div data-sly-test="${fragment.elements.body?.value}">
+            ${fragment.elements.body.value}
+        </div>
+    </div>
+    
+    <!-- 文章图片 -->
+    <div data-sly-test="${fragment.elements.image?.value}">
+        <img src="${fragment.elements.image.value}" 
+             alt="${fragment.elements.image.title}">
+    </div>
+    
+    <!-- 文章作者 -->
+    <footer data-sly-test="${fragment.elements.author?.value}">
+        <p>作者: ${fragment.elements.author.value}</p>
+    </footer>
+</div>
+
+<!--
+  内容片段引用:
+  处理内容片段中的引用
+-->
+<sly data-sly-use.fragment="${'com.adobe.cq.wcm.core.components.models.ContentFragment'}"></sly>
+
+<div class="content-fragment-with-references">
+    <div data-sly-test="${fragment.elements.relatedArticles?.value}">
+        <h3>相关文章</h3>
+        <ul>
+            <li data-sly-list="${fragment.elements.relatedArticles.value}">
+                <a href="${item.url}">${item.title}</a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!--
+  实际应用: 新闻列表组件
+-->
+<sly data-sly-use.newsList="${'com.example.NewsFragmentListModel' @ 
+    category=properties.category,
+    limit=properties.limit}"></sly>
+
+<div class="news-list-component">
+    <h2>${newsList.title}</h2>
+    <div class="news-items">
+        <article data-sly-list="${newsList.items}">
+            <div class="news-item">
+                <h3><a href="${item.url}">${item.headline}</a></h3>
+                <p class="news-date">${item.publishDate}</p>
+                <p class="news-excerpt">${item.excerpt}</p>
+                <div data-sly-test="${item.image}">
+                    <img src="${item.image}" alt="${item.headline}">
+                </div>
+            </div>
+        </article>
+    </div>
+</div>
+
+<!--
+  内容片段与体验片段结合:
+  在体验片段中使用内容片段
+-->
+<div class="fragment-combination">
+    <!-- 使用内容片段 -->
+    <sly data-sly-use.fragment="${'com.adobe.cq.wcm.core.components.models.ContentFragment'}"></sly>
+    <div class="content">
+        <h1>${fragment.elements.title?.value}</h1>
+        <div>${fragment.elements.content?.value}</div>
+    </div>
+    
+    <!-- 结合体验片段 -->
+    <div data-sly-resource="${'experience-fragment' @ resourceType='wcm/core/components/experiencefragment/v1/experiencefragment'}"></div>
+</div>
+
+<!--
+  最佳实践:
+  1. 使用 Sling Models 访问内容片段
+  2. 处理空值和缺失元素
+  3. 使用语义化 HTML
+  4. 支持内容片段变体
+  5. 处理引用和关联
+  6. 考虑性能和缓存
+-->
+

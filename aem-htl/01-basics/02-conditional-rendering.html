@@ -1,0 +1,121 @@
+<!--
+  HTL 基础: 条件渲染
+  
+  学习使用 data-sly-test 指令进行条件渲染
+-->
+
+<!--
+  data-sly-test 指令：
+  - 如果表达式的值为 truthy，元素会被渲染
+  - 如果表达式的值为 falsy，元素不会被渲染（包括开始和结束标签）
+  - 可以用于任何 HTML 元素
+-->
+
+<!-- 简单条件判断：如果 title 存在则显示 -->
+<h1 data-sly-test="${properties.title}">${properties.title}</h1>
+
+<!--
+  条件渲染的注意事项：
+  - data-sly-test 不会渲染属性值，只决定元素是否渲染
+  - 如果要同时设置属性值，需要在表达式中处理
+-->
+
+<!-- 条件渲染带有默认值 -->
+<h1 data-sly-test="${properties.title}">${properties.title}</h1>
+<h1 data-sly-test="${!properties.title}">默认标题</h1>
+
+<!--
+  使用逻辑运算符组合条件：
+  - && (AND): 两个条件都满足
+  - || (OR): 至少一个条件满足
+  - ! (NOT): 取反
+-->
+
+<!-- AND 条件：两个条件都满足才显示 -->
+<div data-sly-test="${properties.isPublished && properties.isVisible}">
+    已发布且可见的内容
+</div>
+
+<!-- OR 条件：至少一个条件满足就显示 -->
+<div data-sly-test="${properties.isActive || properties.isFeatured}">
+    活跃或推荐的内容
+</div>
+
+<!-- NOT 条件：取反 -->
+<div data-sly-test="${!properties.isDraft}">
+    非草稿内容
+</div>
+
+<!--
+  复杂条件示例：
+  组合多个条件和比较运算符
+-->
+<div data-sly-test="${properties.price > 100 && properties.isOnSale}">
+    高价促销商品
+</div>
+
+<!--
+  条件渲染多个元素：
+  每个元素都需要自己的 data-sly-test
+-->
+<div data-sly-test="${properties.isPremium}">
+    <h2>高级会员内容</h2>
+    <p>这是只有高级会员才能看到的内容</p>
+</div>
+
+<!--
+  条件渲染和属性结合：
+  可以在条件渲染的元素上使用其他 HTL 指令
+-->
+<div data-sly-test="${properties.items && properties.items.size > 0}"
+     data-sly-attribute.class="${properties.cssClass}">
+    有 ${properties.items.size} 个项目
+</div>
+
+<!--
+  嵌套条件：
+  可以在元素内部嵌套使用 data-sly-test
+-->
+<article data-sly-test="${properties.author}">
+    <h2 data-sly-test="${properties.title}">${properties.title}</h2>
+    <div data-sly-test="${properties.content}">
+        <p>${properties.content}</p>
+    </div>
+    <footer data-sly-test="${properties.publishDate}">
+        发布时间: ${properties.publishDate}
+    </footer>
+</article>
+
+<!--
+  条件渲染列表项：
+  结合 data-sly-list 使用
+-->
+<ul>
+    <li data-sly-repeat="${properties.items}"
+        data-sly-test="${item.isVisible}">
+        ${item.name}
+    </li>
+</ul>
+
+<!--
+  最佳实践：
+  1. 使用语义化的条件判断
+  2. 避免过于复杂的嵌套条件
+  3. 考虑性能：条件表达式会在服务器端执行
+  4. 使用 Use API 处理复杂逻辑，而不是在模板中
+-->
+
+<!-- 使用三元运算符在属性中 -->
+<div class="${properties.isActive ? 'active' : 'inactive'}">
+    内容
+</div>
+
+<!--
+  错误示例 - 不要这样做：
+  data-sly-test 是用来控制元素渲染的，不是用来设置值的
+-->
+<!-- 错误：这样做不会显示 "已发布" 文字 -->
+<div data-sly-test="${properties.isPublished}">已发布</div>
+<!-- 正确：使用条件判断是否渲染 -->
+<div data-sly-test="${properties.isPublished}">状态：已发布</div>
+

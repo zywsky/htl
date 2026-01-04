@@ -1,0 +1,305 @@
+<!--
+  HTL 无障碍性 (Accessibility) 指南
+  
+  学习如何在 HTL 组件中实现无障碍访问支持
+-->
+
+<!--
+  无障碍性基础:
+  确保组件对所有用户（包括残障用户）都可访问
+-->
+
+<!--
+  1. 语义化 HTML
+  使用正确的 HTML 元素
+-->
+<article class="component">
+    <header>
+        <h1>${properties.title}</h1>
+    </header>
+    <main>
+        <p>${properties.content}</p>
+    </main>
+    <footer>
+        <p>作者: ${properties.author}</p>
+    </footer>
+</article>
+
+<!--
+  2. ARIA 属性
+  使用 ARIA 属性增强可访问性
+-->
+<button data-sly-attribute="${{
+    'aria-label': properties.ariaLabel || properties.label,
+    'aria-expanded': properties.isExpanded,
+    'aria-controls': properties.controlsId,
+    'aria-describedby': properties.descriptionId
+}}">
+    ${properties.label}
+</button>
+
+<!--
+  3. 图片 Alt 文本
+  始终提供有意义的 alt 文本
+-->
+<img src="${properties.imagePath}"
+     alt="${properties.altText || properties.title || '图片'}"
+     data-sly-attribute.title="${properties.imageTitle}">
+
+<!--
+  4. 表单标签
+  正确关联表单标签和输入框
+-->
+<label for="${properties.fieldId}">
+    ${properties.label}
+    <span data-sly-test="${properties.required}" 
+          class="required" 
+          aria-label="必填">*</span>
+</label>
+<input type="text"
+       id="${properties.fieldId}"
+       name="${properties.fieldName}"
+       data-sly-attribute="${{
+           'required': properties.required,
+           'aria-required': properties.required,
+           'aria-describedby': properties.helpTextId
+       }}">
+<span data-sly-test="${properties.helpText}"
+      id="${properties.helpTextId}"
+      class="help-text"
+      role="tooltip">
+    ${properties.helpText}
+</span>
+
+<!--
+  5. 链接可访问性
+  确保链接有明确的文本和目标
+-->
+<a href="${properties.linkUrl}"
+   data-sly-attribute="${{
+       'aria-label': properties.ariaLabel || properties.linkText,
+       'target': properties.openInNewTab ? '_blank' : '_self',
+       'rel': properties.openInNewTab ? 'noopener noreferrer' : ''
+   }}">
+    ${properties.linkText}
+    <span data-sly-test="${properties.openInNewTab}" 
+          class="sr-only">(在新窗口打开)</span>
+</a>
+
+<!--
+  6. 键盘导航
+  确保所有交互元素可通过键盘访问
+-->
+<div class="accordion" role="tablist">
+    <div data-sly-list="${properties.items}">
+        <button class="accordion-header"
+                role="tab"
+                data-sly-attribute="${{
+                    'aria-expanded': item.isExpanded,
+                    'aria-controls': 'panel-' + itemList.index,
+                    'id': 'tab-' + itemList.index
+                }}">
+            ${item.title}
+        </button>
+        <div class="accordion-content"
+             role="tabpanel"
+             data-sly-attribute="${{
+                 'id': 'panel-' + itemList.index,
+                 'aria-labelledby': 'tab-' + itemList.index,
+                 'aria-hidden': !item.isExpanded
+             }}">
+            ${item.content}
+        </div>
+    </div>
+</div>
+
+<!--
+  7. 屏幕阅读器支持
+  使用 sr-only 类隐藏视觉元素但保留给屏幕阅读器
+-->
+<div class="component">
+    <h2>${properties.title}</h2>
+    <span class="sr-only">这是一个重要组件</span>
+    <div>${properties.content}</div>
+</div>
+
+<!--
+  8. 错误消息
+  正确关联错误消息和表单字段
+-->
+<div class="form-field">
+    <label for="${properties.fieldId}">${properties.label}</label>
+    <input type="text"
+           id="${properties.fieldId}"
+           name="${properties.fieldName}"
+           data-sly-attribute="${{
+               'aria-invalid': properties.hasError,
+               'aria-describedby': properties.errorId
+           }}">
+    <span data-sly-test="${properties.errorMessage}"
+          id="${properties.errorId}"
+          class="error-message"
+          role="alert"
+          aria-live="polite">
+        ${properties.errorMessage}
+    </span>
+</div>
+
+<!--
+  9. 跳过链接
+  提供跳过导航的链接
+-->
+<a href="#main-content" class="skip-link sr-only-focusable">
+    跳到主要内容
+</a>
+<nav>
+    <!-- 导航内容 -->
+</nav>
+<main id="main-content">
+    <!-- 主要内容 -->
+</main>
+
+<!--
+  10. 颜色对比度
+  确保文本和背景有足够的对比度
+-->
+<div class="component"
+     data-sly-attribute.style="${'color: ' + properties.textColor + '; background-color: ' + properties.bgColor}">
+    <!-- 确保对比度符合 WCAG AA 标准（至少 4.5:1） -->
+    ${properties.content}
+</div>
+
+<!--
+  11. 焦点管理
+  确保焦点可见和可管理
+-->
+<div class="modal" 
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="modal-title">
+    <h2 id="modal-title">${properties.title}</h2>
+    <div>${properties.content}</div>
+    <button class="close-button"
+            aria-label="关闭对话框">
+        关闭
+    </button>
+</div>
+
+<!--
+  12. 动态内容更新
+  使用 aria-live 区域通知屏幕阅读器
+-->
+<div class="component">
+    <div aria-live="polite" 
+         aria-atomic="true"
+         class="sr-only">
+        ${properties.statusMessage}
+    </div>
+    <div>${properties.content}</div>
+</div>
+
+<!--
+  13. 表格可访问性
+  使用正确的表格结构
+-->
+<table>
+    <caption>${properties.tableCaption}</caption>
+    <thead>
+        <tr>
+            <th scope="col" data-sly-list="${properties.headers}">
+                ${item}
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr data-sly-list="${properties.rows}">
+            <th scope="row">${item.label}</th>
+            <td data-sly-list="${item.values}">${item}</td>
+        </tr>
+    </tbody>
+</table>
+
+<!--
+  14. 实际应用: 无障碍按钮组件
+-->
+<button class="btn btn-primary"
+        data-sly-attribute="${{
+            'type': properties.buttonType || 'button',
+            'aria-label': properties.ariaLabel || properties.label,
+            'aria-disabled': properties.isDisabled,
+            'disabled': properties.isDisabled,
+            'aria-describedby': properties.descriptionId
+        }}">
+    <span data-sly-test="${properties.icon}" 
+          class="icon ${properties.icon}"
+          aria-hidden="true">
+    </span>
+    <span>${properties.label}</span>
+    <span data-sly-test="${properties.description}"
+          id="${properties.descriptionId}"
+          class="sr-only">
+        ${properties.description}
+    </span>
+</button>
+
+<!--
+  15. 实际应用: 无障碍表单组件
+-->
+<form action="${properties.actionUrl}"
+      method="${properties.method || 'post'}"
+      aria-label="${properties.formLabel}">
+    <fieldset>
+        <legend>${properties.fieldsetLabel}</legend>
+        <div class="form-field">
+            <label for="${properties.fieldId}">
+                ${properties.label}
+                <span data-sly-test="${properties.required}" 
+                      class="required">*</span>
+            </label>
+            <input type="${properties.inputType || 'text'}"
+                   id="${properties.fieldId}"
+                   name="${properties.fieldName}"
+                   data-sly-attribute="${{
+                       'required': properties.required,
+                       'aria-required': properties.required,
+                       'aria-describedby': properties.helpId + ' ' + properties.errorId,
+                       'aria-invalid': properties.hasError
+                   }}">
+            <span data-sly-test="${properties.helpText}"
+                  id="${properties.helpId}"
+                  class="help-text">
+                ${properties.helpText}
+            </span>
+            <span data-sly-test="${properties.errorMessage}"
+                  id="${properties.errorId}"
+                  class="error-message"
+                  role="alert">
+                ${properties.errorMessage}
+            </span>
+        </div>
+    </fieldset>
+    <button type="submit">${properties.submitLabel}</button>
+</form>
+
+<!--
+  无障碍性检查清单:
+  1. 使用语义化 HTML
+  2. 提供 alt 文本
+  3. 使用 ARIA 属性
+  4. 确保键盘导航
+  5. 提供焦点指示
+  6. 确保颜色对比度
+  7. 关联标签和输入
+  8. 提供错误消息
+  9. 使用跳过链接
+  10. 测试屏幕阅读器
+-->
+
+<!--
+  测试工具:
+  - WAVE (Web Accessibility Evaluation Tool)
+  - axe DevTools
+  - Lighthouse
+  - 屏幕阅读器 (NVDA, JAWS, VoiceOver)
+-->
+

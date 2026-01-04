@@ -1,0 +1,2087 @@
+<!--
+  AEM 组件模板: _cq_template 文件夹详解
+  
+  本文档详细分析 AEM 组件中的 _cq_template 文件夹及其配置，
+  包括其结构、属性、使用场景和最佳实践，从基础到高级应用
+-->
+
+<!--
+  _cq_template 文件夹概述
+  ======================
+  
+  _cq_template 是 AEM 组件的模板文件夹，定义了组件被添加到页面时的默认初始内容结构。
+  它允许开发者预定义组件的初始状态，包括默认属性值、子节点结构等。
+  
+  文件夹位置: /apps/{project}/components/{component-name}/_cq_template/
+  节点类型: nt:unstructured (默认)
+  
+  作用:
+  - 定义组件的默认初始内容
+  - 预配置组件属性
+  - 创建初始子节点结构
+  - 提供一致的组件初始化体验
+-->
+
+<!--
+  1. 基本概念
+  ==========
+-->
+
+<!--
+  1.1 什么是组件模板
+  -----------------
+  
+  组件模板（Component Template）是组件的"蓝图"，定义了组件实例化时的初始状态。
+  
+  类比理解:
+  - 类（Class）vs 实例（Instance）: 模板类似于类定义，实例是具体的组件实例
+  - 表单默认值: 类似于 HTML 表单的默认值
+  - 原型模式: 设计模式中的原型，用于创建对象的副本
+  
+  使用场景:
+  - 组件有复杂的初始结构
+  - 需要预设默认属性值
+  - 需要创建初始子节点
+  - 提供更好的用户体验（减少配置工作）
+-->
+
+<!--
+  1.2 模板文件结构
+  ---------------
+  
+  _cq_template 文件夹的结构:
+  
+  /apps/myapp/components/hero/
+    ├── .content.xml                    # 组件定义
+    ├── hero.html                       # HTL 模板
+    ├── _cq_dialog/                     # 编辑对话框
+    ├── _cq_editConfig.xml              # 编辑配置
+    └── _cq_template/                   # 组件模板（初始内容）
+        └── .content.xml                # 模板内容定义
+        └── [其他子节点]                # 模板的子节点结构
+  
+  注意:
+  - _cq_template 本身是一个文件夹/节点
+  - 其内容定义了组件实例的初始结构
+  - 模板内容会被复制到组件实例
+-->
+
+<!--
+  1.3 模板工作原理
+  --------------
+  
+  当组件被添加到页面时:
+  
+  1. 用户从组件浏览器拖放组件到页面
+  2. AEM 查找组件的 _cq_template 文件夹
+  3. 如果存在，将模板内容复制到组件实例位置
+  4. 组件实例使用模板定义的结构和属性
+  5. 用户可以通过对话框修改这些值
+  
+  流程图:
+  
+  用户操作 → 查找模板 → 复制模板内容 → 创建组件实例 → 显示在页面
+  
+  关键点:
+  - 模板只在组件首次创建时使用
+  - 后续编辑不会回退到模板
+  - 模板是"一次性"的初始化
+-->
+
+<!--
+  2. 基本配置
+  ==========
+-->
+
+<!--
+  2.1 最简单的模板
+  --------------
+-->
+
+<!--
+  最简单的模板示例:
+  
+  /apps/myapp/components/hero/_cq_template/.content.xml
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+            jcr:primaryType="nt:unstructured"
+            jcr:title="Default Hero Title"
+            jcr:description="Default hero description text"/>
+  
+  说明:
+  - jcr:primaryType="nt:unstructured": 默认节点类型
+  - 属性会在组件实例化时被复制
+  - 用户可以通过对话框修改这些值
+-->
+
+<!--
+  2.2 带属性的模板
+  --------------
+-->
+
+<!--
+  示例: 预设多个属性值
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:nt="http://www.jcr/nt/1.0"
+            jcr:primaryType="nt:unstructured"
+            jcr:title="Welcome"
+            jcr:description="Welcome to our website"
+            buttonText="Learn More"
+            buttonLink="/content/my-site/home"
+            backgroundStyle="dark"
+            showButton="{Boolean}true"/>
+  
+  说明:
+  - 可以定义任意属性
+  - 属性名对应组件对话框中的字段名
+  - 布尔值使用 {Boolean}true/false 格式
+  - 字符串值直接写即可
+-->
+
+<!--
+  2.3 带子节点的模板
+  -----------------
+-->
+
+<!--
+  示例: 包含子节点结构的模板
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+            jcr:primaryType="nt:unstructured"
+            jcr:title="Hero Section">
+      <image jcr:primaryType="nt:unstructured"
+             fileReference="/content/dam/my-site/default-hero.jpg"
+             altText="Hero Image"/>
+      
+      <content jcr:primaryType="nt:unstructured">
+          <title jcr:primaryType="nt:unstructured"
+                 text="Welcome"/>
+          <description jcr:primaryType="nt:unstructured"
+                      text="Default description"/>
+      </content>
+  </jcr:root>
+  
+  说明:
+  - 可以定义复杂的节点结构
+  - 子节点也会被复制到组件实例
+  - 支持多级嵌套
+  - 子节点也需要定义 jcr:primaryType
+-->
+
+<!--
+  3. 属性类型和格式
+  ================
+-->
+
+<!--
+  3.1 字符串属性
+  ------------
+-->
+
+<!--
+  字符串属性定义:
+  
+  <jcr:root jcr:primaryType="nt:unstructured"
+            title="Simple String"
+            description="Multi-word string value"
+            longText="This is a longer text value that can span multiple lines in the XML file"/>
+  
+  说明:
+  - 直接使用属性值
+  - 可以使用引号包裹（如果包含特殊字符）
+  - 支持多行文本（在 XML 中换行）
+-->
+
+<!--
+  3.2 布尔属性
+  ----------
+-->
+
+<!--
+  布尔属性定义:
+  
+  <jcr:root jcr:primaryType="nt:unstructured"
+            isVisible="{Boolean}true"
+            isEnabled="{Boolean}false"
+            showButton="{Boolean}true"/>
+  
+  格式说明:
+  - 必须使用 {Boolean} 前缀
+  - true 表示真值
+  - false 表示假值
+  - 不写前缀会被当作字符串
+-->
+
+<!--
+  3.3 数字属性
+  ----------
+-->
+
+<!--
+  数字属性定义:
+  
+  <jcr:root jcr:primaryType="nt:unstructured"
+            count="{Long}10"
+            price="{Double}99.99"
+            priority="{Long}1"/>
+  
+  格式说明:
+  - {Long}: 长整型
+  - {Double}: 双精度浮点数
+  - 数字值直接写在括号内
+-->
+
+<!--
+  3.4 日期属性
+  ----------
+-->
+
+<!--
+  日期属性定义:
+  
+  <jcr:root jcr:primaryType="nt:unstructured"
+            publishDate="{Date}2024-01-15T10:00:00.000+08:00"
+            expireDate="{Date}2024-12-31T23:59:59.000+08:00"/>
+  
+  格式说明:
+  - {Date}: 日期类型
+  - ISO 8601 格式: YYYY-MM-DDTHH:mm:ss.SSS+Timezone
+  - 时间戳格式也可以使用
+-->
+
+<!--
+  3.5 路径属性
+  ----------
+-->
+
+<!--
+  路径属性定义（常用于 DAM 资源）:
+  
+  <jcr:root jcr:primaryType="nt:unstructured"
+            fileReference="/content/dam/my-site/default-image.jpg"
+            pagePath="/content/my-site/home"
+            assetPath="/content/dam/my-site/video.mp4"/>
+  
+  说明:
+  - 使用绝对路径
+  - 路径必须是有效的 JCR 路径
+  - 常用于引用 DAM 资源或页面
+-->
+
+<!--
+  3.6 数组/多值属性
+  ----------------
+-->
+
+<!--
+  多值属性定义:
+  
+  <jcr:root jcr:primaryType="nt:unstructured"
+            tags="[tag1,tag2,tag3]"
+            categories="[category1,category2]"
+            items="[item1,item2,item3]"/>
+  
+  格式说明:
+  - 使用方括号 []
+  - 多个值用逗号分隔
+  - 字符串值不需要引号（如果值中没有空格）
+  - 值中有空格或特殊字符时使用引号
+-->
+
+<!--
+  4. 高级模板结构
+  ==============
+-->
+
+<!--
+  4.1 嵌套节点结构
+  ---------------
+-->
+
+<!--
+  复杂的嵌套结构示例:
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+            jcr:primaryType="nt:unstructured"
+            jcr:title="Complex Component">
+      
+      <!-- 图片配置节点 -->
+      <image jcr:primaryType="nt:unstructured"
+             fileReference="/content/dam/my-site/default.jpg"
+             altText="Default Image"
+             title="Image Title">
+          <metadata jcr:primaryType="nt:unstructured"
+                    photographer="John Doe"
+                    copyright="2024"/>
+      </image>
+      
+      <!-- 内容区域 -->
+      <content jcr:primaryType="nt:unstructured">
+          <header jcr:primaryType="nt:unstructured"
+                  title="Header Title"
+                  subtitle="Header Subtitle"/>
+          
+          <body jcr:primaryType="nt:unstructured">
+              <paragraph jcr:primaryType="nt:unstructured"
+                         text="First paragraph text"/>
+              <paragraph jcr:primaryType="nt:unstructured"
+                         text="Second paragraph text"/>
+          </body>
+      </content>
+      
+      <!-- 操作按钮 -->
+      <actions jcr:primaryType="nt:unstructured">
+          <primary jcr:primaryType="nt:unstructured"
+                   text="Primary Action"
+                   link="/content/my-site/page1"/>
+          <secondary jcr:primaryType="nt:unstructured"
+                    text="Secondary Action"
+                    link="/content/my-site/page2"/>
+      </actions>
+  </jcr:root>
+  
+  说明:
+  - 支持任意深度的嵌套
+  - 每个节点都需要 jcr:primaryType
+  - 节点结构应该反映组件的实际数据模型
+-->
+
+<!--
+  4.2 使用 Sling Resource Type
+  --------------------------
+-->
+
+<!--
+  模板中可以定义子组件的 resourceType:
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:sling="http://sling.apache.org/jcr/sling/1.0"
+            xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+            jcr:primaryType="nt:unstructured">
+      
+      <!-- 嵌套组件 -->
+      <childComponent jcr:primaryType="nt:unstructured"
+                      sling:resourceType="myapp/components/child"
+                      title="Child Title"
+                      description="Child Description"/>
+      
+      <!-- 使用 parsys 包含其他组件 -->
+      <container jcr:primaryType="nt:unstructured"
+                 sling:resourceType="foundation/components/parsys">
+          <!-- parsys 内容会在编辑时添加 -->
+      </container>
+  </jcr:root>
+  
+  说明:
+  - sling:resourceType 定义子组件的类型
+  - 常用于容器组件中包含子组件
+  - 支持嵌套组件结构
+-->
+
+<!--
+  4.3 模板中的 parsys
+  ------------------
+-->
+
+<!--
+  在模板中使用 parsys:
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:sling="http://sling.apache.org/jcr/sling/1.0"
+            jcr:primaryType="nt:unstructured"
+            jcr:title="Container Component">
+      
+      <header jcr:primaryType="nt:unstructured"
+              sling:resourceType="myapp/components/header"
+              title="Header Title"/>
+      
+      <content jcr:primaryType="nt:unstructured"
+               sling:resourceType="foundation/components/parsys">
+          <!-- 空的 parsys，用户可以添加组件 -->
+      </content>
+      
+      <footer jcr:primaryType="nt:unstructured"
+              sling:resourceType="myapp/components/footer"
+              title="Footer Title"/>
+  </jcr:root>
+  
+  说明:
+  - parsys 允许用户在编辑时添加组件
+  - 模板中的 parsys 通常是空的
+  - 也可以预设一些组件在 parsys 中
+-->
+
+<!--
+  5. 实际应用示例
+  ==============
+-->
+
+<!--
+  5.1 图片组件模板
+  --------------
+-->
+
+<!--
+  图片组件模板示例:
+  
+  /apps/myapp/components/image/_cq_template/.content.xml
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+            jcr:primaryType="nt:unstructured"
+            fileReference="/content/dam/my-site/placeholder.jpg"
+            altText="Image"
+            title="Image Title"
+            linkURL=""
+            linkTarget="_self"
+            isDecorative="{Boolean}false"/>
+  
+  说明:
+  - 预设默认图片（占位图）
+  - 预设常用的属性值
+  - 提供合理的默认值
+-->
+
+<!--
+  5.2 文本组件模板
+  --------------
+-->
+
+<!--
+  文本组件模板示例:
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+            jcr:primaryType="nt:unstructured"
+            text="<p>Enter your text here</p>"
+            textIsRich="{Boolean}true"/>
+  
+  说明:
+  - 预设富文本内容
+  - 提供提示文本
+  - 设置文本类型
+-->
+
+<!--
+  5.3 Hero 组件模板
+  ---------------
+-->
+
+<!--
+  Hero 组件模板示例:
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:sling="http://sling.apache.org/jcr/sling/1.0"
+            xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+            jcr:primaryType="nt:unstructured"
+            jcr:title="Hero Section">
+      
+      <image jcr:primaryType="nt:unstructured"
+             fileReference="/content/dam/my-site/default-hero.jpg"
+             altText="Hero Background"/>
+      
+      <content jcr:primaryType="nt:unstructured">
+          <title jcr:primaryType="nt:unstructured"
+                 text="Welcome to Our Site"/>
+          <subtitle jcr:primaryType="nt:unstructured"
+                   text="Discover amazing content"/>
+          <description jcr:primaryType="nt:unstructured"
+                      text="<p>This is the default hero description.</p>"/>
+      </content>
+      
+      <actions jcr:primaryType="nt:unstructured">
+          <primary jcr:primaryType="nt:unstructured"
+                   text="Get Started"
+                   link="/content/my-site/get-started"/>
+      </actions>
+      
+      <style jcr:primaryType="nt:unstructured"
+             alignment="center"
+             overlay="{Boolean}true"
+             overlayOpacity="{Double}0.5"/>
+  </jcr:root>
+  
+  说明:
+  - 完整的组件结构
+  - 预设所有主要属性
+  - 提供合理的默认值
+-->
+
+<!--
+  5.4 容器组件模板
+  --------------
+-->
+
+<!--
+  容器组件模板示例:
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:sling="http://sling.apache.org/jcr/sling/1.0"
+            jcr:primaryType="nt:unstructured"
+            jcr:title="Section Container">
+      
+      <header jcr:primaryType="nt:unstructured"
+              sling:resourceType="myapp/components/header"
+              title="Section Title"
+              showTitle="{Boolean}true"/>
+      
+      <content jcr:primaryType="nt:unstructured"
+               sling:resourceType="foundation/components/parsys">
+          <!-- 用户可以在这里添加组件 -->
+      </content>
+      
+      <footer jcr:primaryType="nt:unstructured"
+              sling:resourceType="myapp/components/footer"/>
+  </jcr:root>
+  
+  说明:
+  - 预设容器结构
+  - 包含 header 和 footer
+  - content 区域使用 parsys
+-->
+
+<!--
+  6. 模板与对话框的关系
+  ====================
+-->
+
+<!--
+  6.1 模板覆盖对话框默认值
+  ----------------------
+  
+  模板值会覆盖对话框中的默认值:
+  
+  对话框定义 (_cq_dialog/.content.xml):
+  <textField jcr:primaryType="nt:unstructured"
+             name="./title"
+             fieldLabel="Title"
+             defaultValue="Default Title"/>
+  
+  模板定义 (_cq_template/.content.xml):
+  <jcr:root jcr:primaryType="nt:unstructured"
+            title="Template Title"/>
+  
+  结果:
+  - 组件实例的 title 属性值是 "Template Title"
+  - 模板值优先于对话框默认值
+  - 用户可以通过对话框修改
+-->
+
+<!--
+  6.2 模板与对话框配合
+  -------------------
+  
+  最佳实践:
+  
+  1. 对话框定义字段结构
+     - 定义所有可编辑的字段
+     - 设置字段类型和验证规则
+  
+  2. 模板提供初始值
+     - 为字段提供合理的默认值
+     - 创建初始内容结构
+  
+  3. 用户修改
+     - 用户可以通过对话框修改模板值
+     - 用户可以在编辑器中直接编辑内容
+  
+  示例:
+  
+  对话框: 定义 title 字段（文本输入）
+  模板: 设置 title="Welcome"（默认值）
+  用户: 可以修改为 "Welcome to Our Site"
+-->
+
+<!--
+  7. 模板查找机制
+  ==============
+-->
+
+<!--
+  7.1 查找顺序
+  -----------
+  
+  AEM 查找组件模板的顺序:
+  
+  1. 当前组件的模板
+     - 路径: /apps/{project}/components/{component}/_cq_template
+     - 优先级: 最高
+  
+  2. 通过 resourceSuperType 继承
+     - 路径: /apps/{project}/components/{super-component}/_cq_template
+     - 优先级: 中（递归查找）
+  
+  3. 系统默认
+     - 如果没有模板，创建空的组件实例
+     - 优先级: 低
+  
+  注意:
+  - 模板不会合并，只使用第一个找到的
+  - 不支持多模板继承合并
+  - 子组件模板会覆盖父组件模板
+-->
+
+<!--
+  7.2 Resource Resolution 集成
+  ---------------------------
+  
+  模板查找使用 Sling Resource Resolution:
+  
+  ResourceResolver resolver = request.getResourceResolver();
+  Resource componentResource = resolver.resolve("/apps/myapp/components/hero");
+  Resource templateResource = componentResource.getChild("_cq_template");
+  
+  if (templateResource != null) {
+      // 使用模板创建组件实例
+      // 模板内容会被复制到组件实例位置
+  }
+  
+  代码实现:
+  
+  public Resource getComponentTemplate(Resource componentResource) {
+      Resource template = componentResource.getChild("_cq_template");
+      if (template != null) {
+          return template;
+      }
+      
+      // 检查 resourceSuperType
+      String superType = componentResource.getValueMap()
+          .get("sling:resourceSuperType", String.class);
+      if (superType != null) {
+          Resource superComponent = resolver.resolve("/apps/" + superType);
+          if (superComponent != null) {
+              return getComponentTemplate(superComponent);  // 递归查找
+          }
+      }
+      
+      return null;
+  }
+-->
+
+<!--
+  8. 模板使用场景
+  ==============
+-->
+
+<!--
+  8.1 何时使用模板
+  --------------
+  
+  适合使用模板的场景:
+  
+  1. 复杂组件结构
+     - 组件有多个子节点
+     - 需要预设嵌套结构
+     - 避免用户从零开始配置
+  
+  2. 默认内容
+     - 需要预设默认文本
+     - 需要预设默认图片
+     - 需要预设默认链接
+  
+  3. 一致性要求
+     - 确保所有实例有相同的初始结构
+     - 标准化组件使用方式
+     - 减少配置错误
+  
+  4. 用户体验
+     - 减少用户配置工作
+     - 提供即用的组件
+     - 展示组件能力
+-->
+
+<!--
+  8.2 何时不使用模板
+  ----------------
+  
+  不需要模板的场景:
+  
+  1. 简单组件
+     - 只有少数几个属性
+     - 用户需要完全自定义
+     - 模板价值不大
+  
+  2. 动态内容
+     - 内容完全由用户输入
+     - 没有合理的默认值
+     - 每次使用都不同
+  
+  3. 数据驱动组件
+     - 内容来自数据源
+     - 不需要预设内容
+     - 模板没有意义
+-->
+
+<!--
+  9. 最佳实践
+  ==========
+-->
+
+<!--
+  9.1 模板设计原则
+  --------------
+  
+  1. 保持简洁
+     - 只包含必要的默认值
+     - 避免过度预设
+     - 给用户留出定制空间
+  
+  2. 使用合理的默认值
+     - 值应该是合理的、有意义的
+     - 避免使用占位文本（如 "TODO"）
+     - 使用真实可用的资源
+  
+  3. 结构清晰
+     - 反映组件的实际数据模型
+     - 使用有意义的节点名称
+     - 保持结构的一致性
+  
+  4. 文档化
+     - 注释说明模板的目的
+     - 说明默认值的含义
+     - 记录模板的使用场景
+-->
+
+<!--
+  9.2 常见模式
+  -----------
+  
+  模式 1: 简单属性模板
+  - 只预设属性值
+  - 不包含子节点
+  - 适用于简单组件
+  
+  模式 2: 结构化模板
+  - 预设节点结构
+  - 包含子节点
+  - 适用于复杂组件
+  
+  模式 3: 容器模板
+  - 预设容器结构
+  - 包含 parsys
+  - 适用于容器组件
+  
+  模式 4: 混合模板
+  - 结合属性预设和结构预设
+  - 适用于大多数组件
+-->
+
+<!--
+  9.3 维护建议
+  -----------
+  
+  1. 版本控制
+     - 模板文件应该纳入版本控制
+     - 记录模板变更历史
+     - 使用有意义的提交消息
+  
+  2. 测试
+     - 测试模板是否正确应用
+     - 验证默认值是否合理
+     - 检查模板结构是否正确
+  
+  3. 更新策略
+     - 谨慎更新现有模板
+     - 考虑对现有实例的影响
+     - 提供迁移路径（如果需要）
+  
+  4. 文档
+     - 记录模板的设计决策
+     - 说明默认值的来源
+     - 维护模板使用指南
+-->
+
+<!--
+  10. 高级主题
+  ===========
+-->
+
+<!--
+  10.1 动态模板（程序化创建）
+  ------------------------
+  
+  可以通过 Java 代码动态创建模板:
+  
+  @Component(service = TemplateInitializer.class)
+  public class DynamicTemplateInitializer {
+      
+      public void initializeTemplate(Resource componentResource) {
+          ResourceResolver resolver = componentResource.getResourceResolver();
+          
+          try {
+              // 创建模板节点
+              ModifiableValueMap templateProps = resolver
+                  .getResource(componentResource.getPath() + "/_cq_template")
+                  .adaptTo(ModifiableValueMap.class);
+              
+              if (templateProps == null) {
+                  // 创建模板节点
+                  Resource templateParent = resolver.getResource(componentResource.getPath());
+                  Resource template = resolver.create(
+                      templateParent,
+                      "_cq_template",
+                      Collections.singletonMap("jcr:primaryType", "nt:unstructured")
+                  );
+                  
+                  templateProps = template.adaptTo(ModifiableValueMap.class);
+              }
+              
+              // 设置模板属性
+              templateProps.put("title", "Dynamic Title");
+              templateProps.put("description", "Dynamic Description");
+              
+              resolver.commit();
+          } catch (PersistenceException e) {
+              log.error("Error creating template", e);
+          }
+      }
+  }
+  
+  使用场景:
+  - 根据配置动态生成模板
+  - 从外部系统导入模板
+  - 程序化管理模板
+-->
+
+<!--
+  10.2 模板验证
+  ------------
+  
+  验证模板的有效性:
+  
+  public boolean validateTemplate(Resource templateResource) {
+      if (templateResource == null) {
+          return false;
+      }
+      
+      ValueMap properties = templateResource.getValueMap();
+      
+      // 验证必需属性
+      if (!properties.containsKey("jcr:primaryType")) {
+          return false;
+      }
+      
+      // 验证属性值类型
+      Object title = properties.get("title");
+      if (title != null && !(title instanceof String)) {
+          return false;
+      }
+      
+      // 验证子节点
+      for (Resource child : templateResource.getChildren()) {
+          if (!validateTemplate(child)) {
+              return false;
+          }
+      }
+      
+      return true;
+  }
+  
+  验证项:
+  - 节点类型是否正确
+  - 属性类型是否正确
+  - 必需属性是否存在
+  - 引用路径是否有效
+-->
+
+<!--
+  10.3 模板转换和迁移
+  ------------------
+  
+  模板迁移示例（从一个结构迁移到另一个）:
+  
+  public void migrateTemplate(Resource oldTemplate, Resource newTemplate) {
+      ResourceResolver resolver = oldTemplate.getResourceResolver();
+      
+      try {
+          ValueMap oldProps = oldTemplate.getValueMap();
+          ModifiableValueMap newProps = newTemplate.adaptTo(ModifiableValueMap.class);
+          
+          // 映射旧属性到新属性
+          String oldTitle = oldProps.get("title", String.class);
+          if (oldTitle != null) {
+              newProps.put("headerTitle", oldTitle);  // 属性重命名
+          }
+          
+          // 转换结构
+          Resource oldContent = oldTemplate.getChild("content");
+          if (oldContent != null) {
+              // 复制并转换子节点
+              // ...
+          }
+          
+          resolver.commit();
+      } catch (PersistenceException e) {
+          log.error("Error migrating template", e);
+      }
+  }
+  
+  迁移场景:
+  - 组件结构变更
+  - 属性重命名
+  - 数据结构升级
+-->
+
+<!--
+  11. 调试和故障排查
+  =================
+-->
+
+<!--
+  11.1 模板不生效
+  --------------
+  
+  问题: 组件模板没有被应用
+  
+  检查项:
+  1. 文件位置
+     - 路径: /apps/{project}/components/{component}/_cq_template/.content.xml
+     - 文件名和文件夹名正确
+     - 文件存在且可读
+  
+  2. XML 语法
+     - XML 格式正确
+     - 命名空间声明正确
+     - 节点类型正确
+  
+  3. 缓存
+     - 清除浏览器缓存
+     - 重启 AEM 实例
+     - 清除 JCR 缓存
+  
+  4. 权限
+     - 文件读取权限
+     - 用户权限
+     - 组件访问权限
+  
+  5. 组件实例
+     - 确认是新创建的实例
+     - 模板只在首次创建时应用
+     - 已有实例不会应用模板
+-->
+
+<!--
+  11.2 模板属性丢失
+  ----------------
+  
+  问题: 模板定义的属性在组件实例中丢失
+  
+  可能原因:
+  1. 属性名不匹配
+     - 模板属性名与对话框字段名不一致
+     - 检查属性名拼写
+  
+  2. 节点结构不匹配
+     - 模板结构与组件期望的结构不一致
+     - 检查节点层级
+  
+  3. 数据类型错误
+     - 属性类型不正确
+     - 检查数据类型格式
+  
+  4. 复制失败
+     - 模板复制过程出错
+     - 查看错误日志
+-->
+
+<!--
+  11.3 调试工具
+  ------------
+  
+  1. CRX/DE Lite
+     - 查看模板节点结构
+     - 检查属性值
+     - 验证节点类型
+     - 路径: http://localhost:4502/crx/de/index.jsp
+  
+  2. 浏览器开发者工具
+     - 查看组件实例的 JSON 表示
+     - 检查属性值
+     - 验证结构
+     - 路径: http://localhost:4502/content/my-site.1.json
+  
+  3. 日志
+     - 启用 DEBUG 日志级别
+     - 查看模板加载日志
+     - 检查错误信息
+     - 日志器: com.day.cq.wcm.core.components
+  
+  4. Java 代码调试
+     - 在模板加载代码中设置断点
+     - 检查模板资源
+     - 验证模板内容
+-->
+
+<!--
+  12. 性能考虑
+  ===========
+-->
+
+<!--
+  12.1 模板大小
+  -----------
+  
+  模板应该保持合理的大小:
+  
+  1. 避免过大
+     - 不要包含大量数据
+     - 避免深度嵌套
+     - 限制子节点数量
+  
+  2. 优化结构
+     - 只包含必要的结构
+     - 避免冗余节点
+     - 使用合理的节点层级
+  
+  3. 资源引用
+     - 使用相对路径（如果可能）
+     - 避免引用大型资源
+     - 优化 DAM 资源引用
+-->
+
+<!--
+  12.2 模板加载性能
+  ---------------
+  
+  优化模板加载:
+  
+  1. 缓存策略
+     - AEM 会缓存模板内容
+     - 避免频繁修改模板
+     - 使用合理的缓存策略
+  
+  2. 延迟加载
+     - 模板只在需要时加载
+     - 避免不必要的模板查找
+     - 优化查找顺序
+  
+  3. 资源解析
+     - 优化 Resource Resolution
+     - 避免重复解析
+     - 使用 ResourceResolver 缓存
+-->
+
+<!--
+  13. 与 Core Components 的关系
+  ============================
+-->
+
+<!--
+  13.1 Core Components 模板使用
+  ---------------------------
+  
+  Core Components 的模板使用:
+  
+  1. 部分组件使用模板
+     - 不是所有组件都有模板
+     - 只在需要时使用
+     - 保持模板简洁
+  
+  2. 模板设计原则
+     - 提供合理的默认值
+     - 保持结构清晰
+     - 遵循最佳实践
+  
+  3. 参考实现
+     - 可以参考 Core Components 的模板实现
+     - 学习模板设计模式
+     - 遵循 AEM 最佳实践
+-->
+
+<!--
+  13.2 迁移建议
+  -----------
+  
+  如果要迁移到 Core Components:
+  
+  1. 评估模板需求
+     - 检查是否有模板
+     - 评估模板的必要性
+     - 考虑是否可以用其他方式实现
+  
+  2. 模板转换
+     - 将自定义模板转换为 Core Components 兼容格式
+     - 调整属性名称
+     - 适配数据结构
+  
+  3. 测试验证
+     - 测试模板是否正确应用
+     - 验证默认值是否合理
+     - 检查功能是否正常
+-->
+
+<!--
+  14. 版本兼容性
+  =============
+-->
+
+<!--
+  AEM 6.0+
+  - 基本模板功能支持
+  - _cq_template 文件夹支持
+  - 属性复制功能
+  
+  AEM 6.1+
+  - 改进的模板处理
+  - 更好的性能
+  
+  AEM 6.2+
+  - 增强的模板功能
+  - 改进的错误处理
+  
+  AEM 6.3+ (Touch UI)
+  - 全面支持 Touch UI
+  - 改进的模板应用
+  - 更好的用户体验
+  
+  AEM 6.4+
+  - 性能优化
+  - 改进的模板查找
+  
+  AEM 6.5+
+  - 增强的模板功能
+  - 改进的用户体验
+  
+  AEM as a Cloud Service
+  - 所有功能都支持
+  - 性能优化
+  - 更好的云原生支持
+-->
+
+<!--
+  16. cq:templatePath 属性详解
+  ===========================
+-->
+
+<!--
+  16.1 cq:templatePath 概述
+  -----------------------
+  
+  在组件的 .content.xml 中可以设置 cq:templatePath 属性来指定模板路径:
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:cq="http://www.day.com/jcr/cq/1.0"
+            jcr:primaryType="cq:Component"
+            jcr:title="Hero Component"
+            cq:templatePath="myapp/components/hero/_cq_template"/>
+  
+  说明:
+  - cq:templatePath: 指定模板的相对路径
+  - 路径相对于组件路径
+  - 默认值: 如果未设置，使用 _cq_template/.content.xml
+  - 主要用于 Editable Templates 场景
+-->
+
+<!--
+  16.2 默认行为
+  -----------
+  
+  如果未设置 cq:templatePath:
+  
+  1. AEM 会在组件目录下查找 _cq_template 文件夹
+  2. 使用 _cq_template/.content.xml 作为模板
+  3. 这是最常见的使用方式
+  
+  如果设置了 cq:templatePath:
+  
+  1. AEM 使用指定的路径查找模板
+  2. 路径可以是相对路径或绝对路径
+  3. 允许使用自定义的模板位置
+-->
+
+<!--
+  16.3 使用场景
+  -----------
+  
+  cq:templatePath 主要用于:
+  
+  1. Editable Templates
+     - 在 Editable Templates 中定义组件模板
+     - 模板可以在模板级别定义
+  
+  2. 共享模板
+     - 多个组件共享同一个模板
+     - 集中管理模板内容
+  
+  3. 环境特定模板
+     - 不同环境使用不同模板
+     - 通过路径配置切换
+  
+  注意:
+  - 大多数情况下不需要设置此属性
+  - 使用默认的 _cq_template 即可
+  - 只在特殊场景中使用
+-->
+
+<!--
+  17. 模板与 Editable Templates 的关系
+  ===================================
+-->
+
+<!--
+  17.1 Editable Templates 中的模板
+  ------------------------------
+  
+  Editable Templates 是 AEM 6.3+ 引入的模板系统:
+  
+  1. 页面模板定义
+     - 在 /conf/{site}/settings/wcm/templates 定义
+     - 模板包含初始页面结构
+  
+  2. 组件模板
+     - 在 Editable Templates 中可以定义组件模板
+     - 使用 cq:templatePath 指定模板路径
+     - 模板在模板策略中配置
+  
+  3. 模板策略
+     - 定义哪些组件可以使用
+     - 配置组件的初始内容
+     - 设置组件属性
+-->
+
+<!--
+  17.2 模板策略配置
+  ---------------
+  
+  在 Editable Templates 的策略中:
+  
+  /conf/my-site/settings/wcm/policies/my-site/components/policy-hero/
+    └── .content.xml
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+            jcr:primaryType="nt:unstructured"
+            cq:templatePath="/conf/my-site/settings/wcm/templates/my-template/structure/jcr:content/root/hero/_cq_template">
+      <!-- 模板策略配置 -->
+  </jcr:root>
+  
+  说明:
+  - 策略可以指定模板路径
+  - 模板在模板级别定义
+  - 组件实例使用模板内容
+-->
+
+<!--
+  18. 编程方式操作模板
+  ===================
+-->
+
+<!--
+  18.1 读取模板内容
+  ----------------
+  
+  通过 Java 代码读取模板:
+  
+  public Resource getComponentTemplate(Resource componentResource) {
+      // 方法 1: 使用默认路径
+      Resource template = componentResource.getChild("_cq_template");
+      
+      // 方法 2: 使用 cq:templatePath
+      ValueMap componentProps = componentResource.getValueMap();
+      String templatePath = componentProps.get("cq:templatePath", String.class);
+      
+      if (templatePath != null) {
+          // 解析路径（相对或绝对）
+          if (templatePath.startsWith("/")) {
+              template = resourceResolver.getResource(templatePath);
+          } else {
+              Resource parent = componentResource.getParent();
+              template = resourceResolver.getResource(parent.getPath() + "/" + templatePath);
+          }
+      }
+      
+      return template;
+  }
+  
+  使用示例:
+  
+  Resource componentResource = resolver.resolve("/apps/myapp/components/hero");
+  Resource templateResource = getComponentTemplate(componentResource);
+  
+  if (templateResource != null) {
+      ValueMap templateProps = templateResource.getValueMap();
+      String defaultTitle = templateProps.get("title", "Default Title");
+      // 使用模板属性
+  }
+-->
+
+<!--
+  18.2 创建组件实例时应用模板
+  --------------------------
+  
+  在组件创建时应用模板:
+  
+  public Resource createComponentInstance(Resource parent, String componentName, Resource template) {
+      ResourceResolver resolver = parent.getResourceResolver();
+      
+      try {
+          // 创建组件实例节点
+          Map<String, Object> instanceProps = new HashMap<>();
+          instanceProps.put("jcr:primaryType", "nt:unstructured");
+          instanceProps.put("sling:resourceType", componentName);
+          
+          Resource instance = resolver.create(parent, "instance", instanceProps);
+          
+          // 复制模板内容到实例
+          if (template != null) {
+              copyTemplateToInstance(template, instance, resolver);
+          }
+          
+          resolver.commit();
+          return instance;
+      } catch (PersistenceException e) {
+          log.error("Error creating component instance", e);
+          return null;
+      }
+  }
+  
+  private void copyTemplateToInstance(Resource template, Resource instance, ResourceResolver resolver) 
+          throws PersistenceException {
+      
+      // 复制属性
+      ValueMap templateProps = template.getValueMap();
+      ModifiableValueMap instanceProps = instance.adaptTo(ModifiableValueMap.class);
+      
+      for (Map.Entry<String, Object> entry : templateProps.entrySet()) {
+          String key = entry.getKey();
+          if (!key.startsWith("jcr:") && !key.startsWith("sling:")) {
+              instanceProps.put(key, entry.getValue());
+          }
+      }
+      
+      // 复制子节点
+      for (Resource child : template.getChildren()) {
+          copyNode(child, instance, resolver);
+      }
+  }
+  
+  private void copyNode(Resource source, Resource parent, ResourceResolver resolver) 
+          throws PersistenceException {
+      
+      ValueMap sourceProps = source.getValueMap();
+      Map<String, Object> targetProps = new HashMap<>();
+      
+      for (Map.Entry<String, Object> entry : sourceProps.entrySet()) {
+          targetProps.put(entry.getKey(), entry.getValue());
+      }
+      
+      Resource target = resolver.create(parent, source.getName(), targetProps);
+      
+      // 递归复制子节点
+      for (Resource child : source.getChildren()) {
+          copyNode(child, target, resolver);
+      }
+  }
+-->
+
+<!--
+  18.3 Sling Model 中使用模板
+  --------------------------
+  
+  在 Sling Model 中访问模板:
+  
+  @Model(adaptables = Resource.class)
+  public class ComponentWithTemplate {
+      
+      @Inject
+      private Resource resource;
+      
+      @Inject
+      private ResourceResolver resourceResolver;
+      
+      public Resource getTemplate() {
+          // 获取组件定义资源
+          String resourceType = resource.getResourceType();
+          Resource componentResource = resourceResolver.resolve("/apps/" + resourceType);
+          
+          if (componentResource != null) {
+              return componentResource.getChild("_cq_template");
+          }
+          
+          return null;
+      }
+      
+      public String getDefaultTitle() {
+          Resource template = getTemplate();
+          if (template != null) {
+              return template.getValueMap().get("title", String.class);
+          }
+          return "Default Title";
+      }
+  }
+-->
+
+<!--
+  19. 模板测试
+  ===========
+-->
+
+<!--
+  19.1 单元测试
+  -----------
+  
+  测试模板读取:
+  
+  @ExtendWith(AemContextExtension.class)
+  class ComponentTemplateTest {
+      
+      @RegisterExtension
+      AemContext context = new AemContext();
+      
+      @Test
+      void testTemplateLoading() {
+          // 创建模板结构
+          context.create().resource("/apps/myapp/components/hero/_cq_template",
+              "jcr:primaryType", "nt:unstructured",
+              "title", "Default Title",
+              "description", "Default Description");
+          
+          // 获取模板
+          Resource componentResource = context.resourceResolver()
+              .resolve("/apps/myapp/components/hero");
+          Resource templateResource = componentResource.getChild("_cq_template");
+          
+          assertNotNull("Template should exist", templateResource);
+          
+          ValueMap props = templateResource.getValueMap();
+          assertEquals("Default Title", props.get("title", String.class));
+          assertEquals("Default Description", props.get("description", String.class));
+      }
+      
+      @Test
+      void testTemplateApplication() {
+          // 创建模板
+          context.create().resource("/apps/myapp/components/hero/_cq_template",
+              "jcr:primaryType", "nt:unstructured",
+              "title", "Template Title");
+          
+          // 创建组件实例
+          Resource parent = context.create().resource("/content/test/jcr:content");
+          
+          // 模拟应用模板
+          Resource template = context.resourceResolver()
+              .resolve("/apps/myapp/components/hero/_cq_template");
+          
+          Resource instance = context.create().resource(
+              parent.getPath() + "/hero",
+              "jcr:primaryType", "nt:unstructured",
+              "sling:resourceType", "myapp/components/hero",
+              "title", template.getValueMap().get("title", String.class)
+          );
+          
+          assertEquals("Template Title", instance.getValueMap().get("title", String.class));
+      }
+  }
+-->
+
+<!--
+  19.2 集成测试
+  -----------
+  
+  测试模板在实际场景中的应用:
+  
+  @ExtendWith(AemContextExtension.class)
+  class ComponentTemplateIntegrationTest {
+      
+      @RegisterExtension
+      AemContext context = new AemContext();
+      
+      @Test
+      void testComponentCreationWithTemplate() {
+          // 创建完整的组件结构
+          context.create().resource("/apps/myapp/components/hero",
+              "jcr:primaryType", "cq:Component",
+              "jcr:title", "Hero Component");
+          
+          context.create().resource("/apps/myapp/components/hero/_cq_template",
+              "jcr:primaryType", "nt:unstructured",
+              "title", "Welcome",
+              "description", "Welcome to our site");
+          
+          // 创建页面
+          context.create().page("/content/test");
+          
+          // 模拟组件创建（需要实际的组件创建服务）
+          // ...
+          
+          // 验证模板内容被应用
+          Resource componentInstance = context.resourceResolver()
+              .resolve("/content/test/jcr:content/hero");
+          
+          if (componentInstance != null) {
+              assertEquals("Welcome", componentInstance.getValueMap().get("title", String.class));
+          }
+      }
+  }
+-->
+
+<!--
+  20. 模板最佳实践（扩展）
+  ======================
+-->
+
+<!--
+  20.1 模板设计模式
+  ----------------
+  
+  模式 1: 最小模板
+  - 只设置必需的属性
+  - 让用户自定义其他内容
+  - 适用于灵活的组件
+  
+  模式 2: 完整模板
+  - 设置所有属性
+  - 提供完整的初始结构
+  - 适用于结构固定的组件
+  
+  模式 3: 分层模板
+  - 基础模板 + 扩展模板
+  - 使用继承机制
+  - 适用于有层次结构的组件
+  
+  模式 4: 条件模板
+  - 根据上下文使用不同模板
+  - 程序化选择模板
+  - 适用于复杂场景
+-->
+
+<!--
+  20.2 模板维护策略
+  ----------------
+  
+  1. 版本控制
+     - 模板文件纳入 Git
+     - 记录模板变更历史
+     - 使用有意义的提交消息
+  
+  2. 变更管理
+     - 谨慎修改现有模板
+     - 考虑对现有实例的影响
+     - 提供迁移路径
+  
+  3. 文档化
+     - 记录模板的设计目的
+     - 说明属性含义
+     - 维护使用指南
+  
+  4. 测试
+     - 测试模板应用
+     - 验证默认值
+     - 检查结构正确性
+-->
+
+<!--
+  21. 模板常见问题
+  ==============
+-->
+
+<!--
+  21.1 模板不生效的常见原因
+  -----------------------
+  
+  问题 1: 文件路径错误
+  原因: 模板文件不在正确的位置
+  解决: 检查路径 /apps/{project}/components/{component}/_cq_template/.content.xml
+  
+  问题 2: XML 格式错误
+  原因: XML 语法错误
+  解决: 验证 XML 格式，检查命名空间
+  
+  问题 3: 节点类型错误
+  原因: jcr:primaryType 不正确
+  解决: 使用正确的节点类型（通常是 nt:unstructured）
+  
+  问题 4: 属性名不匹配
+  原因: 模板属性名与组件字段名不一致
+  解决: 确保属性名匹配对话框字段名
+  
+  问题 5: 模板在已有实例上不生效
+  原因: 模板只在首次创建时应用
+  解决: 模板只对新创建的组件实例生效
+-->
+
+<!--
+  21.2 模板内容被覆盖
+  ------------------
+  
+  问题: 模板内容在编辑后被覆盖
+  
+  说明:
+  - 这是正常行为
+  - 模板只在首次创建时应用
+  - 用户编辑后，实例内容独立于模板
+  - 模板不会自动同步到实例
+  
+  如果需要重置到模板:
+  - 需要手动删除实例内容
+  - 或者通过代码重新应用模板
+  - 或者创建新的实例
+-->
+
+<!--
+  22. 模板与对话框的协调
+  =====================
+-->
+
+<!--
+  22.1 模板值优先级
+  ---------------
+  
+  值优先级（从高到低）:
+  
+  1. 用户输入的值（通过对话框编辑）
+  2. 模板中定义的值（组件创建时）
+  3. 对话框中的默认值（defaultValue）
+  4. 组件代码中的默认值（fallback）
+  
+  示例:
+  
+  对话框默认值: "Dialog Default"
+  模板值: "Template Value"
+  用户输入: "User Input"
+  
+  结果:
+  - 创建时: "Template Value"（模板值）
+  - 用户编辑后: "User Input"（用户输入）
+  - 如果用户清空: 可能使用对话框默认值或空值
+-->
+
+<!--
+  22.2 模板与对话框的配合使用
+  --------------------------
+  
+  最佳实践:
+  
+  1. 对话框定义字段结构
+     - 定义所有可编辑字段
+     - 设置字段类型和验证
+     - 提供字段说明
+  
+  2. 模板提供初始值
+     - 为字段提供合理默认值
+     - 创建初始内容结构
+     - 展示组件能力
+  
+  3. 用户自定义
+     - 用户可以通过对话框修改
+     - 用户可以在编辑器中编辑
+     - 实例内容独立于模板
+  
+  协调原则:
+  - 模板值应该与对话框字段匹配
+  - 模板结构应该反映数据模型
+  - 提供清晰的编辑体验
+-->
+
+<!--
+  23. 模板的国际化
+  ==============
+-->
+
+<!--
+  23.1 多语言模板
+  --------------
+  
+  可以创建不同语言的模板:
+  
+  /apps/myapp/components/hero/
+    ├── _cq_template/
+    │   ├── .content.xml              # 默认模板
+    │   ├── en/.content.xml           # 英文模板
+    │   └── zh-CN/.content.xml        # 中文模板
+  
+  通过代码选择模板:
+  
+  public Resource getLocalizedTemplate(Resource componentResource, String locale) {
+      Resource template = componentResource.getChild("_cq_template");
+      
+      if (template != null && locale != null) {
+          Resource localizedTemplate = template.getChild(locale);
+          if (localizedTemplate != null) {
+              return localizedTemplate;
+          }
+      }
+      
+      return template;  // 回退到默认模板
+  }
+  
+  说明:
+  - 可以根据语言选择模板
+  - 提供语言特定的默认值
+  - 回退到默认模板
+-->
+
+<!--
+  23.2 模板中的国际化文本
+  ---------------------
+  
+  在模板中使用 i18n:
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+  <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+            jcr:primaryType="nt:unstructured">
+      <!-- 注意: 模板中不能直接使用 i18n -->
+      <!-- 需要在组件代码中处理国际化 -->
+      <title jcr:primaryType="nt:unstructured"
+             text="Welcome"/>  <!-- 使用默认语言文本 -->
+  </jcr:root>
+  
+  更好的方式是在组件代码中处理:
+  
+  // 在 Sling Model 或 HTL 中使用 i18n
+  @Inject
+  private i18n i18n;
+  
+  public String getTitle() {
+      String templateTitle = resource.getValueMap().get("title", String.class);
+      if (templateTitle != null) {
+          return i18n.get(templateTitle);  // 如果 title 是 i18n key
+      }
+      return i18n.get("default.title");
+  }
+-->
+
+<!--
+  24. 模板的性能考虑
+  ================
+-->
+
+<!--
+  24.1 模板大小优化
+  ----------------
+  
+  优化建议:
+  
+  1. 保持模板简洁
+     - 只包含必要的默认值
+     - 避免大量数据
+     - 限制嵌套深度
+  
+  2. 避免大资源引用
+     - 不要引用大型 DAM 资源
+     - 使用占位图片路径
+     - 优化资源引用
+  
+  3. 简化结构
+     - 减少不必要的节点
+     - 扁平化结构（如果可能）
+     - 避免过度嵌套
+-->
+
+<!--
+  24.2 模板加载性能
+  ----------------
+  
+  性能优化:
+  
+  1. 缓存策略
+     - AEM 会缓存模板内容
+     - 避免频繁修改模板
+     - 使用合理的缓存策略
+  
+  2. 延迟加载
+     - 模板只在需要时加载
+     - 避免不必要的模板查找
+     - 优化查找顺序
+  
+  3. 资源解析优化
+     - 优化 Resource Resolution
+     - 避免重复解析
+     - 使用 ResourceResolver 缓存
+-->
+
+<!--
+  25. 模板与版本控制
+  ================
+-->
+
+<!--
+  25.1 模板的版本控制策略
+  ---------------------
+  
+  1. 文件跟踪
+     - 模板文件纳入版本控制
+     - 跟踪模板变更
+     - 记录变更历史
+  
+  2. 变更管理
+     - 使用有意义的提交消息
+     - 记录变更原因
+     - 标记重大变更
+  
+  3. 分支策略
+     - 使用分支管理模板开发
+     - 测试后再合并
+     - 保护主分支
+-->
+
+<!--
+  25.2 模板迁移和升级
+  ------------------
+  
+  模板迁移场景:
+  
+  1. 组件结构变更
+     - 属性重命名
+     - 节点结构变化
+     - 数据类型变更
+  
+  2. 模板升级
+     - 添加新属性
+     - 更新默认值
+     - 改进结构
+  
+  迁移策略:
+  
+  1. 向后兼容
+     - 保持旧属性（如果可能）
+     - 提供迁移脚本
+     - 平滑过渡
+  
+  2. 版本标记
+     - 在模板中标记版本
+     - 记录模板版本
+     - 跟踪使用情况
+  
+  3. 测试验证
+     - 测试迁移脚本
+     - 验证数据完整性
+     - 检查功能正常
+-->
+
+<!--
+  26. 高级模板模式
+  ==============
+-->
+
+<!--
+  26.1 条件模板
+  -----------
+  
+  根据条件选择模板:
+  
+  public Resource getConditionalTemplate(Resource componentResource, Map<String, Object> context) {
+      String environment = (String) context.get("environment");
+      String locale = (String) context.get("locale");
+      
+      Resource template = componentResource.getChild("_cq_template");
+      
+      // 根据环境选择模板
+      if ("production".equals(environment)) {
+          Resource prodTemplate = template.getChild("production");
+          if (prodTemplate != null) {
+              return prodTemplate;
+          }
+      }
+      
+      // 根据语言选择模板
+      if (locale != null) {
+          Resource localizedTemplate = template.getChild(locale);
+          if (localizedTemplate != null) {
+              return localizedTemplate;
+          }
+      }
+      
+      return template;  // 默认模板
+  }
+  
+  模板结构:
+  /apps/myapp/components/hero/_cq_template/
+    ├── .content.xml           # 默认模板
+    ├── production/.content.xml # 生产环境模板
+    ├── en/.content.xml        # 英文模板
+    └── zh-CN/.content.xml     # 中文模板
+-->
+
+<!--
+  26.2 动态模板生成
+  ---------------
+  
+  程序化生成模板:
+  
+  public Resource generateTemplate(Resource componentResource, Map<String, Object> config) {
+      ResourceResolver resolver = componentResource.getResourceResolver();
+      
+      try {
+          Resource template = componentResource.getChild("_cq_template");
+          
+          if (template == null) {
+              // 创建模板节点
+              template = resolver.create(componentResource, "_cq_template",
+                  Collections.singletonMap("jcr:primaryType", "nt:unstructured"));
+          }
+          
+          ModifiableValueMap props = template.adaptTo(ModifiableValueMap.class);
+          
+          // 根据配置生成属性
+          if (config.containsKey("defaultTitle")) {
+              props.put("title", config.get("defaultTitle"));
+          }
+          
+          if (config.containsKey("defaultDescription")) {
+              props.put("description", config.get("defaultDescription"));
+          }
+          
+          // 生成子节点
+          if (config.containsKey("includeImage")) {
+              Resource imageNode = resolver.create(template, "image",
+                  Collections.singletonMap("jcr:primaryType", "nt:unstructured"));
+              
+              ModifiableValueMap imageProps = imageNode.adaptTo(ModifiableValueMap.class);
+              imageProps.put("fileReference", config.get("defaultImage"));
+          }
+          
+          resolver.commit();
+          return template;
+      } catch (PersistenceException e) {
+          log.error("Error generating template", e);
+          return null;
+      }
+  }
+-->
+
+<!--
+  27. 模板文档和参考
+  ================
+-->
+
+<!--
+  27.1 模板文档化
+  -------------
+  
+  模板应该包含文档:
+  
+  1. XML 注释
+     <?xml version="1.0" encoding="UTF-8"?>
+     <!--
+       Hero Component Template
+       
+       用途: Hero 组件的默认初始内容
+       版本: 1.0
+       最后更新: 2024-01-15
+       
+       属性说明:
+       - title: Hero 标题
+       - description: Hero 描述
+       - image: Hero 背景图片
+     -->
+     <jcr:root ...>
+  
+  2. 独立文档
+     - README.md 文件
+     - 模板使用指南
+     - 变更日志
+  
+  3. 代码注释
+     - Java 代码中的注释
+     - 说明模板用途
+     - 记录设计决策
+-->
+
+<!--
+  27.2 参考资源
+  ------------
+  
+  官方文档:
+  - AEM Component Development Guide
+  - Editable Templates Documentation
+  - Sling Resource Resolution
+  
+  代码示例:
+  - AEM Core Components
+  - AEM WCM Core Components
+  - Adobe 示例项目
+  
+  社区资源:
+  - AEM 社区论坛
+  - Stack Overflow
+  - GitHub 示例
+-->
+
+<!--
+  28. 总结和最佳实践清单
+  =====================
+-->
+
+<!--
+  28.1 模板使用检查清单
+  -------------------
+  
+  开发时检查:
+  ✓ 模板文件位置正确
+  ✓ XML 语法正确
+  ✓ 节点类型正确
+  ✓ 属性名与对话框字段匹配
+  ✓ 默认值合理有意义
+  ✓ 结构清晰易懂
+  ✓ 测试模板应用
+  ✓ 验证默认值
+  
+  部署前检查:
+  ✓ 模板文件在版本控制中
+  ✓ 所有环境模板一致
+  ✓ 性能测试通过
+  ✓ 文档完整
+  ✓ 团队了解模板使用
+-->
+
+<!--
+  28.2 核心原则总结
+  ----------------
+  
+  1. 简洁明了
+     - 只包含必要的默认值
+     - 保持结构清晰
+     - 避免过度预设
+  
+  2. 合理默认
+     - 使用有意义的默认值
+     - 避免占位文本
+     - 提供真实可用的内容
+  
+  3. 结构匹配
+     - 模板结构匹配数据模型
+     - 属性名匹配对话框字段
+     - 保持一致性
+  
+  4. 文档维护
+     - 记录模板目的
+     - 说明属性含义
+     - 维护使用指南
+  
+  5. 测试验证
+     - 测试模板应用
+     - 验证默认值
+     - 检查功能正常
+-->
+
+<!--
+  29. 相关文档
+  ==========
+  
+  - 组件结构: 01-component-structure.html
+  - 组件配置: 04-component-content-xml.html
+  - 组件对话框: 待创建文档
+  - 组件模板（HTL）: 05-component-htl-template.html
+  - 编辑配置: 06-component-edit-config.html
+  - 高级主题: 04-advanced/
+  - Core Components: https://github.com/adobe/aem-core-wcm-components
+  - AEM 官方文档: https://experienceleague.adobe.com/docs/experience-manager.html
+-->
+

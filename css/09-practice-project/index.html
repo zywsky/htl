@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的作品集 - 实战项目</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">我的作品集</div>
+            <button class="menu-toggle" id="menuToggle">☰</button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#home">首页</a></li>
+                <li><a href="#portfolio">作品</a></li>
+                <li><a href="#about">关于</a></li>
+                <li><a href="#contact">联系</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero区域 -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">欢迎来到我的作品集</h1>
+            <p class="hero-subtitle">我是一名前端开发者，专注于创建美观且实用的网页</p>
+            <a href="#portfolio" class="btn btn-primary">查看作品</a>
+        </div>
+    </section>
+
+    <!-- 作品展示 -->
+    <section id="portfolio" class="portfolio">
+        <div class="container">
+            <h2 class="section-title">我的作品</h2>
+            <div class="portfolio-grid">
+                <div class="portfolio-card">
+                    <div class="card-image">项目 1</div>
+                    <div class="card-content">
+                        <h3>项目标题 1</h3>
+                        <p>这是项目描述，展示了我使用HTML和CSS创建响应式网站的能力。</p>
+                        <a href="#" class="card-link">查看详情 →</a>
+                    </div>
+                </div>
+                <div class="portfolio-card">
+                    <div class="card-image">项目 2</div>
+                    <div class="card-content">
+                        <h3>项目标题 2</h3>
+                        <p>这个项目展示了我的CSS动画和交互设计技能。</p>
+                        <a href="#" class="card-link">查看详情 →</a>
+                    </div>
+                </div>
+                <div class="portfolio-card">
+                    <div class="card-image">项目 3</div>
+                    <div class="card-content">
+                        <h3>项目标题 3</h3>
+                        <p>使用Grid和Flexbox创建的现代化布局设计。</p>
+                        <a href="#" class="card-link">查看详情 →</a>
+                    </div>
+                </div>
+                <div class="portfolio-card">
+                    <div class="card-image">项目 4</div>
+                    <div class="card-content">
+                        <h3>项目标题 4</h3>
+                        <p>响应式设计，完美适配各种设备尺寸。</p>
+                        <a href="#" class="card-link">查看详情 →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 关于我 -->
+    <section id="about" class="about">
+        <div class="container">
+            <h2 class="section-title">关于我</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <h3>前端开发者</h3>
+                    <p>我热爱创建美观、实用的网页。专注于使用现代CSS技术，包括Flexbox、Grid、动画等，打造出色的用户体验。</p>
+                    <p>我熟练掌握HTML、CSS，能够创建响应式、可访问的网站。不断学习新技术，保持对前端开发的热情。</p>
+                    <div class="skills">
+                        <span class="skill-tag">HTML</span>
+                        <span class="skill-tag">CSS</span>
+                        <span class="skill-tag">响应式设计</span>
+                        <span class="skill-tag">Flexbox</span>
+                        <span class="skill-tag">Grid</span>
+                    </div>
+                </div>
+                <div class="about-image">
+                    <div class="image-placeholder">头像</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 联系表单 -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2 class="section-title">联系我</h2>
+            <form class="contact-form">
+                <div class="form-group">
+                    <label for="name">姓名</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">邮箱</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">消息</label>
+                    <textarea id="message" name="message" rows="5" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">发送消息</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2024 我的作品集. 所有权利保留.</p>
+                <div class="social-links">
+                    <a href="#" class="social-link">GitHub</a>
+                    <a href="#" class="social-link">LinkedIn</a>
+                    <a href="#" class="social-link">Twitter</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 移动端菜单切换
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+        
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    navLinks.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
