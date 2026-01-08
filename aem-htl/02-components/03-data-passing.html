@@ -1,37 +1,268 @@
 <!--
-  AEM 组件 HTL: 数据传递
+  AEM 组件 HTL: 数据传递详解
   
   学习在组件之间传递数据和参数
+  本文档详细解释每种数据传递方式的语法、工作原理和实际应用
 -->
 
 <!--
-  数据传递方式：
-  1. 通过 properties (JCR 属性)
-  2. 通过 data-sly-resource 参数传递
-  3. 通过 Use API 共享数据
-  4. 通过 request attributes
+  ============================================================================
+  数据传递概述
+  ============================================================================
+  
+  AEM 组件数据传递的 4 种主要方式：
+  1. 通过 properties (JCR 属性) - 子组件直接访问父组件的 JCR 属性
+  2. 通过 data-sly-resource 参数传递 - 使用 @ 符号传递命名参数
+  3. 通过 Use API 共享数据 - 在 Java Use API 中设置共享数据
+  4. 通过 request attributes - 通过请求对象传递数据
 -->
 
 <!--
-  方式 1: 通过 properties 传递
-  子组件可以直接访问父组件的 properties
-  这是最常用的方式
+  ============================================================================
+  方式 1: 通过 properties 传递（自动继承）
+  ============================================================================
+  
+  这是最简单的方式：子组件可以自动访问父组件的 JCR properties
+  
+  工作原理：
+  1. 父组件有 JCR 属性（通过对话框配置）
+  2. 子组件通过 data-sly-resource 包含父组件
+  3. 子组件直接使用 ${properties.xxx} 访问父组件的属性
+  4. AEM 会自动在子组件的 resource 上下文中查找同名的属性
+-->
+
+<!--
+  ----------------------------------------------------------------------------
+  示例 1.1: 基本 properties 传递（详细解析）
+  ----------------------------------------------------------------------------
+-->
+
+<!--
+  第一步：创建父组件 (parent)
+  
+  位置：/apps/myapp/components/parent/
+  
+  文件结构：
+  /apps/myapp/components/parent/
+  ├── .content.xml
+  ├── parent.html
+  └── _cq_dialog/
+      └── .content.xml
+-->
+
+<!--
+  父组件定义 (.content.xml)：
+-->
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          xmlns:sling="http://sling.apache.org/jcr/sling/1.0"
+          xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          jcr:primaryType="cq:Component"
+          jcr:title="Parent Component"
+          sling:resourceType="myapp/components/parent"
+          componentGroup="MyApp - Components"/>
+
+<!--
+  父组件对话框 (_cq_dialog/.content.xml)：
+  用于配置 message 属性
+-->
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+          xmlns:granite="http://www.adobe.com/jcr/granite/1.0"
+          xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          jcr:primaryType="nt:unstructured"
+          jcr:title="Parent Component Dialog"
+          sling:resourceType="cq/gui/components/authoring/dialog">
+  <content>
+    <items>
+      <tabs>
+        <items>
+          <properties>
+            <items>
+              <!-- 配置 message 字段 -->
+              <message>
+                <fieldLabel>Message</fieldLabel>
+                <fieldDescription>Message to pass to child component</fieldDescription>
+                <name>./message</name>
+                <sling:resourceType="granite/ui/components/coral/foundation/form/textfield"/>
+              </message>
+            </items>
+          </properties>
+        </items>
+      </tabs>
+    </items>
+  </content>
+</jcr:root>
+
+<!--
+  父组件模板 (parent.html)：
 -->
 <div class="parent-component">
+    <!-- 
+      data-sly-resource 详解：
+      
+      ${'child'} 
+      - 这是第一个参数，指定子组件的资源路径
+      - 可以是相对路径（相对于当前 resource）或绝对路径
+      - 'child' 表示在当前 resource 下查找名为 'child' 的子节点
+      - 如果页面结构是 /content/myapp/page/jcr:content/parent/child
+      - 那么这个 'child' 就是指向 /content/myapp/page/jcr:content/parent/child
+      
+      @ resourceType='myapp/components/child'
+      - @ 符号用于传递额外的参数和配置
+      - resourceType 指定子组件使用的组件类型（模板）
+      - 这是必需的，告诉 AEM 使用哪个组件的 HTML 模板来渲染子节点
+      - 如果没有指定 resourceType，AEM 会使用子节点的 jcr:primaryType 来决定渲染方式
+      
+      数据流向：
+      1. 父组件被渲染时，执行 data-sly-resource
+      2. AEM 在 /content/.../parent/child 位置查找或创建子节点
+      3. 设置子节点的 sling:resourceType 为 'myapp/components/child'
+      4. 子组件渲染时，可以访问父组件的 properties（通过继承机制）
+      5. 子组件使用 ${properties.message} 访问父组件的 message 属性
+    -->
     <sly data-sly-resource="${'child' @ resourceType='myapp/components/child'}"></sly>
 </div>
 
-<!-- 子组件可以访问 properties -->
-<!-- 在 child.html 中 -->
+<!--
+  ----------------------------------------------------------------------------
+  第二步：创建子组件 (child)
+  
+  位置：/apps/myapp/components/child/
+  
+  文件结构：
+  /apps/myapp/components/child/
+  ├── .content.xml
+  └── child.html
+-->
+
+<!--
+  子组件定义 (.content.xml)：
+-->
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          xmlns:sling="http://sling.apache.org/jcr/sling/1.0"
+          xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          jcr:primaryType="cq:Component"
+          jcr:title="Child Component"
+          sling:resourceType="myapp/components/child"
+          componentGroup="MyApp - Components"/>
+
+<!--
+  子组件模板 (child.html)：
+  
+  关键点：
+  - ${properties.message} 中的 message 来自父组件的 JCR 属性
+  - 当父组件通过对话框设置 message="Hello from parent" 时
+  - 这个值会被存储在父组件的 JCR 节点中：./message = "Hello from parent"
+  - 子组件渲染时，AEM 会在父组件的 resource 上下文中查找 message 属性
+  - 如果找不到，会在当前子节点的 resource 上下文中查找
+-->
 <div class="child-component">
-    <p>${properties.message}</p>
+    <!-- 
+      properties 访问详解：
+      
+      ${properties.message}
+      - properties 是 HTL 的上下文对象，包含当前 resource 的所有 JCR 属性
+      - message 是属性名，对应 JCR 节点中的 ./message 属性
+      - 属性查找顺序：
+        1. 首先在当前 resource 节点查找 ./message
+        2. 如果没找到，在父 resource 节点查找 ./message（继承机制）
+        3. 如果还没找到，返回 null 或空值
+      
+      实际 JCR 节点结构：
+      /content/myapp/page/jcr:content/
+        parent/                    <-- 父组件节点
+          message = "Hello from parent"  <-- 父组件的 JCR 属性
+          child/                   <-- 子组件节点（通过 data-sly-resource 创建）
+            (没有 message 属性)
+      
+      渲染流程：
+      1. 父组件 parent.html 执行，遇到 data-sly-resource
+      2. AEM 创建子节点 child，并设置 resourceType
+      3. 渲染子组件 child.html
+      4. 子组件中的 ${properties.message} 查找 message 属性
+      5. 在子节点中找不到，向上查找父节点
+      6. 在父节点中找到 message = "Hello from parent"
+      7. 输出："Hello from parent"
+    -->
+    <p>Message from parent: ${properties.message}</p>
 </div>
 
 <!--
-  方式 2: 通过 data-sly-resource 参数传递
-  使用 @ 符号传递命名参数
+  ----------------------------------------------------------------------------
+  实际页面结构示例：
+  ----------------------------------------------------------------------------
+  
+  假设用户在 AEM 编辑器中：
+  1. 添加父组件到页面
+  2. 配置父组件的对话框，设置 message = "Hello from parent"
+  3. 父组件自动包含子组件
+  
+  最终 JCR 节点结构：
+  /content/myapp/en/page/jcr:content/
+    container/                    <-- 容器组件（如 parsys）
+      parent_1234567890/         <-- 父组件实例（AEM 自动生成唯一 ID）
+        jcr:primaryType = "nt:unstructured"
+        sling:resourceType = "myapp/components/parent"
+        message = "Hello from parent"  <-- 用户通过对话框设置的属性
+        
+        child/                    <-- 子组件节点（通过 data-sly-resource 创建）
+          jcr:primaryType = "nt:unstructured"
+          sling:resourceType = "myapp/components/child"
+          (没有自己的属性，继承父组件的属性)
+-->
+
+<!--
+  ============================================================================
+  方式 2: 通过 data-sly-resource 参数传递（显式传递）
+  ============================================================================
+  
+  这种方式允许父组件显式地向子组件传递参数
+  传递的参数会覆盖子组件 resource 中的同名属性
+  
+  语法说明：
+  data-sly-resource="${'child' @ resourceType='...', param1=value1, param2=value2}"
+  
+  - 第一个参数：子组件的资源路径或名称
+  - @ 符号后：可以设置多个参数
+  - resourceType：必需的，指定组件类型
+  - param1, param2：可选的自定义参数，会传递给子组件
+-->
+
+<!--
+  ----------------------------------------------------------------------------
+  示例 2.1: 通过参数传递单个值（详细解析）
+  ----------------------------------------------------------------------------
+-->
+
+<!--
+  父组件模板 (parent.html)：
 -->
 <div class="parent-component">
+    <!-- 
+      参数传递详解：
+      
+      ${'child' @ resourceType='myapp/components/child', title=properties.title}
+      
+      语法分解：
+      1. 'child' - 子组件资源路径
+      2. @ - 参数分隔符，后面是额外的参数
+      3. resourceType='myapp/components/child' - 指定组件类型（必需）
+      4. title=properties.title - 自定义参数，传递父组件的 title 属性
+      
+      参数传递机制：
+      - title=properties.title 会创建一个名为 title 的参数
+      - 这个参数会被传递给子组件的渲染上下文
+      - 在子组件中，${properties.title} 会优先使用传递的参数值
+      - 如果子组件节点本身也有 title 属性，传递的参数会覆盖它
+      
+      数据流向：
+      父组件 properties.title = "Parent Title"
+         ↓ (通过参数传递)
+      子组件渲染时 properties.title = "Parent Title"（传递的值）
+    -->
     <div data-sly-resource="${'child' @ 
         resourceType='myapp/components/child',
         title=properties.title,
@@ -41,49 +272,356 @@
 </div>
 
 <!--
-  在子组件中访问传递的参数：
-  参数会覆盖 properties 中的同名属性
+  子组件模板 (child.html)：
 -->
 <div class="child-component">
+    <!-- 
+      访问传递的参数：
+      - ${properties.title} 首先查找传递的参数 title
+      - 如果传递了 title="Parent Title"，则显示 "Parent Title"
+      - 如果没有传递，会查找子组件节点本身的 title 属性
+      - 如果都没有，返回 null 或空值
+    -->
     <h2>${properties.title}</h2>
     <p>${properties.description}</p>
     <img src="${properties.imagePath}" alt="${properties.title}">
 </div>
 
 <!--
-  传递对象参数：
-  传递复杂的数据结构
+  ----------------------------------------------------------------------------
+  示例 2.2: 传递计算后的值（详细解析）
+  ----------------------------------------------------------------------------
+-->
+
+<!--
+  父组件模板 (parent.html)：
 -->
 <div class="parent-component">
+    <!-- 
+      步骤 1: 在父组件中计算值
+      
+      data-sly-set.computedValue="${properties.price * (1 - properties.discount / 100)}"
+      - data-sly-set 用于定义变量
+      - computedValue 是变量名
+      - 计算表达式：原价 * (1 - 折扣率)
+      - 例如：price=100, discount=20 → computedValue=80
+    -->
+    <sly data-sly-set.computedValue="${properties.price * (1 - properties.discount / 100)}"></sly>
+    
+    <!-- 
+      步骤 2: 将计算后的值传递给子组件
+      
+      finalPrice=computedValue
+      - 将计算后的值作为 finalPrice 参数传递
+      - 子组件可以通过 ${properties.finalPrice} 访问
+    -->
+    <div data-sly-resource="${'child' @ 
+        resourceType='myapp/components/child',
+        finalPrice=computedValue,
+        originalPrice=properties.price,
+        discount=properties.discount}">
+    </div>
+</div>
+
+<!--
+  子组件模板 (child.html)：
+-->
+<div class="child-component">
+    <div class="price-display">
+        <!-- 显示原始价格 -->
+        <span class="original-price">原价: $${properties.originalPrice}</span>
+        
+        <!-- 显示折扣信息 -->
+        <span class="discount">折扣: ${properties.discount}%</span>
+        
+        <!-- 显示计算后的最终价格 -->
+        <span class="final-price">最终价格: $${properties.finalPrice}</span>
+    </div>
+</div>
+
+<!--
+  实际数据示例：
+  
+  父组件对话框配置：
+  - price = 100
+  - discount = 20
+  
+  计算过程：
+  - computedValue = 100 * (1 - 20/100) = 100 * 0.8 = 80
+  
+  传递给子组件：
+  - originalPrice = 100
+  - discount = 20
+  - finalPrice = 80
+  
+  子组件显示：
+  原价: $100
+  折扣: 20%
+  最终价格: $80
+-->
+
+<!--
+  ----------------------------------------------------------------------------
+  示例 2.3: 传递对象参数（详细解析）
+  ----------------------------------------------------------------------------
+-->
+
+<!--
+  父组件模板 (parent.html)：
+-->
+<div class="parent-component">
+    <!-- 
+      步骤 1: 构建复杂的数据对象
+      
+      data-sly-set.childData="${{...}}"
+      - 使用对象字面量语法构建数据对象
+      - childData 是一个包含多个属性的对象
+      - 可以包含字符串、数字、对象、数组等
+    -->
     <sly data-sly-set.childData="${{
         'title': properties.title,
         'items': properties.items,
         'config': {
             'showImage': properties.showImage,
-            'imageSize': properties.imageSize
+            'imageSize': properties.imageSize,
+            'layout': properties.layout || 'grid'
+        },
+        'metadata': {
+            'author': properties.author || 'Unknown',
+            'date': properties.date,
+            'tags': properties.tags || []
         }
     }}"></sly>
-    <div data-sly-resource="${'child' @ resourceType='myapp/components/child', data=childData}"></div>
+    
+    <!-- 
+      步骤 2: 传递整个对象
+      
+      data=childData
+      - 将整个对象作为 data 参数传递
+      - 子组件可以通过 ${properties.data.title} 访问嵌套属性
+    -->
+    <div data-sly-resource="${'child' @ 
+        resourceType='myapp/components/child',
+        data=childData}">
+    </div>
 </div>
 
 <!--
-  方式 3: 使用 request attributes
-  通过 request 对象传递数据（在 Use API 中设置）
+  子组件模板 (child.html)：
 -->
-<!-- 在父组件的 Use API 中 -->
-<!-- request.setAttribute("sharedData", data); -->
-
-<!-- 在子组件中访问 -->
 <div class="child-component">
-    <sly data-sly-use.shared="${'com.example.SharedDataUse' @ request=request}"></sly>
-    <p>${shared.data}</p>
+    <!-- 
+      访问传递的对象：
+      - ${properties.data} 访问整个对象
+      - ${properties.data.title} 访问对象的 title 属性
+      - ${properties.data.config.showImage} 访问嵌套对象的属性
+    -->
+    <h2>${properties.data.title}</h2>
+    
+    <div class="content" data-sly-test="${properties.data.config.showImage}">
+        <img src="${properties.data.imagePath}" 
+             alt="${properties.data.title}"
+             style="width: ${properties.data.config.imageSize}px;">
+    </div>
+    
+    <div class="items">
+        <ul data-sly-list.item="${properties.data.items}">
+            <li>${item.name} - $${item.price}</li>
+        </ul>
+    </div>
+    
+    <div class="metadata">
+        <p>作者: ${properties.data.metadata.author}</p>
+        <p>日期: ${properties.data.metadata.date}</p>
+        <p data-sly-list.tag="${properties.data.metadata.tags}">
+            <span class="tag">${tag}</span>
+        </p>
+    </div>
 </div>
 
 <!--
-  方式 4: 通过 resource path 传递
-  子组件可以从指定路径读取数据
+  实际数据示例：
+  
+  父组件对话框配置：
+  - title = "Product List"
+  - showImage = true
+  - imageSize = 300
+  - layout = "grid"
+  - author = "John Doe"
+  - items = [
+      {name: "Product 1", price: 100},
+      {name: "Product 2", price: 200}
+    ]
+  
+  构建的对象结构：
+  childData = {
+    title: "Product List",
+    config: {
+      showImage: true,
+      imageSize: 300,
+      layout: "grid"
+    },
+    metadata: {
+      author: "John Doe",
+      tags: []
+    },
+    items: [
+      {name: "Product 1", price: 100},
+      {name: "Product 2", price: 200}
+    ]
+  }
+-->
+
+<!--
+  ============================================================================
+  方式 3: 通过 request attributes 传递（Use API 共享数据）
+  ============================================================================
+  
+  这种方式适用于需要在多个组件间共享数据，且不依赖父子关系的场景
+  
+  工作原理：
+  1. 在父组件的 Use API 中设置 request attribute
+  2. 子组件通过 Use API 访问 request attribute
+  3. 数据存储在 HTTP 请求对象中，整个请求生命周期内可用
+-->
+
+<!--
+  ----------------------------------------------------------------------------
+  示例 3.1: 使用 request attributes（详细解析）
+  ----------------------------------------------------------------------------
+-->
+
+<!--
+  父组件的 Java Use API 类：
+  
+  位置：/apps/myapp/core/src/main/java/com/myapp/core/models/ParentModel.java
+-->
+/*
+package com.myapp.core.models;
+
+import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.models.annotations.Model;
+import org.apache.sling.models.annotations.injectorspecific.Self;
+
+@Model(adaptables = SlingHttpServletRequest.class)
+public class ParentModel {
+    
+    @Self
+    private SlingHttpServletRequest request;
+    
+    public void setSharedData(Object data) {
+        // 将数据存储在 request attribute 中
+        // 整个请求生命周期内，任何组件都可以访问这个数据
+        request.setAttribute("sharedData", data);
+    }
+    
+    public Object getSharedData() {
+        // 从 request attribute 中获取数据
+        return request.getAttribute("sharedData");
+    }
+}
+*/
+
+<!--
+  父组件模板 (parent.html)：
 -->
 <div class="parent-component">
+    <!-- 
+      步骤 1: 使用 Use API 处理数据
+      
+      data-sly-use.parent="${'com.myapp.core.models.ParentModel' @ request=request}"
+      - 实例化 Use API 类
+      - 传入 request 对象
+      - parent 是实例名称，可以在模板中使用
+    -->
+    <sly data-sly-use.parent="${'com.myapp.core.models.ParentModel' @ request=request}"></sly>
+    
+    <!-- 
+      步骤 2: 设置共享数据
+      - 通过 Use API 方法设置 request attribute
+      - 数据会在整个请求生命周期内可用
+    -->
+    <sly data-sly-call="${parent.setSharedData}"></sly>
+    
+    <!-- 
+      步骤 3: 包含子组件
+      - 子组件可以访问同一个 request 对象
+      - 因此可以访问共享的 request attribute
+    -->
+    <div data-sly-resource="${'child' @ resourceType='myapp/components/child'}"></div>
+</div>
+
+<!--
+  子组件的 Java Use API 类：
+  
+  位置：/apps/myapp/core/src/main/java/com/myapp/core/models/ChildModel.java
+-->
+/*
+package com.myapp.core.models;
+
+import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.models.annotations.Model;
+import org.apache.sling.models.annotations.injectorspecific.Self;
+
+@Model(adaptables = SlingHttpServletRequest.class)
+public class ChildModel {
+    
+    @Self
+    private SlingHttpServletRequest request;
+    
+    public Object getSharedData() {
+        // 从 request attribute 中获取父组件设置的数据
+        return request.getAttribute("sharedData");
+    }
+}
+*/
+
+<!--
+  子组件模板 (child.html)：
+-->
+<div class="child-component">
+    <!-- 
+      访问共享数据：
+      - 使用 Use API 访问 request attribute
+      - 获取父组件设置的数据
+    -->
+    <sly data-sly-use.child="${'com.myapp.core.models.ChildModel' @ request=request}"></sly>
+    <p>共享数据: ${child.sharedData}</p>
+</div>
+
+<!--
+  ============================================================================
+  方式 4: 通过 resource path 传递（动态路径）
+  ============================================================================
+  
+  这种方式允许子组件从指定的 JCR 路径读取数据
+  适用于数据存储在特定位置的场景
+-->
+
+<!--
+  ----------------------------------------------------------------------------
+  示例 4.1: 通过路径传递数据（详细解析）
+  ----------------------------------------------------------------------------
+-->
+
+<!--
+  父组件模板 (parent.html)：
+-->
+<div class="parent-component">
+    <!-- 
+      传递数据路径：
+      
+      dataPath=resource.path + '/data'
+      - resource.path 是当前 resource 的路径
+      - 例如：/content/myapp/page/jcr:content/parent
+      - '/data' 是相对路径，指向父节点下的 data 子节点
+      - 完整路径：/content/myapp/page/jcr:content/parent/data
+      
+      使用场景：
+      - 当数据存储在特定的 JCR 节点中
+      - 需要子组件从该节点读取数据
+      - 可以实现数据与组件的分离
+    -->
     <div data-sly-resource="${'child' @ 
         resourceType='myapp/components/child',
         dataPath=resource.path + '/data'}">
@@ -91,82 +629,204 @@
 </div>
 
 <!--
-  传递计算后的值：
-  在传递前进行计算
+  子组件模板 (child.html)：
 -->
-<div class="parent-component">
-    <sly data-sly-set.computedValue="${properties.price * (1 - properties.discount / 100)}"></sly>
-    <div data-sly-resource="${'child' @ 
-        resourceType='myapp/components/child',
-        finalPrice=computedValue}">
-    </div>
+<div class="child-component">
+    <!-- 
+      从指定路径读取数据：
+      - 需要先在 Use API 中处理路径
+      - 然后从该路径的 resource 读取属性
+    -->
+    <sly data-sly-use.dataLoader="${'com.myapp.core.models.DataLoader' @ 
+        dataPath=properties.dataPath,
+        resourceResolver=resource.resourceResolver}"></sly>
+    
+    <h2>${dataLoader.title}</h2>
+    <p>${dataLoader.description}</p>
 </div>
 
 <!--
-  条件传递参数：
-  只在条件满足时传递参数
+  ============================================================================
+  实际应用示例：卡片列表组件
+  ============================================================================
 -->
-<div class="parent-component">
-    <sly data-sly-set.shouldShowImage="${properties.showImage && properties.imagePath}"></sly>
-    <div data-sly-resource="${'child' @ 
-        resourceType='myapp/components/child',
-        showImage=shouldShowImage,
-        imagePath=properties.imagePath}">
-    </div>
-</div>
 
 <!--
-  传递数组和集合：
-  传递列表数据
+  ----------------------------------------------------------------------------
+  示例 5.1: 卡片列表传递数据给卡片组件（完整示例）
+  ----------------------------------------------------------------------------
 -->
-<div class="parent-component">
-    <div data-sly-resource="${'child' @ 
-        resourceType='myapp/components/list',
-        items=properties.items}">
-    </div>
-</div>
-
-<!-- 在子组件中遍历传递的数组 -->
-<div class="list-component">
-    <ul>
-        <li data-sly-list="${properties.items}">
-            ${item.name} - $${item.price}
-        </li>
-    </ul>
-</div>
 
 <!--
-  实际应用示例 1：
-  卡片列表组件传递数据给卡片组件
+  卡片列表组件 (card-list.html)：
+  
+  位置：/apps/myapp/components/card-list/
 -->
+
 <div class="card-list-component">
     <h2>${properties.title}</h2>
+    
     <div class="cards">
+        <!-- 
+          循环遍历卡片数组：
+          
+          data-sly-list="${properties.cards}"
+          - properties.cards 是一个数组，包含多个卡片对象
+          - item 是当前循环项
+          - itemList 是循环控制对象
+          - itemList.index 是当前索引（从 0 开始）
+        -->
         <div data-sly-list="${properties.cards}">
+            <!-- 
+              为每个卡片创建子组件：
+              
+              'card-' + itemList.index
+              - 子组件资源路径：card-0, card-1, card-2, ...
+              - 确保每个卡片都有唯一的路径
+              
+              传递卡片数据：
+              - title=item.title - 卡片标题
+              - description=item.description - 卡片描述
+              - imagePath=item.imagePath - 卡片图片路径
+              - linkUrl=item.linkUrl - 卡片链接
+              
+              每个参数都会传递给对应的卡片组件实例
+            -->
             <div data-sly-resource="${'card-' + itemList.index @ 
                 resourceType='myapp/components/card',
                 title=item.title,
                 description=item.description,
                 imagePath=item.imagePath,
-                linkUrl=item.linkUrl}">
+                linkUrl=item.linkUrl,
+                cardIndex=itemList.index}">
             </div>
         </div>
     </div>
 </div>
 
 <!--
-  实际应用示例 2：
-  传递配置对象给子组件
+  卡片列表组件对话框配置：
+  
+  用户通过对话框配置：
+  - title = "Featured Products"
+  - cards = [
+      {
+        title: "Product 1",
+        description: "Description 1",
+        imagePath: "/content/dam/myapp/product1.jpg",
+        linkUrl: "/content/myapp/products/product1"
+      },
+      {
+        title: "Product 2",
+        description: "Description 2",
+        imagePath: "/content/dam/myapp/product2.jpg",
+        linkUrl: "/content/myapp/products/product2"
+      }
+    ]
+  
+  实际 JCR 节点结构：
+  /content/myapp/page/jcr:content/
+    card-list/
+      title = "Featured Products"
+      cards = [
+        {title: "Product 1", ...},
+        {title: "Product 2", ...}
+      ]
+      card-0/                    <-- 第一个卡片子组件
+        sling:resourceType = "myapp/components/card"
+        title = "Product 1"      <-- 通过参数传递的值
+        description = "Description 1"
+        imagePath = "/content/dam/myapp/product1.jpg"
+        linkUrl = "/content/myapp/products/product1"
+        cardIndex = 0
+      card-1/                    <-- 第二个卡片子组件
+        sling:resourceType = "myapp/components/card"
+        title = "Product 2"
+        description = "Description 2"
+        imagePath = "/content/dam/myapp/product2.jpg"
+        linkUrl = "/content/myapp/products/product2"
+        cardIndex = 1
+-->
+
+<!--
+  卡片组件 (card.html)：
+  
+  位置：/apps/myapp/components/card/
+-->
+
+<div class="card-component" data-sly-attribute.data-card-index="${properties.cardIndex}">
+    <!-- 
+      访问传递的参数：
+      - 所有参数都通过 properties 对象访问
+      - 参数值会覆盖子组件节点本身的同名属性
+    -->
+    <a href="${properties.linkUrl}" class="card-link">
+        <div class="card-image">
+            <img src="${properties.imagePath}" alt="${properties.title}">
+        </div>
+        <div class="card-content">
+            <h3 class="card-title">${properties.title}</h3>
+            <p class="card-description">${properties.description}</p>
+        </div>
+    </a>
+</div>
+
+<!--
+  ============================================================================
+  实际应用示例：配置对象传递
+  ============================================================================
+-->
+
+<!--
+  ----------------------------------------------------------------------------
+  示例 6.1: 传递配置对象给子组件（完整示例）
+  ----------------------------------------------------------------------------
+-->
+
+<!--
+  可配置组件 (configurable-component.html)：
 -->
 <div class="configurable-component">
+    <!-- 
+      步骤 1: 构建配置对象
+      
+      配置对象包含：
+      - theme: 主题样式（默认 'default'）
+      - layout: 布局方式（默认 'grid'）
+      - columns: 列数（默认 3）
+      - showTitle: 是否显示标题（默认 true）
+      - showDescription: 是否显示描述（默认 true）
+      
+      使用 || 运算符提供默认值：
+      - properties.theme || 'default'
+      - 如果 properties.theme 存在且不为空，使用它
+      - 否则使用 'default'
+      
+      使用三元运算符处理布尔值：
+      - properties.showTitle != null ? properties.showTitle : true
+      - 如果属性明确设置了（true 或 false），使用设置的值
+      - 如果没有设置（null），使用默认值 true
+    -->
     <sly data-sly-set.componentConfig="${{
         'theme': properties.theme || 'default',
         'layout': properties.layout || 'grid',
         'columns': properties.columns || 3,
         'showTitle': properties.showTitle != null ? properties.showTitle : true,
-        'showDescription': properties.showDescription != null ? properties.showDescription : true
+        'showDescription': properties.showDescription != null ? properties.showDescription : true,
+        'animation': {
+            'enabled': properties.animationEnabled || false,
+            'duration': properties.animationDuration || 300,
+            'effect': properties.animationEffect || 'fade'
+        }
     }}"></sly>
     
+    <!-- 
+      步骤 2: 将配置对象传递给子组件
+      
+      config=componentConfig
+      - 将整个配置对象作为 config 参数传递
+      - 子组件可以通过 ${properties.config.theme} 访问嵌套属性
+    -->
     <div data-sly-resource="${'content' @ 
         resourceType='foundation/components/parsys',
         config=componentConfig}">
@@ -174,45 +834,269 @@
 </div>
 
 <!--
-  实际应用示例 3：
-  多级数据传递
+  子组件 (content-component.html)：
 -->
-<!-- 祖父组件 -->
-<div class="grandparent-component">
-    <sly data-sly-set.grandparentData="${{
-        'siteName': currentPage.title,
-        'sitePath': currentPage.path
-    }}"></sly>
+<div class="content-component" 
+     data-sly-attribute.class="${'theme-' + properties.config.theme + ' layout-' + properties.config.layout}">
     
-    <div data-sly-resource="${'parent' @ 
-        resourceType='myapp/components/parent',
-        grandparentData=grandparentData}">
-    </div>
-</div>
-
-<!-- 父组件 -->
-<div class="parent-component">
-    <sly data-sly-set.parentData="${{
-        'parentTitle': properties.title,
-        'grandparentData': properties.grandparentData
-    }}"></sly>
+    <!-- 根据配置显示标题 -->
+    <h2 data-sly-test="${properties.config.showTitle}">
+        ${properties.title}
+    </h2>
     
-    <div data-sly-resource="${'child' @ 
-        resourceType='myapp/components/child',
-        parentData=parentData}">
+    <!-- 根据配置显示描述 -->
+    <p data-sly-test="${properties.config.showDescription}">
+        ${properties.description}
+    </p>
+    
+    <!-- 应用布局配置 -->
+    <div class="content-grid" 
+         data-sly-attribute.style="${'grid-template-columns: repeat(' + properties.config.columns + ', 1fr)'}">
+        <sly data-sly-list.item="${properties.items}">
+            <div class="content-item">${item.name}</div>
+        </sly>
     </div>
 </div>
 
 <!--
-  实际应用示例 4：
-  使用 Use API 预处理数据后传递
+  ============================================================================
+  实际应用示例：多级数据传递
+  ============================================================================
+-->
+
+<!--
+  ----------------------------------------------------------------------------
+  示例 7.1: 三级组件数据传递（完整示例）
+  ----------------------------------------------------------------------------
+-->
+
+<!--
+  祖父组件 (grandparent.html)：
+-->
+<div class="grandparent-component">
+    <!-- 
+      步骤 1: 收集站点级别数据
+      
+      站点数据包括：
+      - siteName: 站点名称
+      - sitePath: 站点路径
+      - siteConfig: 站点配置
+    -->
+    <sly data-sly-set.grandparentData="${{
+        'siteName': currentPage.title,
+        'sitePath': currentPage.path,
+        'siteConfig': {
+            'theme': currentPage.properties.theme || 'default',
+            'language': currentPage.language
+        }
+    }}"></sly>
+    
+    <!-- 
+      步骤 2: 将站点数据传递给父组件
+      
+      grandparentData=grandparentData
+      - 将站点数据对象传递给父组件
+      - 父组件可以继续传递给子组件
+    -->
+    <div data-sly-resource="${'parent' @ 
+        resourceType='myapp/components/parent',
+        grandparentData=grandparentData,
+        parentTitle=properties.title}">
+    </div>
+</div>
+
+<!--
+  父组件 (parent.html)：
+-->
+<div class="parent-component">
+    <!-- 
+      步骤 1: 合并祖父组件和父组件的数据
+      
+      构建包含两级数据的数据对象：
+      - parentTitle: 父组件的标题
+      - grandparentData: 来自祖父组件的数据
+      - parentConfig: 父组件自己的配置
+    -->
+    <sly data-sly-set.parentData="${{
+        'parentTitle': properties.parentTitle || properties.title,
+        'parentId': component.id,
+        'grandparentData': properties.grandparentData,
+        'parentConfig': {
+            'layout': properties.layout || 'default',
+            'showBreadcrumb': properties.showBreadcrumb || true
+        }
+    }}"></sly>
+    
+    <!-- 
+      步骤 2: 将合并后的数据传递给子组件
+      
+      parentData=parentData
+      - 包含祖父和父组件的数据
+      - 子组件可以访问所有层级的数据
+    -->
+    <div data-sly-resource="${'child' @ 
+        resourceType='myapp/components/child',
+        parentData=parentData,
+        childTitle=properties.title}">
+    </div>
+</div>
+
+<!--
+  子组件 (child.html)：
+-->
+<div class="child-component">
+    <!-- 
+      访问多级数据：
+      
+      ${properties.parentData.grandparentData.siteName}
+      - 访问祖父组件传递的站点名称
+      
+      ${properties.parentData.parentTitle}
+      - 访问父组件的标题
+      
+      ${properties.childTitle}
+      - 访问子组件自己的标题
+    -->
+    <div class="site-info">
+        <p>站点: ${properties.parentData.grandparentData.siteName}</p>
+        <p>站点路径: ${properties.parentData.grandparentData.sitePath}</p>
+        <p>站点主题: ${properties.parentData.grandparentData.siteConfig.theme}</p>
+    </div>
+    
+    <div class="parent-info">
+        <h2>${properties.parentData.parentTitle}</h2>
+        <p>父组件 ID: ${properties.parentData.parentId}</p>
+        <p>布局: ${properties.parentData.parentConfig.layout}</p>
+    </div>
+    
+    <div class="child-info">
+        <h3>${properties.childTitle}</h3>
+    </div>
+</div>
+
+<!--
+  数据流向示意图：
+  
+  祖父组件
+    └─ grandparentData = {siteName: "...", sitePath: "...", ...}
+         ↓ (传递给)
+  父组件
+    └─ parentData = {
+         parentTitle: "...",
+         grandparentData: {...}  <-- 包含祖父组件的数据
+       }
+         ↓ (传递给)
+  子组件
+    └─ 可以访问：
+       - properties.parentData.grandparentData.siteName
+       - properties.parentData.parentTitle
+       - properties.childTitle
+-->
+
+<!--
+  ============================================================================
+  实际应用示例：Use API 预处理数据
+  ============================================================================
+-->
+
+<!--
+  ----------------------------------------------------------------------------
+  示例 8.1: 使用 Use API 预处理后传递（完整示例）
+  ----------------------------------------------------------------------------
+-->
+
+<!--
+  数据处理器 Java 类：
+  
+  位置：/apps/myapp/core/src/main/java/com/myapp/core/models/DataProcessor.java
+-->
+/*
+package com.myapp.core.models;
+
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.models.annotations.Model;
+import org.apache.sling.models.annotations.injectorspecific.Self;
+
+import java.util.*;
+
+@Model(adaptables = Resource.class)
+public class DataProcessor {
+    
+    @Self
+    private Resource resource;
+    
+    private Map<String, Object> rawData;
+    
+    public void init(Map<String, Object> rawData) {
+        this.rawData = rawData;
+    }
+    
+    public Map<String, Object> getProcessedData() {
+        Map<String, Object> processed = new HashMap<>();
+        
+        // 处理数据：格式化日期
+        if (rawData.containsKey("date")) {
+            processed.put("formattedDate", formatDate(rawData.get("date")));
+        }
+        
+        // 处理数据：计算总价
+        if (rawData.containsKey("items")) {
+            List<Map<String, Object>> items = (List<Map<String, Object>>) rawData.get("items");
+            double total = items.stream()
+                .mapToDouble(item -> (Double) item.get("price"))
+                .sum();
+            processed.put("totalPrice", total);
+        }
+        
+        // 处理数据：排序列表
+        if (rawData.containsKey("items")) {
+            List<Map<String, Object>> items = (List<Map<String, Object>>) rawData.get("items");
+            items.sort((a, b) -> ((Double) b.get("price")).compareTo((Double) a.get("price")));
+            processed.put("sortedItems", items);
+        }
+        
+        return processed;
+    }
+    
+    private String formatDate(Object date) {
+        // 日期格式化逻辑
+        return date.toString(); // 简化示例
+    }
+}
+*/
+
+<!--
+  父组件模板 (data-processing-component.html)：
 -->
 <div class="data-processing-component">
-    <sly data-sly-use.processor="${'com.example.DataProcessor' @ 
-        rawData=properties.data}"></sly>
+    <!-- 
+      步骤 1: 使用 Use API 处理原始数据
+      
+      data-sly-use.processor="${'com.myapp.core.models.DataProcessor' @ rawData=properties.data}"
+      - 实例化 DataProcessor
+      - 传入原始数据 rawData
+      - processor 是实例名称
+    -->
+    <sly data-sly-use.processor="${'com.myapp.core.models.DataProcessor' @ 
+        rawData=properties.data,
+        resource=resource}"></sly>
     
+    <!-- 
+      步骤 2: 获取处理后的数据
+      
+      data-sly-set.processedData="${processor.getProcessedData()}"
+      - 调用 processor 的方法获取处理后的数据
+      - processedData 是处理后的数据对象
+    -->
     <sly data-sly-set.processedData="${processor.getProcessedData()}"></sly>
     
+    <!-- 
+      步骤 3: 将处理后的数据传递给子组件
+      
+      data=processedData
+      - 传递处理后的数据（而不是原始数据）
+      - 子组件接收到的已经是格式化、计算、排序后的数据
+    -->
     <div data-sly-resource="${'display' @ 
         resourceType='myapp/components/display',
         data=processedData}">
@@ -220,46 +1104,115 @@
 </div>
 
 <!--
-  实际应用示例 5：
-  传递回调函数（通过 Use API）
+  显示组件 (display.html)：
 -->
-<div class="interactive-component">
-    <sly data-sly-use.handler="${'com.example.ActionHandler' @ 
-        actionType=properties.actionType}"></sly>
+<div class="display-component">
+    <!-- 
+      直接使用处理后的数据：
+      - 不需要再次处理
+      - 数据已经是最终格式
+    -->
+    <div class="summary">
+        <p>日期: ${properties.data.formattedDate}</p>
+        <p>总价: $${properties.data.totalPrice}</p>
+    </div>
     
-    <div data-sly-resource="${'action-button' @ 
-        resourceType='myapp/components/button',
-        handler=handler,
-        label=properties.buttonLabel}">
+    <div class="items">
+        <ul data-sly-list.item="${properties.data.sortedItems}">
+            <li>${item.name} - $${item.price}</li>
+        </ul>
     </div>
 </div>
 
 <!--
-  数据传递最佳实践：
-  1. 优先使用 properties，这是最直接的方式
+  ============================================================================
+  数据传递最佳实践总结
+  ============================================================================
+  
+  1. 优先使用 properties（自动继承）
+     - 最简单直接的方式
+     - 适合父子组件共享相同属性的场景
+     - 子组件自动继承父组件的属性
+     
   2. 使用参数传递覆盖或补充数据
+     - 适合需要显式传递特定数据的场景
+     - 参数会覆盖子组件节点本身的同名属性
+     - 可以传递计算后的值
+     
   3. 对于复杂数据，使用 Use API 预处理
+     - 在 Java 中处理复杂逻辑
+     - 模板只负责显示
+     - 提高性能和可维护性
+     
   4. 避免传递过大的数据对象
+     - 只传递必要的数据
+     - 考虑序列化成本
+     - 评估内存占用
+     
   5. 使用有意义的参数名称
+     - 清晰表达参数的用途
+     - 避免使用缩写
+     - 遵循命名规范
+     
   6. 文档化组件接受的数据结构
+     - 说明哪些属性是必需的
+     - 说明哪些属性是可选的
+     - 提供数据示例
+     
   7. 验证传递的数据的有效性
+     - 在 Use API 中验证
+     - 在模板中检查空值
+     - 提供默认值
 -->
 
 <!--
-  性能考虑：
+  ============================================================================
+  性能考虑
+  ============================================================================
+  
   1. 避免传递大量不必要的数据
+     - 只传递子组件实际需要的数据
+     - 减少序列化和传输成本
+     
   2. 使用 Use API 缓存计算结果
+     - 避免在模板中重复计算
+     - 缓存计算结果供多次使用
+     
   3. 考虑数据的序列化成本
+     - 复杂对象的序列化开销较大
+     - 考虑使用简单的数据结构
+     
   4. 评估数据传递的深度和复杂度
+     - 深层嵌套的数据结构会影响性能
+     - 考虑扁平化数据结构
 -->
 
 <!--
-  数据验证示例：
-  在传递前验证数据
+  ============================================================================
+  数据验证示例
+  ============================================================================
+-->
+
+<!--
+  验证组件模板：
 -->
 <div class="validated-component">
+    <!-- 
+      步骤 1: 验证数据有效性
+      
+      data-sly-set.isValid="${properties.title && properties.title.length > 0}"
+      - 检查 title 是否存在且不为空
+      - isValid 是布尔值，表示数据是否有效
+    -->
     <sly data-sly-set.isValid="${properties.title && properties.title.length > 0}"></sly>
     
+    <!-- 
+      步骤 2: 只在数据有效时渲染子组件
+      
+      data-sly-test="${isValid}"
+      - 如果 isValid 为 true，渲染此元素
+      - 如果为 false，跳过整个元素
+    -->
     <div data-sly-test="${isValid}"
          data-sly-resource="${'child' @ 
             resourceType='myapp/components/child',
@@ -267,6 +1220,12 @@
             isValid=true}">
     </div>
     
+    <!-- 
+      步骤 3: 数据无效时显示错误消息
+      
+      data-sly-test="${!isValid}"
+      - 如果 isValid 为 false，显示错误消息
+    -->
     <div data-sly-test="${!isValid}"
          class="error-message">
         请提供有效的标题
@@ -274,19 +1233,49 @@
 </div>
 
 <!--
-  数据转换示例：
-  在传递前转换数据格式
+  ============================================================================
+  数据转换示例
+  ============================================================================
+-->
+
+<!--
+  转换组件模板：
 -->
 <div class="transform-component">
+    <!-- 
+      在传递前转换数据格式：
+      
+      transformedData 对象包含：
+      - displayName: 转换为大写
+      - formattedDate: 格式化为字符串
+      - numericValue: 转换为整数
+    -->
     <sly data-sly-set.transformedData="${{
         'displayName': properties.name ? properties.name.toUpperCase() : 'UNKNOWN',
         'formattedDate': properties.date ? properties.date.toString() : 'N/A',
-        'numericValue': properties.value ? parseInt(properties.value) : 0
+        'numericValue': properties.value ? parseInt(properties.value) : 0,
+        'booleanValue': properties.enabled === 'true' || properties.enabled === true
     }}"></sly>
     
+    <!-- 将转换后的数据传递给子组件 -->
     <div data-sly-resource="${'display' @ 
         resourceType='myapp/components/display',
         data=transformedData}">
     </div>
 </div>
 
+<!--
+  示例数据转换：
+  
+  原始数据：
+  - name = "john doe"
+  - date = 2024-01-15
+  - value = "123"
+  - enabled = "true"
+  
+  转换后：
+  - displayName = "JOHN DOE" (大写)
+  - formattedDate = "2024-01-15" (字符串)
+  - numericValue = 123 (整数)
+  - booleanValue = true (布尔值)
+-->
